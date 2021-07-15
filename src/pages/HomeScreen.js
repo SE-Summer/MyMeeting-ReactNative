@@ -1,37 +1,45 @@
 import * as React from 'react';
-import { Button, Text, View, StyleSheet } from 'react-native';
+import {Text, View, StyleSheet, TouchableHighlight, Image} from 'react-native';
 import {Avatar, Card} from "react-native-elements";
 import { config } from "../utils/Constants";
+import {Component} from "react";
 
-export default function HomeScreen({ navigation }) {
-    console.log(navigation)
-    return (
-        <View>
-            <View
-                style={styles.rowContainer}
-            >
-                <Avatar
-                    rounded
-                    size={70}
-                    source={{
-                        uri: config.unKnownUri
-                    }}
-                    onPress={() => {
-                        navigation.navigate('Meeting');
-                    }}
-                />
-                <Text style={styles.text}>用户名</Text>
+export default class HomeScreen extends Component{
+    render() {
+        return (
+            <View>
+                <View
+                    style={styles.rowContainer}
+                >
+                    <Avatar
+                        rounded
+                        size={70}
+                        source={{
+                            uri: config.unKnownUri
+                        }}
+                        onPress={() => {
+                            this.props.navigation.navigate('User');
+                        }}
+                    />
+                    <Text style={styles.titleText}>用户名</Text>
+                </View>
+                <View style={styles.cardContainer}>
+                    <TouchableHighlight onPress={() => {this.props.navigation.navigate('CreateMeeting')}}>
+                        <View style={styles.card}>
+                            <Image source={require('../assets/add.png')} style={styles.cardImg}/>
+                            <Text>创建会议</Text>
+                        </View>
+                    </TouchableHighlight>
+                    <TouchableHighlight onPress={() => {this.props.navigation.navigate('Meeting')}}>
+                    <View style={styles.card}>
+                        <Image source={require('../assets/add.png')} style={styles.cardImg}/>
+                        <Text>加入会议</Text>
+                    </View>
+                </TouchableHighlight>
+                </View>
             </View>
-            <View style={styles.cardContainer}>
-                <Card containerStyle={styles.card}>
-                    <Text>创建会议</Text>
-                </Card>
-                <Card containerStyle={styles.card}>
-                    <Text>加入会议</Text>
-                </Card>
-            </View>
-        </View>
-    );
+        );
+    }
 }
 
 const styles = StyleSheet.create({
@@ -39,15 +47,18 @@ const styles = StyleSheet.create({
         margin: 15,
         flexDirection: "row"
     },
-    cardContainer: {
-        flexDirection: "row",
-        justifyContent: "space-around"
-    },
-    text: {
+    titleText: {
         marginLeft: 15,
         textAlignVertical: "center"
     },
-    card: {
+    cardContainer: {
+        flexDirection: "row",
+    },
+    cardImg: {
+        width: 70,
+        height: 70
+    },
+    cardText: {
         alignItems: "center",
     }
 });
