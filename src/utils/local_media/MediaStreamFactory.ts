@@ -1,39 +1,48 @@
 import {printError} from "../printError";
+import {mediaDevices} from "react-native-webrtc";
 
 
 export class MediaStreamFactory
 {
-    private localCamInfos: MediaDeviceInfo[];
-    private localMicInfos: MediaDeviceInfo[];
-    private localSpeakerInfos: MediaDeviceInfo[];
-    private supportedConstraints: MediaTrackSupportedConstraints;
+    private camEnvDeviceId: string = null;
+    private camFrontDeviceId: string = null;
+    private micDeviceId: string = null;
+    private speakerDeviceId: string = null;
 
     constructor()
     {
         this.updateLocalDeviceInfos();
-        navigator.mediaDevices.ondevicechange = (event) => {
+        mediaDevices.ondevicechange = (event) => {
             this.updateLocalDeviceInfos();
         }
-        this.supportedConstraints = navigator.mediaDevices.getSupportedConstraints();
     }
 
     private updateLocalDeviceInfos()
     {
-        navigator.mediaDevices.enumerateDevices()
+        this.camEnvDeviceId = null;
+        this.camFrontDeviceId = null;
+        this.micDeviceId = null;
+        mediaDevices.enumerateDevices()
             .then((devices) => {
-                this.localCamInfos.length = 0;
-                this.localMicInfos.length = 0;
-                this.localSpeakerInfos.length = 0;
                 devices.forEach((device) => {
+                    let deviceId = device.deviceId;
                     switch (device.kind) {
                         case "videoinput":
-                            this.localCamInfos.push(device);
+                            if (device.facing === 'environment' && this.camEnvDeviceId == null) {
+                                this.camEnvDeviceId = deviceId;
+                            } else if (this.camFrontDeviceId == null) {
+                                this.camFrontDeviceId = deviceId;
+                            }
                             break;
                         case "audioinput":
-                            this.localMicInfos.push(device);
+                            if (this.micDeviceId == null) {
+                                this.micDeviceId = deviceId
+                            }
                             break;
                         case "audiooutput":
-                            this.localSpeakerInfos.push(device);
+                            if (this.speakerDeviceId == null) {
+                                this.speakerDeviceId = deviceId
+                            }
                             break;
                     }
                 });
@@ -41,37 +50,80 @@ export class MediaStreamFactory
             .catch(printError);
     }
 
-    public async getCameraStream(_deviceId: string)
+    public getCamEnvDeviceId()
+    {
+        return this.camEnvDeviceId;
+    }
+
+    public getCamFrontDeviceId()
+    {
+        return this.camFrontDeviceId;
+    }
+
+    public getMicDeviceId()
+    {
+        return this.micDeviceId;
+    }
+
+    public getSpeakerDeviceId()
+    {
+        return this.speakerDeviceId;
+    }
+
+    public async getCamEnvStream(_width: number, _height: number, _frameRate: number)
     {
         let stream = null;
-        let constraint = {
+        let constraints = {
             audio: false,
             video: {
-                deviceId: _deviceId,
+                deviceId: this.camEnvDeviceId,
+                frameRate: {ideal: _frameRate},
+                width: _width,
+                height: _height,
             },
         };
 
         try {
-            stream = await navigator.mediaDevices.getUserMedia(constraint)
+            stream = await mediaDevices.getUserMedia(constraints)
         } catch (err) {
             printError(err);
         }
-
         return stream;
     }
 
-    public async getMicrophoneStream(_deviceId: string)
+    public async getCamFrontStream(_width: number, _height: number, _frameRate: number)
     {
         let stream = null;
-        let constraint = {
+        let constraints = {
+            audio: false,
+            video: {
+                deviceId: this.camFrontDeviceId,
+                frameRate: {ideal: _frameRate},
+                width: _width,
+                height: _height,
+            },
+        };
+
+        try {
+            stream = await mediaDevices.getUserMedia(constraints)
+        } catch (err) {
+            printError(err);
+        }
+        return stream;
+    }
+
+    public async getMicStream()
+    {
+        let stream = null;
+        let constraints = {
             audio: {
-                deviceId: _deviceId
+                deviceId: this.micDeviceId,
             },
             video: false,
         };
 
         try {
-            stream = await navigator.mediaDevices.getUserMedia(constraint)
+            stream = await mediaDevices.getUserMedia(constraints)
         } catch (err) {
             printError(err);
         }
@@ -79,20 +131,23 @@ export class MediaStreamFactory
         return stream;
     }
 
-    public async getCamAndMicStream(camDeviceId: string, micDeviceId: string)
+    public async getCamEnvAndMicStream(_width: number, _height: number, _frameRate: number)
     {
         let stream = null;
-        let constraint = {
+        let constraints = {
             audio: {
-                deviceId: camDeviceId,
+                deviceId: this.micDeviceId,
             },
             video: {
-                deviceId: micDeviceId,
+                deviceId: this.camEnvDeviceId,
+                frameRate: {ideal: _frameRate},
+                width: _width,
+                height: _height,
             },
         };
 
         try {
-            stream = await navigator.mediaDevices.getUserMedia(constraint)
+            stream = await mediaDevices.getUserMedia(constraints)
         } catch (err) {
             printError(err);
         }
@@ -100,18 +155,43 @@ export class MediaStreamFactory
         return stream;
     }
 
-    public async getDisplayStream()
+    public async getCamFrontAndMicStream(_width: number, _height: number, _frameRate: number)
     {
         let stream = null;
-        let constraint = {
+        let constraints = {
+            audio: {
+                deviceId: this.micDeviceId,
+            },
+            video: {
+                deviceId: this.camFrontDeviceId,
+                frameRate: {ideal: _frameRate},
+                width: _width,
+                height: _height,
+            },
+        };
+
+        try {
+            stream = await mediaDevices.getUserMedia(constraints)
+        } catch (err) {
+            printError(err);
+        }
+
+        return stream;
+    }
+
+    public async getDisplayStream(_width: number, _height: number, _frameRate: number)
+    {
+        let stream = null;
+        let constraints = {
             audio: true,
             video: {
-                displaySurface: 'monitor',
+                frameRate: {ideal: _frameRate},
+                width: _width,
+                height: _height,
             },
         };
         try {
-            const navi = navigator as any;
-            stream = await navi.mediaDevices.getDisplayMedia(constraint);
+            stream = await mediaDevices.getDisplayMedia(constraints);
         } catch (err) {
             printError(err);
         }
