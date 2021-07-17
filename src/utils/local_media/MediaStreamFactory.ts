@@ -1,4 +1,4 @@
-import {printError} from "../printError";
+import {printError} from "../PrintError";
 import {mediaDevices} from "react-native-webrtc";
 
 

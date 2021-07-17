@@ -1,12 +1,12 @@
 import {Button, View} from "react-native";
 import * as React from "react";
 import {Component} from "react";
-import {printError} from "../utils/printError";
+import {printError} from "../utils/PrintError";
 import {mediaDevices, MediaStream, registerGlobals, RTCView} from "react-native-webrtc";
 import {MediaStreamFactory} from "../utils/local_media/MediaStreamFactory";
 import * as mediasoupClient from "mediasoup-client";
-import {getRequest} from "../utils/ajax";
-import {serviceConfig} from "../serviceConfig";
+import {getRequest} from "../utils/Ajax";
+import {serviceConfig} from "../ServiceConfig";
 import {Device} from "mediasoup-client";
 import { types as mediasoupTypes } from "mediasoup-client";
 
