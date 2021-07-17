@@ -8,8 +8,8 @@ import {Divider} from "react-native-elements";
 
 const Item = ({icon, text, func}) => {
     return(
-        <TouchableOpacity onPress={func} style={{flexDirection: "row", padding: 15, backgroundColor:"white"}}>
-            <Ionicons name={icon} size={23} color={"green"} style={{}}/>
+        <TouchableOpacity onPress={func} style={{flexDirection: "row", padding: 15}}>
+            <Ionicons name={icon} size={23} color={"#058451"} style={{}}/>
             <Text style={{fontSize:15, textAlign: "left", marginLeft: 20}}>{text}</Text>
             <View style={{alignItems: "flex-end", flex: 1}}>
                 <Ionicons name={"ios-chevron-forward"} size={23}/>
@@ -27,6 +27,10 @@ export default class UserScreen extends Component{
 
     }
 
+    navigateToMeetingSettings = () => {
+
+    }
+
     logOut = () => {
 
     }
@@ -35,10 +39,13 @@ export default class UserScreen extends Component{
         return (
             <View>
                 <UserInf style={userScreenStyles.inf}/>
-                <View style={{marginTop: 20}}>
-                    <Item icon={"document-text"} text={"会议记录"} func={this.navigateToHistory}/>
+                <View style={userScreenStyles.optionsContainer}>
+                    <Item icon={"document-text"} text={"历史记录"} func={this.navigateToHistory}/>
+                </View>
+                <View style={userScreenStyles.optionsContainer}>
+                    <Item icon={"settings-outline"} text={"会议设置"} func={this.navigateToMeetingSettings}/>
                     <Divider />
-                    <Item icon={"settings"} text={"通用"} func={this.navigateToSettings()} />
+                    <Item icon={"settings"} text={"通用"} func={this.navigateToSettings} />
                 </View>
                 <TouchableOpacity onPress={this.logOut} style={userScreenStyles.logOut}>
                     <Text style={{fontSize:15, textAlign: "center", color: "red"}}>退出登录</Text>
@@ -50,13 +57,20 @@ export default class UserScreen extends Component{
 
 const userScreenStyles = StyleSheet.create({
     inf: {
-        marginTop: 10,
+        elevation: 5,
     },
     logOut: {
         marginRight: 10,
         marginLeft: 10,
+        marginTop: 100,
+        padding: 14,
+        backgroundColor:"white",
+        borderRadius: 10
+    },
+    optionsContainer: {
+        marginRight: 10,
+        marginLeft: 10,
         marginTop: 30,
-        padding: 15,
         backgroundColor:"white",
         borderRadius: 10
     }

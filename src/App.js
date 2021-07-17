@@ -10,6 +10,8 @@ import UserScreen from "./pages/UserScreen";
 import HistoryScreen from "./pages/HistoryScreen";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {config} from "./utils/Constants";
+import {Button, Text, View} from "react-native";
+import {TextButton} from "./components/MyButton";
 
 const Tab = createBottomTabNavigator();
 
@@ -45,13 +47,26 @@ export default function App() {
         <SafeAreaProvider>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={"Tab"}>
-                    <Stack.Screen name={"Tab"} component={TabScreen} options={{title: "Meeting", headerTitleAlign: "center"}}/>
+                    <Stack.Screen name={"Tab"} component={TabScreen} options={{headerShown: false}}/>
                     <Stack.Screen name={"History"} component={HistoryScreen} options={{
-                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                     }}/>
-                    <Stack.Screen name={"CreateMeeting"} component={CreateMeetingScreen} options={{
-                        cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS
-                    }}/>
+                    <Stack.Screen name={"CreateMeeting"} component={CreateMeetingScreen} options={({navigation}) => ({
+                        cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
+                        headerLeft: () => {
+                            return (
+                                <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>
+                            )
+                        },
+                        headerRight: () => {
+                            return (
+                                <TextButton text={"完成"} pressEvent={() => {}} />
+                            )
+                        },
+                        headerTitleAlign: "center",
+                        title: "创建会议",
+                    })}
+                    />
                     <Stack.Screen name={"Meeting"} component={MeetingScreen} options={{
                         cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
                         title: "JoinMeeting"

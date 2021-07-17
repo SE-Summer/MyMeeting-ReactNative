@@ -14,6 +14,8 @@ target 'MyMeeting_React_Native' do
 
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
+  pod 'BVLinearGradient', :path => '../node_modules/react-native-linear-gradient'
+
   target 'MyMeeting_React_NativeTests' do
     inherit! :complete
     # Pods for testing
