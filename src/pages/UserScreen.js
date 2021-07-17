@@ -32,7 +32,7 @@ export default class UserScreen extends Component{
     }
 
     logOut = () => {
-
+        this.props.navigation.navigate('Login')
     }
 
     render() {

@@ -1,48 +1,8 @@
 import * as React from 'react';
-import {Text, View, StyleSheet, Image} from 'react-native';
+import {Text, View, StyleSheet} from 'react-native';
 import { Component } from "react";
 import {RoundButton} from "../components/MyButton";
 import LinearGradient from "react-native-linear-gradient";
-import MaskedView from '@react-native-community/masked-view';
-
-const Title = () => {
-    return (
-        <MaskedView
-            style={{ width: 300, height: 300}}
-            maskElement={
-                <View
-                    style={{
-                        backgroundColor: 'transparent',
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                    }}
-                >
-                    <Text
-                        style={{
-                            fontSize: 80,
-                            color: 'black',
-                            fontWeight: 'bold'
-                        }}
-                    >
-                        Start
-                    </Text>
-                    <Text
-                        style={{
-                            fontSize: 60,
-                            color: 'black',
-                            fontWeight: 'bold'
-                        }}
-                    >
-                        Meeting
-                    </Text>
-                </View>
-            }
-        >
-            <Image source={require('../assets/earth.png')} style={{width: 300, height: 300}}/>
-        </MaskedView>
-    )
-}
 
 export default class HomeScreen extends Component{
     navigateToCreateMeeting = () => {
@@ -51,6 +11,10 @@ export default class HomeScreen extends Component{
 
     navigateToMeeting = () => {
         this.props.navigation.navigate('Meeting');
+    }
+
+    navigateToReserveMeeting = () => {
+        this.props.navigation.navigate('ReServeMeeting');
     }
 
     render() {
@@ -62,8 +26,35 @@ export default class HomeScreen extends Component{
                     style={{flex: 1, justifyContent: "flex-end"}}
                 >
                     <View style={styles.titleContainer}>
-                        <Title />
+                        <View
+                            style={{
+                                backgroundColor: 'transparent',
+                                flex: 1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    fontSize: 72,
+                                    color: 'white',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Start
+                            </Text>
+                            <Text
+                                style={{
+                                    fontSize: 60,
+                                    color: 'white',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Meeting
+                            </Text>
+                        </View>
                     </View>
+                    <View style={{height: 100}}/>
                     <View style={styles.buttonContainer}>
                         <RoundButton
                             iconText={"add-outline"}
@@ -80,7 +71,7 @@ export default class HomeScreen extends Component{
                         />
                         <RoundButton
                             iconText={"calendar"}
-                            pressEvent={this.navigateToCreateMeeting}
+                            pressEvent={this.navigateToReserveMeeting}
                             theStyle={{backgroundColor: "#85e1ab"}}
                             title={"预约"}
                         />

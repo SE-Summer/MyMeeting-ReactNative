@@ -10,8 +10,9 @@ import UserScreen from "./pages/UserScreen";
 import HistoryScreen from "./pages/HistoryScreen";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {config} from "./utils/Constants";
-import {Button, Text, View} from "react-native";
 import {TextButton} from "./components/MyButton";
+import ReServeMeetingScreen from "./pages/ReServeMeetingScreen";
+import LoginScreen from "./pages/Login";
 
 const Tab = createBottomTabNavigator();
 
@@ -40,14 +41,22 @@ function TabScreen() {
     )
 }
 
+const forFade = ({ current }) => ({
+    cardStyle: {
+        opacity: current.progress,
+    },
+});
+
 const Stack = createStackNavigator();
 
 export default function App() {
     return (
         <SafeAreaProvider>
             <NavigationContainer>
-                <Stack.Navigator initialRouteName={"Tab"}>
-                    <Stack.Screen name={"Tab"} component={TabScreen} options={{headerShown: false}}/>
+                <Stack.Navigator initialRouteName={'Login'}>
+                    <Stack.Screen name={"Tab"} component={TabScreen} options={{
+                        headerShown: false,
+                    }}/>
                     <Stack.Screen name={"History"} component={HistoryScreen} options={{
                         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                     }}/>
@@ -64,12 +73,40 @@ export default function App() {
                             )
                         },
                         headerTitleAlign: "center",
-                        title: "创建会议",
+                        title: "创建",
                     })}
                     />
-                    <Stack.Screen name={"Meeting"} component={MeetingScreen} options={{
+                    <Stack.Screen name={"Meeting"} component={MeetingScreen} options={({navigation}) => ({
+                        cardStyleInterpolator: CardStyleInterpolators.forModalPresentationIOS,
+                        title: null,
+                        headerLeft: () => {
+                            return (
+                                <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>
+                            )
+                        },
+                        headerRight: () => {
+                            return (
+                                <TextButton text={"加入"} pressEvent={() => {}} />
+                            )
+                        },
+                    })}/>
+                    <Stack.Screen name={"ReServeMeeting"} component={ReServeMeetingScreen} options={({navigation}) => ({
                         cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
-                        title: "JoinMeeting"
+                        headerLeft: () => {
+                            return (
+                                <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>
+                            )
+                        },
+                        headerRight: () => {
+                            return (
+                                <TextButton text={"完成"} pressEvent={() => {}} />
+                            )
+                        },
+                        headerTitleAlign: "center",
+                        title: "预约",
+                    })}/>
+                    <Stack.Screen name={"Login"} component={LoginScreen} options={{
+                        headerShown: false,
                     }}/>
                 </Stack.Navigator>
             </NavigationContainer>

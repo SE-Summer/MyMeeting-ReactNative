@@ -63,7 +63,7 @@ export const MyButtonOutLined = ({text, pressEvent}) => {
 const buttonStyle = StyleSheet.create({
     img: {
         width:130,
-        height: 50,
+        height: 40,
         justifyContent: "center",
     },
     text: {
