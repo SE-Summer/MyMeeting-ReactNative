@@ -46,7 +46,7 @@ export default class LoginScreen extends Component {
     }
 
     register = () => {
-
+        this.props.navigation.navigate('Register');
     }
 
 

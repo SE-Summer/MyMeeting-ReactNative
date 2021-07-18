@@ -1,9 +1,9 @@
-import {Button, TextInput, View} from "react-native";
+import {TextInput, View} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {Divider} from "react-native-elements";
 
-export default class MeetingScreen extends Component{
+export default class JoinMeetingScreen extends Component{
     constructor(props) {
         super(props);
         this.state = {

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@mdi/font": "^5.9.55",
+    "@react-native-async-storage/async-storage": "^1.15.5",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-navigation/bottom-tabs": "^5.11.11",
     "@react-navigation/drawer": "^5.12.5",

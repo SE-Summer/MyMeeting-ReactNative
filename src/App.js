@@ -4,7 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import {CardStyleInterpolators, createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import CreateMeetingScreen from "./pages/CreateMeetingScreen";
-import MeetingScreen from "./pages/MeetingScreen";
+import JoinMeetingScreen from "./pages/JoinMeetingScreen";
 import HomeScreen from "./pages/HomeScreen";
 import UserScreen from "./pages/UserScreen";
 import HistoryScreen from "./pages/HistoryScreen";
@@ -14,6 +14,7 @@ import {TextButton} from "./components/MyButton";
 import ReServeMeetingScreen from "./pages/ReServeMeetingScreen";
 import LoginScreen from "./pages/Login";
 import SplashPage from "./pages/SplashPage";
+import RegisterPage from "./pages/RegisterPage";
 
 const Tab = createBottomTabNavigator();
 
@@ -77,7 +78,7 @@ export default function App() {
                         title: "创建",
                     })}
                     />
-                    <Stack.Screen name={"Meeting"} component={MeetingScreen} options={({navigation}) => ({
+                    <Stack.Screen name={"JoinMeeting"} component={JoinMeetingScreen} options={({navigation}) => ({
                         cardStyleInterpolator: CardStyleInterpolators.forModalPresentationIOS,
                         title: null,
                         headerLeft: () => {
@@ -111,6 +112,20 @@ export default function App() {
                         cardStyleInterpolator: forFade,
                         gesturesEnabled: false,
                     }}/>
+                    <Stack.Screen name={"Register"} component={RegisterPage} options={({navigation}) => ({
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                        headerLeft: () => {
+                            return (
+                                <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>
+                            )
+                        },
+                        headerRight: () => {
+                            return (
+                                <TextButton text={"完成"} pressEvent={() => {}} />
+                            )
+                        },
+                        headerTitle: null,
+                    })}/>
                     <Stack.Screen name={"Splash"} component={SplashPage} options={{
                         headerShown: false,
                         cardStyleInterpolator: forFade,
