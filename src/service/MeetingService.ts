@@ -10,6 +10,7 @@ export class MeetingService
     private roomId: string = null;
     private userId: string = null;
     private device: mediasoupTypes.Device = null;
+    private sendTransport: mediasoupTypes.Transport = null;
     private routerRtpCapabilities: mediasoupTypes.RtpCapabilities = null;
 
     constructor()
@@ -22,19 +23,36 @@ export class MeetingService
         }
     }
 
-    public joinMeeting(roomId: string)
+    public async joinMeeting(roomId: string)
     {
-        getRequest(serviceConfig.getRouterRtpCapabilitiesURL + '?roomId=' + roomId, (rtpCapabilities) => {
-            this.device.load({routerRtpCapabilities: rtpCapabilities})
-                .then(() => {
-                    console.log("sctp:  " + JSON.stringify(this.device.sctpCapabilities));
-                    let body = {
-                        sctpCapabilities: this.device.sctpCapabilities,
-                    }
-                    postRequest(serviceConfig.createProducerTransportURL, body, () => {
-
-                    })
-                })
+        const rtpCapabilities = await getRequest(serviceConfig.getRouterRtpCapabilitiesURL + '?roomId=' + roomId);
+        await this.device.load({routerRtpCapabilities: rtpCapabilities});
+        console.log("sctp:  " + JSON.stringify(this.device.sctpCapabilities));
+        const body = {
+            sctpCapabilities: this.device.sctpCapabilities,
+        }
+        const {
+            id,
+            iceParameters,
+            iceCandidates,
+            dtlsParameters,
+            sctpParameters
+        } = await postRequest(serviceConfig.createProducerTransportURL, body);
+        this.sendTransport = this.device.createSendTransport({
+            id,
+            iceParameters,
+            iceCandidates,
+            dtlsParameters,
+            sctpParameters
         });
+
+        this.sendTransport.on('connect', async ({dtlsParameters}, done) => {
+            await postRequest(serviceConfig.connectTransportURL,
+                {
+                    transportId: this.sendTransport.id,
+                    dtlsParameters
+                });
+            done();
+        })
     }
 }
