@@ -4,6 +4,7 @@ import {MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import {utils} from "../utils/Constants";
 
 export default class LoginScreen extends Component {
     constructor(props) {
@@ -12,6 +13,8 @@ export default class LoginScreen extends Component {
             username: null,
             password: null,
             backTimes: 0,
+            userInput: 0,
+            passwordInput: 0,
         }
     }
 
@@ -41,14 +44,57 @@ export default class LoginScreen extends Component {
         })
     }
 
-    log = () => {
-        this.props.navigation.navigate('Tab');
+    log = async () => {
+        console.log(this.state.username); console.log(this.state.password);
+        const {username, password} = this.state;
+        const nameFilled = username != null && username.length !== 0;
+        if (!nameFilled) {
+            this.setState({
+                userInput: 1,
+            })
+            return;
+        }
+
+        const passwordFilled = password != null && password !== 0;
+        if (!passwordFilled) {
+            this.setState({
+                passwordInput: 1,
+            })
+            return;
+        }
+
+        if (await this.confirm()) {
+            this.setState({
+                password: null,
+                backTimes: 0,
+                userInput: 0,
+                passwordInput: 0,
+            })
+            this.props.navigation.navigate('Tab');
+        }
+    }
+
+    confirm = async () => {
+        return true;
     }
 
     register = () => {
         this.props.navigation.navigate('Register');
     }
 
+    onUsernameChange = (value) => {
+        this.setState({
+            username: value,
+            userInput: value == null || value.length === 0 ? 1 : 0,
+        })
+    }
+
+    onPasswordChange = (value) => {
+        this.setState({
+            password: value,
+            passwordInput: value == null || value.length === 0 ? 1 : 0,
+        })
+    }
 
     render() {
         return (
@@ -60,21 +106,22 @@ export default class LoginScreen extends Component {
                 </View>
                 <ImageBackground source={require('../assets/greyBg.png')} style={{width: 400, height: 320}}>
                     <View style={styles.inputContainer}>
-                        <ImageBackground source={require('../assets/myButton_Outlined.png')} style={styles.imgBg}>
+                        <ImageBackground source={utils.buttonOutline[this.state.userInput]} style={styles.imgBg}>
                             <TextInput
                                 value={this.state.username}
                                 style={styles.input}
                                 placeholder={"用户名"}
                                 numberOfLines={1}
-                                maxLength={20}
+                                maxLength={15}
                                 placeholderTextColor={"white"}
                                 selectionColor={"green"}
                                 keyboardType={"visible-password"}
+                                onChangeText={this.onUsernameChange}
                             />
                         </ImageBackground>
-                        <ImageBackground source={require('../assets/myButton_Outlined.png')} style={styles.imgBg}>
+                        <ImageBackground source={utils.buttonOutline[this.state.passwordInput]} style={styles.imgBg}>
                             <TextInput
-                                value={this.state.username}
+                                value={this.state.password}
                                 style={styles.input}
                                 placeholder={"密码"}
                                 numberOfLines={1}
@@ -82,6 +129,7 @@ export default class LoginScreen extends Component {
                                 maxLength={20}
                                 placeholderTextColor={"white"}
                                 selectionColor={"green"}
+                                onChangeText={this.onPasswordChange}
                             />
                         </ImageBackground>
                     </View>

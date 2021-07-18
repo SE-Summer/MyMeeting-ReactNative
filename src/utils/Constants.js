@@ -7,6 +7,10 @@ export const config = {
     microphoneIndex: 'microphone',
 }
 
+export const utils = {
+    buttonOutline: [require('../assets/myButton_Outlined.png'), require('../assets/myButton_Outline_error.png')],
+}
+
 export const config_key = {
     username: '用户名',
     userId: 0,

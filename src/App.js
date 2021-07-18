@@ -123,7 +123,9 @@ export default function App() {
                                 <TextButton text={"完成"} pressEvent={() => {}} />
                             )
                         },
-                        headerTitle: null,
+                        title: "注册",
+                        headerTitleAlign: 'center',
+                        headerTintColor: 'green',
                     })}/>
                     <Stack.Screen name={"Splash"} component={SplashScreen} options={{
                         headerShown: false,
