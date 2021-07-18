@@ -3,6 +3,8 @@ import * as React from "react";
 import {Component} from "react";
 import {SwitchItem} from "../components/Item";
 import {Divider} from "react-native-elements";
+import {TextButton} from "../components/MyButton";
+import {config_key} from "../utils/Constants";
 
 const style = StyleSheet.create({
     input: {
@@ -21,11 +23,25 @@ export default class ReServeMeetingScreen extends Component{
     constructor() {
         super();
         this.state={
-            nameText: null,
-            secretText: null,
-            cameraStatus: true,
-            microphoneStatus: true,
+            name: null,
+            id: null,
+            password: null,
+            cameraStatus: config_key.camera,
+            microphoneStatus: config_key.microphone,
         }
+    }
+
+    componentDidMount() {
+        const {navigation} = this.props;
+        navigation.setOptions({
+            headerRight: () => {
+                return (
+                    <TextButton text={"完成"} pressEvent={() => {
+                        navigation.navigate('Meeting', {'id': this.state.id, 'password': this.state.password})
+                    }} />
+                )
+            },
+        })
     }
 
     cameraSwitch = (value) => {
@@ -40,20 +56,33 @@ export default class ReServeMeetingScreen extends Component{
         })
     }
 
+    meetingNameChange = (value) => {
+        this.setState({
+            name: value,
+        })
+    }
+
+    meetingPasswordChange = (value) => {
+        this.setState({
+            password: value,
+        })
+    }
+
     render() {
         return (
             <View style={{backgroundColor: "#EDEDED", flex: 1}}>
                 <View style={{borderRadius: 10, marginTop: 20, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
                     <TextInput
-                        value={this.state.nameText}
+                        value={this.state.name}
                         style={style.input}
                         placeholder={"会议标题"}
                         textAlign={"center"}
                         numberOfLines={1}
+                        onChangeText={this.meetingNameChange}
                     />
                     <Divider />
                     <TextInput
-                        value={this.state.secretText}
+                        value={this.state.password}
                         style={style.input}
                         placeholder={"会议密码(8位数字)"}
                         textAlign={"center"}
@@ -61,6 +90,7 @@ export default class ReServeMeetingScreen extends Component{
                         keyboardType={"numeric"}
                         maxLength={8}
                         secureTextEntry={true}
+                        onChangeText={this.meetingPasswordChange}
                     />
                 </View>
                 <View style={{marginTop: 60, marginLeft: 10, marginRight: 10, borderRadius: 10, backgroundColor: "white"}}>

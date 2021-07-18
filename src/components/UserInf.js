@@ -1,6 +1,6 @@
 import {Component} from "react";
 import {Avatar} from "react-native-elements";
-import {config} from "../utils/Constants";
+import {config, config_key} from "../utils/Constants";
 import {ImageBackground, Text, View} from "react-native";
 import * as React from "react";
 import {StyleSheet} from "react-native";
@@ -17,7 +17,7 @@ export default class UserInf extends Component {
                             uri: config.unKnownUri
                         }}
                     />
-                    <Text style={styles.titleText}>用户名</Text>
+                    <Text style={styles.titleText}>{config_key.username}</Text>
                 </ImageBackground>
             </View>
         );
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     titleText: {
         marginLeft: 15,
         textAlignVertical: "center",
-        fontSize: 17,
+        fontSize: 18,
         fontWeight: "bold",
     },
 })

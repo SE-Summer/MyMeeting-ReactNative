@@ -4,11 +4,11 @@ import * as React from "react";
 
 export const TouchableItem = ({text, pressEvent, rightComponent = null}) => {
     return (
-        <TouchableOpacity onPress={pressEvent} style={{flexDirection: "row", padding: 15}}>
+        <TouchableOpacity onPress={pressEvent} style={{flexDirection: "row", padding: 15, alignItems: "center"}}>
             <Text style={{fontSize:16, textAlign: "left", marginLeft: 10}}>{text}</Text>
             <View style={{flex: 4}}/>
             {rightComponent}
-            <View style={{alignItems: "flex-end", flex: 1}}>
+            <View style={{alignItems: "flex-end", flex: 1, justifyContent: "center"}}>
                 <Ionicons name={"ios-chevron-forward"} size={23}/>
             </View>
         </TouchableOpacity>

@@ -5,6 +5,8 @@ import UserInf from "../components/UserInf";
 import {StyleSheet} from "react-native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Divider} from "react-native-elements";
+import {removeFromStorage} from "../utils/StorageUtils";
+import {config} from "../utils/Constants";
 
 const Item = ({icon, text, func}) => {
     return(
@@ -23,16 +25,18 @@ export default class UserScreen extends Component{
         this.props.navigation.navigate('History');
     }
 
-    navigateToSettings = () => {
-
+    navigateToUserSettings = () => {
+        this.props.navigation.navigate('UserSetting');
     }
 
     navigateToMeetingSettings = () => {
-
+        this.props.navigation.navigate('MeetingSetting');
     }
 
-    logOut = () => {
-        this.props.navigation.navigate('Login')
+    logOut = async () => {
+        await removeFromStorage(config.usernameIndex);
+        await removeFromStorage(config.userIdIndex);
+        this.props.navigation.navigate('Login');
     }
 
     render() {
@@ -40,12 +44,12 @@ export default class UserScreen extends Component{
             <View>
                 <UserInf style={userScreenStyles.inf}/>
                 <View style={userScreenStyles.optionsContainer}>
-                    <Item icon={"document-text"} text={"历史记录"} func={this.navigateToHistory}/>
+                    <Item icon={"document-text-outline"} text={"历史记录"} func={this.navigateToHistory}/>
                 </View>
                 <View style={userScreenStyles.optionsContainer}>
                     <Item icon={"settings-outline"} text={"会议设置"} func={this.navigateToMeetingSettings}/>
                     <Divider />
-                    <Item icon={"settings"} text={"通用"} func={this.navigateToSettings} />
+                    <Item icon={"person-circle-outline"} text={"个人信息"} func={this.navigateToUserSettings} />
                 </View>
                 <TouchableOpacity onPress={this.logOut} style={userScreenStyles.logOut}>
                     <Text style={{fontSize:15, textAlign: "center", color: "red"}}>退出登录</Text>

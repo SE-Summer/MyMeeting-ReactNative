@@ -18,13 +18,32 @@ const styles = StyleSheet.create({
     }
 })
 
-export default class RegisterPage extends Component {
+export default class RegisterScreen extends Component {
     constructor() {
         super();
         this.state = {
             username: null,
             password: null,
+            confirmPassword: null,
         }
+    }
+
+    usernameChange = (value) => {
+        this.setState({
+            username: value,
+        })
+    }
+
+    passwordChange = (value) => {
+        this.setState({
+            password: value,
+        })
+    }
+
+    confirmPasswordChange = (value) => {
+        this.setState({
+            confirmPassword: value,
+        })
     }
 
     render() {
@@ -37,6 +56,7 @@ export default class RegisterPage extends Component {
                         placeholder={"用户名"}
                         textAlign={"center"}
                         numberOfLines={1}
+                        onChangeText={this.usernameChange}
                     />
                 </View>
                 <View>
@@ -49,6 +69,7 @@ export default class RegisterPage extends Component {
                         keyboardType={"numeric"}
                         maxLength={8}
                         secureTextEntry={true}
+                        onChangeText={this.passwordChange}
                     />
                     <Divider />
                     <TextInput
@@ -60,6 +81,7 @@ export default class RegisterPage extends Component {
                         keyboardType={"numeric"}
                         maxLength={8}
                         secureTextEntry={true}
+                        onChangeText={this.confirmPasswordChange}
                     />
                 </View>
             </View>

@@ -30,3 +30,19 @@ const setInStorage = async (name, value) => {
     }
 }
 
+const removeFromStorage = async (name) => {
+    try {
+        await AsyncStorage.removeItem(name);
+    } catch (e) {
+        ToastAndroid.showWithGravityAndOffset(
+            "Remove storage error",
+            ToastAndroid.SHORT,
+            ToastAndroid.CENTER,
+            0,
+            300,
+        )
+    }
+}
+
+export {removeFromStorage, getFromStorage, setInStorage};
+

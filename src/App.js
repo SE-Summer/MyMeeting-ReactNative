@@ -13,8 +13,11 @@ import {config} from "./utils/Constants";
 import {TextButton} from "./components/MyButton";
 import ReServeMeetingScreen from "./pages/ReServeMeetingScreen";
 import LoginScreen from "./pages/Login";
-import SplashPage from "./pages/SplashPage";
-import RegisterPage from "./pages/RegisterPage";
+import SplashScreen from "./pages/SplashScreen";
+import RegisterScreen from "./pages/RegisterScreen";
+import MeetingPage from "./pages/Meeting";
+import MeetingSettingScreen from "./pages/MeetingSetting";
+import UserSettingScreen from "./pages/UserSetting";
 
 const Tab = createBottomTabNavigator();
 
@@ -62,16 +65,12 @@ export default function App() {
                     <Stack.Screen name={"History"} component={HistoryScreen} options={{
                         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                     }}/>
+                    <Stack.Screen name={"Meeting"} component={MeetingPage} />
                     <Stack.Screen name={"CreateMeeting"} component={CreateMeetingScreen} options={({navigation}) => ({
                         cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
                         headerLeft: () => {
                             return (
                                 <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>
-                            )
-                        },
-                        headerRight: () => {
-                            return (
-                                <TextButton text={"完成"} pressEvent={() => {}} />
                             )
                         },
                         headerTitleAlign: "center",
@@ -86,11 +85,6 @@ export default function App() {
                                 <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>
                             )
                         },
-                        headerRight: () => {
-                            return (
-                                <TextButton text={"加入"} pressEvent={() => {}} />
-                            )
-                        },
                     })}/>
                     <Stack.Screen name={"ReServeMeeting"} component={ReServeMeetingScreen} options={({navigation}) => ({
                         cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
@@ -99,20 +93,25 @@ export default function App() {
                                 <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>
                             )
                         },
-                        headerRight: () => {
-                            return (
-                                <TextButton text={"完成"} pressEvent={() => {}} />
-                            )
-                        },
                         headerTitleAlign: "center",
                         title: "预约",
                     })}/>
+                    <Stack.Screen name={"MeetingSetting"} component={MeetingSettingScreen} options={{
+                        title: '会议设置',
+                        headerTitleAlign: 'center',
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
+                    }}/>
+                    <Stack.Screen name={"UserSetting"} component={UserSettingScreen} options={{
+                        title: '个人信息',
+                        headerTitleAlign: 'center',
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
+                    }} />
                     <Stack.Screen name={"Login"} component={LoginScreen} options={{
                         headerShown: false,
                         cardStyleInterpolator: forFade,
                         gesturesEnabled: false,
                     }}/>
-                    <Stack.Screen name={"Register"} component={RegisterPage} options={({navigation}) => ({
+                    <Stack.Screen name={"Register"} component={RegisterScreen} options={({navigation}) => ({
                         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                         headerLeft: () => {
                             return (
@@ -126,7 +125,7 @@ export default function App() {
                         },
                         headerTitle: null,
                     })}/>
-                    <Stack.Screen name={"Splash"} component={SplashPage} options={{
+                    <Stack.Screen name={"Splash"} component={SplashScreen} options={{
                         headerShown: false,
                         cardStyleInterpolator: forFade,
                     }}/>

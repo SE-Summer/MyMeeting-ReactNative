@@ -4,6 +4,8 @@ import {
     Animated,
 } from 'react-native';
 import {MaskedMyMeeting} from "../components/MaskedText";
+import {config, config_key} from "../utils/Constants";
+import {getFromStorage} from "../utils/StorageUtils";
 
 class Splash extends Component {
     constructor(props) {
@@ -13,7 +15,22 @@ class Splash extends Component {
         };
     }
 
-    componentDidMount() {
+    readStorage = async () => {
+        const username = await getFromStorage(config.usernameIndex);
+        config_key.username = username? username: config_key.username;
+
+        const userId = await getFromStorage(config.userIdIndex);
+        config_key.userId = userId? userId: config_key.userId;
+
+        const camera = await getFromStorage(config.cameraIndex);
+        config_key.camera = camera === 'true';
+
+        const microphone = await getFromStorage(config.microphoneIndex);
+        config_key.microphone = microphone === 'true';
+    }
+
+    async componentDidMount() {
+        await this.readStorage();
         const {animateEnd} = this.props;
         Animated.timing(this.state.fadeAnim,
             {
@@ -40,7 +57,7 @@ class Splash extends Component {
     }
 }
 
-export default class SplashPage extends Component {
+export default class SplashScreen extends Component {
     _animateEnd = ()=>{
         this.props.navigation.navigate('Login');
     }

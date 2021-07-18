@@ -4,6 +4,7 @@ import {Component} from "react";
 import {DateTimeModal} from "../components/DateTimeModal";
 import {SwitchItem, TouchableItem} from "../components/Item";
 import {Divider} from "react-native-elements";
+import {TextButton} from "../components/MyButton";
 
 const style = StyleSheet.create({
     input: {
@@ -30,9 +31,18 @@ export default class CreateMeetingScreen extends Component{
             startTime: new Date(),
             showTimeEnd: false,
             endTime: new Date(),
-            cameraStatus: true,
-            microphoneStatus: true,
         }
+    }
+
+    componentDidMount() {
+        const {navigation} = this.props;
+        navigation.setOptions({
+            headerRight: () => {
+                return (
+                    <TextButton text={"完成"} pressEvent={() => {}} />
+                )
+            },
+        })
     }
 
     showDatePicker = () => {
@@ -86,18 +96,6 @@ export default class CreateMeetingScreen extends Component{
     handleEndTimeChange = (time) => {
         this.setState({
             endTime: time,
-        })
-    }
-
-    cameraSwitch = (value) => {
-        this.setState({
-            cameraStatus: value,
-        })
-    }
-
-    microphoneSwitch = (value) => {
-        this.setState({
-            microphoneStatus: value,
         })
     }
 
@@ -160,11 +158,6 @@ export default class CreateMeetingScreen extends Component{
                         onOk={this.finishTimeEndPicker}
                         text={"时间"}
                     />
-                </View>
-                <View style={{marginTop: 60, marginLeft: 10, marginRight: 10, borderRadius: 10, backgroundColor: "white"}}>
-                    <SwitchItem text={"摄像头"} status={this.state.cameraStatus} switchEvent={this.cameraSwitch}/>
-                    <Divider style={style.divider}/>
-                    <SwitchItem text={"麦克风"} status={this.state.microphoneStatus} switchEvent={this.microphoneSwitch}/>
                 </View>
             </View>
         );
