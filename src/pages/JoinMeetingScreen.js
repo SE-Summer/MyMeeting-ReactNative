@@ -18,11 +18,13 @@ export default class JoinMeetingScreen extends Component{
     }
 
     componentDidMount() {
-        this.props.navigation.setOptions({
+        const {route, navigation} = this.props;
+        navigation.setOptions({
+            title: route.params.quickJoin ? '快速参会' : null,
             headerRight: () => {
                 return (
                     <TextButton text={"加入"} pressEvent={() => {
-                        this.props.navigation.navigate('Meeting', {'id': this.state.id, 'password': this.state.password})
+                        navigation.navigate('Meeting', {'id': this.state.id, 'password': this.state.password})
                     }} />
                 )
             },

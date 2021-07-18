@@ -79,7 +79,7 @@ export default function App() {
                     />
                     <Stack.Screen name={"JoinMeeting"} component={JoinMeetingScreen} options={({navigation}) => ({
                         cardStyleInterpolator: CardStyleInterpolators.forModalPresentationIOS,
-                        title: null,
+                        headerTitleAlign: "center",
                         headerLeft: () => {
                             return (
                                 <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>

@@ -10,7 +10,7 @@ export default class HomeScreen extends Component{
     }
 
     navigateToMeeting = () => {
-        this.props.navigation.navigate('JoinMeeting');
+        this.props.navigation.navigate('JoinMeeting', {'quickJoin': false});
     }
 
     navigateToReserveMeeting = () => {

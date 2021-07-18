@@ -1,4 +1,4 @@
-import {StyleSheet, ImageBackground, Text, TouchableOpacity, View} from "react-native";
+import {StyleSheet, ImageBackground, Text, TouchableOpacity, View, TouchableHighlight} from "react-native";
 import * as React from "react";
 import {config} from "../utils/Constants";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -48,16 +48,16 @@ export const MyButton = ({text, pressEvent}) => {
     );
 }
 
-export const MyButtonOutLined = ({text, pressEvent}) => {
+export const FlashButton = ({pressEvent}) => {
     return (
-        <TouchableOpacity
+        <TouchableHighlight
+            underlayColor={'#04482f'}
             onPress={pressEvent}
+            style={buttonStyle.flashButton}
         >
-            <ImageBackground source={require('../assets/myButton_Outlined.png')} style={buttonStyle.img}>
-                <Text style={buttonStyle.outlineText}>{text}</Text>
-            </ImageBackground>
-        </TouchableOpacity>
-    );
+            <Ionicons name={'flash'} color={'white'} size={40}/>
+        </TouchableHighlight>
+    )
 }
 
 const buttonStyle = StyleSheet.create({
@@ -89,4 +89,12 @@ const buttonStyle = StyleSheet.create({
         color: config.qGreen,
         fontSize: 17,
     },
+    flashButton: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: "green",
+        justifyContent: "center",
+        alignItems: "center",
+    }
 })

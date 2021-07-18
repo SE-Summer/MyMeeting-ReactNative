@@ -1,6 +1,6 @@
 import * as React from "react";
 import {View, StyleSheet, TextInput, ImageBackground, Image, BackHandler, ToastAndroid} from "react-native";
-import {MyButton} from "../components/MyButton";
+import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
@@ -96,10 +96,19 @@ export default class LoginScreen extends Component {
         })
     }
 
+    flashStart = () => {
+        this.props.navigation.navigate('JoinMeeting', {'quickJoin': true});
+    }
+
     render() {
         return (
             <KeyboardAwareScrollView style={{backgroundColor: "white", flex: 1}}>
-                <Image source={require('../assets/triAngle.png')} style={{width: 267, height: 80}}/>
+                <View style={styles.topContainer}>
+                    <Image source={require('../assets/triAngle.png')} style={{width: 267, height: 80}}/>
+                    <View style={{flex: 1, alignItems: "center"}}>
+                        <FlashButton pressEvent={this.flashStart}/>
+                    </View>
+                </View>
                 <View style={{height: 15}}/>
                 <View style={styles.titleContainer}>
                     <MaskedMyMeeting />
@@ -134,7 +143,7 @@ export default class LoginScreen extends Component {
                         </ImageBackground>
                     </View>
                 </ImageBackground>
-
+                <View style={{height: 30}}/>
                 <View style={styles.buttonContainer}>
                     <MyButton pressEvent={this.log} text={"登录"}/>
                     <View style={{width: 30}}/>
@@ -147,6 +156,10 @@ export default class LoginScreen extends Component {
 }
 
 const styles = StyleSheet.create({
+    topContainer: {
+        flexDirection: "row",
+        alignItems: "center"
+    },
     titleContainer: {
         alignItems: "center",
         justifyContent: "center",
@@ -158,7 +171,6 @@ const styles = StyleSheet.create({
         marginTop: 110,
     },
     buttonContainer: {
-        marginTop: 40,
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center"
@@ -174,5 +186,5 @@ const styles = StyleSheet.create({
         marginLeft: 20,
         marginRight: 20,
         color: "white"
-    }
+    },
 })
