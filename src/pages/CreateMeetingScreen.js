@@ -1,76 +1,33 @@
 import {Button, View} from "react-native";
 import * as React from "react";
 import {Component} from "react";
-import {printError} from "../utils/PrintError";
-import {mediaDevices, MediaStream, registerGlobals, RTCView} from "react-native-webrtc";
+import {RTCView} from "react-native-webrtc";
 import {MediaStreamFactory} from "../utils/local_media/MediaStreamFactory";
-import * as mediasoupClient from "mediasoup-client";
-import {getRequest} from "../utils/Ajax";
-import {serviceConfig} from "../ServiceConfig";
-import {Device} from "mediasoup-client";
-import { types as mediasoupTypes } from "mediasoup-client";
+import {MeetingService} from "../service/MeetingService";
 
 export default class CreateMeetingScreen extends Component
 {
     constructor(props) {
         super(props);
+        this.mediaStreamFactory = new MediaStreamFactory(),
         this.state = {
             stream: null,
-            mediaStreamFactory: new MediaStreamFactory(),
         };
-        this.device = null;
-        try {
-            registerGlobals();
-            this.device = new mediasoupClient.Device();
-            console.log(this.device);
-        } catch (err) {
-            printError(err);
-        }
-
-        getRequest('http://192.168.0.101:4443/getRouterRtpCapabilities', async (_rtpCapabilities) => {
-            // const rtpCapabilities = JSON.parse(_rtpCapabilities);
-            console.log(_rtpCapabilities);
-            await this.device.load({routerRtpCapabilities: _rtpCapabilities});
-
-            console.log("sctp:  " + JSON.stringify(this.device.sctpCapabilities));
-        })
+        this.meetingService = new MeetingService();
     }
 
     async playVideoFromCamera()
     {
-        this.state.mediaStreamFactory.getCamFrontAndMicStream(200,100, 30)
-            .then(async (stream) => {
-                console.log(stream);
-                this.setState({
-                    stream: stream,
-                });
-                if (!this.device.canProduce('video')) {
-                    console.log('cannot produce video');
-                    return;
-                }
-                const tracks = stream.getVideoTracks();
-                const track = tracks[0];
-                if (!track) {
-                    console.log("did not find video track");
-                    return;
-                }
+        const videoStream = await this.mediaStreamFactory.getCamFrontStream(200, 100, 30);
+        this.setState({
+            stream: videoStream,
+        });
+        await this.meetingService.joinMeeting("12");
+    }
 
-                const source =  '111_src_video'
-                const params: mediaTypes.ProducerOptions = {
-                    track,
-                    appData: {
-                        source
-                    },
-                    codec: this.media.device.rtpCapabilities.codecs.find(codec => codec.mimeType === 'video/H264')
-                };
-
-                this.sendTransport = this.device.createSendTransport();
-
-                this.producer = await this.media.sendTransport.produce(params);
-
-            })
-            .catch(printError);
-
+    async produceVideo()
+    {
+        await this.meetingService.sendVideoTrack(this.state.stream);
     }
 
     render() {
@@ -84,6 +41,7 @@ export default class CreateMeetingScreen extends Component
 
                 <Button onPress={() => this.props.navigation.goBack()} title="Create, Go back home" />
                 <Button onPress={() => this.playVideoFromCamera()} title="play video" />
+                <Button onPress={() => this.produceVideo()} title="produce video" />
             </View>
         );
     }
