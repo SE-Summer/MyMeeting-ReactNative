@@ -13,6 +13,7 @@ import {config} from "./utils/Constants";
 import {TextButton} from "./components/MyButton";
 import ReServeMeetingScreen from "./pages/ReServeMeetingScreen";
 import LoginScreen from "./pages/Login";
+import SplashPage from "./pages/SplashPage";
 
 const Tab = createBottomTabNavigator();
 
@@ -53,7 +54,7 @@ export default function App() {
     return (
         <SafeAreaProvider>
             <NavigationContainer>
-                <Stack.Navigator initialRouteName={'Login'}>
+                <Stack.Navigator initialRouteName={'Splash'}>
                     <Stack.Screen name={"Tab"} component={TabScreen} options={{
                         headerShown: false,
                     }}/>
@@ -107,6 +108,12 @@ export default function App() {
                     })}/>
                     <Stack.Screen name={"Login"} component={LoginScreen} options={{
                         headerShown: false,
+                        cardStyleInterpolator: forFade,
+                        gesturesEnabled: false,
+                    }}/>
+                    <Stack.Screen name={"Splash"} component={SplashPage} options={{
+                        headerShown: false,
+                        cardStyleInterpolator: forFade,
                     }}/>
                 </Stack.Navigator>
             </NavigationContainer>

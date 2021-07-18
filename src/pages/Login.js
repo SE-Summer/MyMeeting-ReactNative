@@ -1,5 +1,5 @@
 import * as React from "react";
-import {View, StyleSheet, TextInput, ImageBackground, Image} from "react-native";
+import {View, StyleSheet, TextInput, ImageBackground, Image, BackHandler, ToastAndroid} from "react-native";
 import {MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
@@ -11,9 +11,35 @@ export default class LoginScreen extends Component {
         this.state = {
             username: null,
             password: null,
+            backTimes: 0,
         }
     }
 
+    backAction = () => {
+        if (this.state.backTimes === 1) {
+            BackHandler.exitApp();
+        } else {
+            ToastAndroid.showWithGravity(
+                "再按一次退出MyMeeting",
+                ToastAndroid.SHORT,
+                ToastAndroid.CENTER,
+            )
+            this.setState({
+                backTimes: 1,
+            })
+        }
+        return true;
+    }
+
+    componentDidMount() {
+        this.props.navigation.addListener('focus', () => {
+            this.setState({backTimes: 0});
+            BackHandler.addEventListener("hardwareBackPress", this.backAction);
+        })
+        this.props.navigation.addListener('blur', () => {
+            BackHandler.removeEventListener("hardwareBackPress", this.backAction);
+        })
+    }
 
     log = () => {
         this.props.navigation.navigate('Tab');
@@ -28,7 +54,7 @@ export default class LoginScreen extends Component {
         return (
             <KeyboardAwareScrollView style={{backgroundColor: "white", flex: 1}}>
                 <Image source={require('../assets/triAngle.png')} style={{width: 267, height: 80}}/>
-                <View style={{height: 30}}/>
+                <View style={{height: 15}}/>
                 <View style={styles.titleContainer}>
                     <MaskedMyMeeting />
                 </View>
