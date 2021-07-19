@@ -1,10 +1,8 @@
 import * as React from "react";
 import {Component} from "react";
-import {TextInput, View, StyleSheet, Text} from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import {TextInput, View, StyleSheet, ToastAndroid} from "react-native";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
-import {registerService} from "../Service/UserService";
 
 const styles = StyleSheet.create({
     input: {
@@ -18,6 +16,9 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         marginRight: 10,
     },
+    processContainer: {
+        width: 50,
+    }
 })
 
 export default class RegisterScreen extends Component {
@@ -31,6 +32,9 @@ export default class RegisterScreen extends Component {
             passwordTip: null,
             confirmTip: null,
             confirmWarning: false,
+            nameFilled: false,
+            passwordFilled: true,
+            confirmFilled: true,
         }
     }
 
@@ -46,19 +50,33 @@ export default class RegisterScreen extends Component {
     }
 
     onOk = async () => {
-        const {username, password, confirmPassword, nameTip, passwordTip, confirmTip} = this.state;
+        const {username, password, confirmPassword, nameFilled, passwordFilled, confirmFilled, confirmWarning} = this.state;
         this.usernameChange(username);
         this.passwordChange(password);
         this.confirmPasswordChange(confirmPassword);
 
-        if (nameTip == null && passwordTip == null && confirmTip == null) {
-            await registerService();
-            this.setState({
-                username: null,
-                password: null,
-                confirmPassword: null,
-            });
+        if (nameFilled && passwordFilled && confirmFilled && !confirmWarning) {
+            if (this.checkResult()) {
+                this.setState({
+                    username: null,
+                    password: null,
+                    confirmPassword: null,
+                });
+                this.props.navigation.navigate('Login');
+                ToastAndroid.show('注册成功', ToastAndroid.SHORT);
+            } else {
+                this.setState({
+                    username: null,
+                    password: null,
+                    confirmPassword: null,
+                });
+                ToastAndroid.show('出错了', ToastAndroid.SHORT);
+            }
         }
+    }
+
+    checkResult = () => {
+        return true;
     }
 
     usernameChange = (value) => {
@@ -66,6 +84,7 @@ export default class RegisterScreen extends Component {
         this.setState({
             username: value,
             nameTip: unfilled ? '输入用户名' : null,
+            nameFilled: !unfilled,
         })
     }
 
@@ -74,6 +93,7 @@ export default class RegisterScreen extends Component {
         this.setState({
             password: value,
             passwordTip: unfilled ? '输入密码' : null,
+            passwordFilled: !unfilled,
         })
     }
 
@@ -84,6 +104,7 @@ export default class RegisterScreen extends Component {
             confirmPassword: value,
             confirmTip: unfilled ? '再次输入密码' : (different ? '输入密码不同' : null),
             confirmWarning: !unfilled && different,
+            confirmFilled: !unfilled,
         })
     }
 
@@ -97,9 +118,8 @@ export default class RegisterScreen extends Component {
                         value={username}
                         style={styles.input}
                         placeholder={"用户名"}
-                        textAlign={"center"}
                         maxLength={15}
-                        numberOfLines={1}
+                        multiline={false}
                         onChangeText={this.usernameChange}
                         keyboardType={"visible-password"}
                     />
@@ -110,7 +130,6 @@ export default class RegisterScreen extends Component {
                         value={password}
                         style={styles.input}
                         placeholder={"密码"}
-                        textAlign={"center"}
                         numberOfLines={1}
                         maxLength={20}
                         secureTextEntry={true}
@@ -123,14 +142,12 @@ export default class RegisterScreen extends Component {
                         value={confirmPassword}
                         style={styles.input}
                         placeholder={"确认密码"}
-                        textAlign={"center"}
                         numberOfLines={1}
                         maxLength={20}
                         secureTextEntry={true}
                         onChangeText={this.confirmPasswordChange}
                     />
                 </View>
-
             </View>
         );
     }

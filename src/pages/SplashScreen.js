@@ -6,6 +6,9 @@ import {
 import {MaskedMyMeeting} from "../components/MaskedText";
 import {config, config_key} from "../utils/Constants";
 import {getFromStorage} from "../utils/StorageUtils";
+import { Dimensions } from 'react-native';
+
+const windowHeight = Dimensions.get('window').height;
 
 class Splash extends Component {
     constructor(props) {
@@ -48,10 +51,11 @@ class Splash extends Component {
     render() {
         return (
             <View style={{flex:1}}>
-                <Animated.View style={{flex:2, justifyContent: "center", alignItems: "center" ,opacity: this.state.fadeAnim}}>
+                <View style={{height: windowHeight * 0.11}}/>
+                <Animated.View style={{height: windowHeight * 0.31, justifyContent: "center", alignItems: "center" ,opacity: this.state.fadeAnim}}>
                     <MaskedMyMeeting />
                 </Animated.View>
-                <View style={{flex: 1.86}}/>
+                <View style={{height: windowHeight * 0.58}}/>
             </View>
         );
     }

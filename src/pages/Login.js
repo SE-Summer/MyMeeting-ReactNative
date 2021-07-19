@@ -5,10 +5,14 @@ import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import {config_key, utils} from "../utils/Constants";
+import { Dimensions } from 'react-native';
+
+const windowHeight = Dimensions.get('window').height;
+const windowWidth = Dimensions.get('window').width;
 
 const InputLabel = ({text}) => {
     if (text == null) {
-        return <View style={{height: 19}}/>;
+        return <View/>;
     } else {
         return (
             <View>
@@ -138,53 +142,55 @@ export default class LoginScreen extends Component {
     render() {
         return (
             <KeyboardAwareScrollView style={{backgroundColor: "white", flex: 1}}>
-                <View style={styles.topContainer}>
-                    <Image source={require('../assets/triAngle.png')} style={{width: 267, height: 80}}/>
-                    <View style={{flex: 1, alignItems: "center"}}>
-                        <FlashButton pressEvent={this.flashStart}/>
+                <View style={styles.topFillContainer}>
+                    <View style={styles.topContainer}>
+                        <Image source={require('../assets/triAngle.png')} style={styles.triAngleImg}/>
+                        <View style={{flex: 1, alignItems: "center"}}>
+                            <FlashButton pressEvent={this.flashStart}/>
+                        </View>
                     </View>
                 </View>
-                <View style={{height: 15}}/>
                 <View style={styles.titleContainer}>
                     <MaskedMyMeeting />
                 </View>
-                <ImageBackground source={require('../assets/greyBg.png')} style={{width: 400, height: 320}}>
-                    <View style={styles.inputContainer}>
-                        <View style={styles.labelContainer}>
-                            <InputLabel text={this.state.nameTip}/>
+                <View style={styles.imgFillContainer}>
+                    <ImageBackground source={require('../assets/greyBg.png')} style={styles.imageView}>
+                        <View style={styles.inputContainer}>
+                            <View style={styles.labelContainer}>
+                                <InputLabel text={this.state.nameTip}/>
+                            </View>
+                            <ImageBackground source={utils.buttonOutline[this.state.userInput]} style={styles.imgBg}>
+                                <TextInput
+                                    value={this.state.username}
+                                    style={styles.input}
+                                    placeholder={"用户名"}
+                                    numberOfLines={1}
+                                    maxLength={15}
+                                    placeholderTextColor={'#aaaaaa'}
+                                    selectionColor={"green"}
+                                    keyboardType={"visible-password"}
+                                    onChangeText={this.onUsernameChange}
+                                />
+                            </ImageBackground>
+                            <View style={styles.labelContainer}>
+                                <InputLabel text={this.state.passwordTip}/>
+                            </View>
+                            <ImageBackground source={utils.buttonOutline[this.state.passwordInput]} style={styles.imgBg}>
+                                <TextInput
+                                    value={this.state.password}
+                                    style={styles.input}
+                                    placeholder={"密码"}
+                                    numberOfLines={1}
+                                    secureTextEntry={true}
+                                    maxLength={20}
+                                    placeholderTextColor={'#aaaaaa'}
+                                    selectionColor={"green"}
+                                    onChangeText={this.onPasswordChange}
+                                />
+                            </ImageBackground>
                         </View>
-                        <ImageBackground source={utils.buttonOutline[this.state.userInput]} style={styles.imgBg}>
-                            <TextInput
-                                value={this.state.username}
-                                style={styles.input}
-                                placeholder={"用户名"}
-                                numberOfLines={1}
-                                maxLength={15}
-                                placeholderTextColor={'#aaaaaa'}
-                                selectionColor={"green"}
-                                keyboardType={"visible-password"}
-                                onChangeText={this.onUsernameChange}
-                            />
-                        </ImageBackground>
-                        <View style={styles.labelContainer}>
-                            <InputLabel text={this.state.passwordTip}/>
-                        </View>
-                        <ImageBackground source={utils.buttonOutline[this.state.passwordInput]} style={styles.imgBg}>
-                            <TextInput
-                                value={this.state.password}
-                                style={styles.input}
-                                placeholder={"密码"}
-                                numberOfLines={1}
-                                secureTextEntry={true}
-                                maxLength={20}
-                                placeholderTextColor={'#aaaaaa'}
-                                selectionColor={"green"}
-                                onChangeText={this.onPasswordChange}
-                            />
-                        </ImageBackground>
-                    </View>
-                </ImageBackground>
-                <View style={{height: 30}}/>
+                    </ImageBackground>
+                </View>
                 <View style={styles.buttonContainer}>
                     <MyButton pressEvent={this.log} text={"登录"}/>
                     <View style={{width: 30}}/>
@@ -199,37 +205,53 @@ export default class LoginScreen extends Component {
 const styles = StyleSheet.create({
     topContainer: {
         flexDirection: "row",
-        alignItems: "center"
+        alignItems: "center",
+    },
+    topFillContainer: {
+        height: windowHeight * 0.11,
     },
     titleContainer: {
         alignItems: "center",
         justifyContent: "center",
-    },
-    inputContainer: {
-        justifyContent: "center",
-        marginLeft: 30,
-        marginRight: 30,
-        marginTop: 110,
+        height: windowHeight * 0.31,
     },
     buttonContainer: {
         flexDirection: "row",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        height: windowHeight * 0.18,
+    },
+    imgFillContainer: {
+        height: windowHeight * 0.4,
+        justifyContent: 'center'
+    },
+    imageView: {
+        width: windowWidth,
+        height: windowWidth * 0.9,
+        alignItems: "center",
     },
     imgBg: {
-        width: 288,
-        height: 54,
-        marginLeft: 10,
+        width: windowWidth * 4 / 5,
+        height: windowWidth * 3 / 20,
+        justifyContent: 'center',
+    },
+    inputContainer: {
+        justifyContent: "center",
+        marginTop: windowWidth * 0.3,
     },
     input: {
         transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }],
         marginLeft: 20,
         marginRight: 20,
-        color: "white"
+        color: "white",
     },
     labelContainer: {
-        backgroundColor: '#404040',
         marginLeft: 20,
-        width: 85,
+        width: windowWidth / 5,
+        height: windowWidth / 20,
+    },
+    triAngleImg: {
+        width: windowWidth * 3 / 4,
+        height: windowWidth * 9 / 40
     }
 })
