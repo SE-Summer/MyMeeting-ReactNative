@@ -145,7 +145,7 @@ export class MeetingService
                 rtpParameters : data.rtpParameters
             });
             const { track } = this.consumer;
-            // this.consumingStream.addTrack(track);
+            // this.consumingStream = new MediaStream([track]);
         })
     }
 
