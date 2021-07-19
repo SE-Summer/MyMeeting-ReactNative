@@ -1,18 +1,19 @@
 import {registerGlobals} from 'react-native-webrtc'
-import { types as mediasoupTypes } from "mediasoup-client";
 import * as mediasoupClient from "mediasoup-client";
+import {types as mediasoupTypes} from "mediasoup-client";
 import {printError} from "../utils/PrintError";
-import {serviceConfig, SIMULCASTENCODING} from "../ServiceConfig";
-import {getRequest, postRequest} from "../utils/Ajax";
+import {RequestMethod, serviceConfig} from "../ServiceConfig";
+import {SignalingService} from "./SignalingService";
 
 export class MeetingService
 {
-    private roomId: string = null;
-    private userId: string = null;
+    private roomToken: string = null;
+    private userToken: string = null;
+    private serverWsURL: string = null;
+    private signaling: SignalingService = null;
     private device: mediasoupTypes.Device = null;
     private sendTransport: mediasoupTypes.Transport = null;
     private producer: mediasoupTypes.Producer = null;
-    private routerRtpCapabilities: mediasoupTypes.RtpCapabilities = null;
 
     constructor()
     {
@@ -24,9 +25,23 @@ export class MeetingService
         }
     }
 
-    public async joinMeeting(roomId: string)
+    public async joinMeeting(roomToken: string, userToken: string)
     {
-        const rtpCapabilities = await getRequest(serviceConfig.getRouterRtpCapabilitiesURL /* + '?roomId=' + roomId */);
+        this.roomToken = roomToken;
+        this.userToken = userToken;
+        this.serverWsURL = `${serviceConfig.serverWsURL}?roomToken=${this.roomToken}&userToken=${this.userToken}`;
+
+        this.signaling = new SignalingService(this.serverWsURL, {
+            timeout: 3000,
+            reconnection:	true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelayMax: 2000,
+            transports: ['websocket'],
+        });
+
+        await this.signaling.waitForConnection();
+
+        const rtpCapabilities = await this.signaling.send(RequestMethod.getRouterRtpCapabilitiesRequest);
         console.log("Router RTP Capabilities: " + JSON.stringify(rtpCapabilities));
 
         await this.device.load({routerRtpCapabilities: rtpCapabilities});
@@ -42,7 +57,7 @@ export class MeetingService
             iceCandidates,
             dtlsParameters,
             sctpParameters
-        } = await postRequest(serviceConfig.createProducerTransportURL, body);
+        } = await this.signaling.send(RequestMethod.createProducerTransportRequest, body) as mediasoupTypes.TransportOptions;
 
         console.log("Transport ID: " + id);
         console.log("Transport ICE Parameters: " + JSON.stringify(iceParameters));
@@ -59,8 +74,8 @@ export class MeetingService
 
         this.sendTransport.on('connect', async ({dtlsParameters}, done) => {
             console.log('Connect event, handled by sendTransport')
-            await postRequest(
-                serviceConfig.connectTransportURL,
+            await this.signaling.send(
+                RequestMethod.connectTransportRequest,
                 {
                     transportId: this.sendTransport.id,
                     dtlsParameters
@@ -72,14 +87,14 @@ export class MeetingService
         this.sendTransport.on('produce', async ({ kind, rtpParameters, appData }, done, errBack) => {
             console.log('Produce event, handled by sendTransport');
             try {
-                const {id} = await postRequest(
-                    serviceConfig.produceURL,
+                const {id} = await this.signaling.send(
+                    RequestMethod.produceRequest,
                     {
                         transportId : this.sendTransport.id,
                         kind,
                         rtpParameters,
                         appData
-                    });
+                    }) as {id: string};
                 console.log(id);
                 done({id});
             } catch (err) {

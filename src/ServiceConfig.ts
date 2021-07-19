@@ -1,12 +1,7 @@
 const config = {
     serverIp: '172.20.10.10',
-    serverHttpPort: 4443,
-    serverUseHttps: false,
-    getRouterRtpCapabilitiesRequest: '/getRouterRtpCapabilities',
-    createProducerTransportRequest: '/createProducerTransport',
-    connectTransportRequest: '/connectTransport',
-    createProducerRequest: '/createProducer',
-    produceRequest: '/produce',
+    serverPort: 4443,
+    serverUseWss: false,
 }
 
 export const SIMULCASTENCODING: RTCRtpEncodingParameters[] = [
@@ -15,15 +10,26 @@ export const SIMULCASTENCODING: RTCRtpEncodingParameters[] = [
     {maxBitrate: 900000}
 ];
 
-const serverHttpURL = (config.serverUseHttps ? 'https://' : 'http://') + config.serverIp + ':' + config.serverHttpPort;
+const _serverWsURL = (config.serverUseWss ? 'wss://' : 'ws://') + config.serverIp + ':' + config.serverPort;
 
 export const serviceConfig = {
+    requestTimeout: 10000,
+    connectTimeout: 20000,
     serverIp: config.serverIp,
-    serverHttpPort: config.serverHttpPort,
-    serverHttpURL: serverHttpURL,
-    getRouterRtpCapabilitiesURL: serverHttpURL + config.getRouterRtpCapabilitiesRequest,
-    createProducerTransportURL: serverHttpURL + config.createProducerTransportRequest,
-    connectTransportURL: serverHttpURL + config.connectTransportRequest,
-    createProducerURL: serverHttpURL + config.createProducerRequest,
-    produceURL: serverHttpURL + config.produceRequest,
+    serverPort: config.serverPort,
+    serverWsURL: _serverWsURL,
+}
+
+export enum RequestMethod {
+    getRouterRtpCapabilitiesRequest = 'getRouterRtpCapabilities',
+    join = 'join',
+    createProducerTransportRequest = 'createProducerTransport',
+    connectTransportRequest = 'connectTransport',
+    createProducerRequest = 'createProducer',
+    produceRequest = 'produce',
+    closeProducer = 'closeProducer',
+    pauseProducer = 'pauseProducer',
+    resumeProducer = 'resumeProducer',
+    pauseConsumer = 'pauseConsumer',
+    resumeConsumer = 'resumeConsumer'
 }
