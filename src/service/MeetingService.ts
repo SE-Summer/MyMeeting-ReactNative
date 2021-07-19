@@ -2,7 +2,7 @@ import {registerGlobals} from 'react-native-webrtc'
 import * as mediasoupClient from "mediasoup-client";
 import {types as mediasoupTypes} from "mediasoup-client";
 import {printError} from "../utils/PrintError";
-import {RequestMethod, serviceConfig} from "../ServiceConfig";
+import {serviceConfig, SignalMethod, SignalType} from "../ServiceConfig";
 import {SignalingService} from "./SignalingService";
 
 export class MeetingService
@@ -13,7 +13,15 @@ export class MeetingService
     private signaling: SignalingService = null;
     private device: mediasoupTypes.Device = null;
     private sendTransport: mediasoupTypes.Transport = null;
+    private recvTransport: mediasoupTypes.Transport = null;
     private producer: mediasoupTypes.Producer = null;
+    private consumer: mediasoupTypes.Consumer = null;
+    private consumingStream: MediaStream = null;
+
+    public getStream()
+    {
+        return this.consumingStream;
+    }
 
     constructor()
     {
@@ -29,25 +37,33 @@ export class MeetingService
     {
         this.roomToken = roomToken;
         this.userToken = userToken;
-        this.serverWsURL = `${serviceConfig.serverWsURL}?roomToken=${this.roomToken}&userToken=${this.userToken}`;
+        this.serverWsURL = `${serviceConfig.serverWsURL}?roomId=${this.roomToken}&peerId=${this.userToken}`;
 
         this.signaling = new SignalingService(this.serverWsURL, {
             timeout: 3000,
-            reconnection:	true,
-            reconnectionAttempts: Infinity,
-            reconnectionDelayMax: 2000,
+            // reconnection: true,
+            // reconnectionAttempts: Infinity,
+            // reconnectionDelayMax: 2000,
             transports: ['websocket'],
         });
 
         await this.signaling.waitForConnection();
 
-        const rtpCapabilities = await this.signaling.send(RequestMethod.getRouterRtpCapabilitiesRequest);
+        const rtpCapabilities = await this.signaling.sendRequest(SignalMethod.getRouterRtpCapabilities);
         console.log("Router RTP Capabilities: " + JSON.stringify(rtpCapabilities));
 
         await this.device.load({routerRtpCapabilities: rtpCapabilities});
         console.log("Device SCTP Capabilities: " + JSON.stringify(this.device.sctpCapabilities));
 
+        const peerInfos = await this.signaling.sendRequest(SignalMethod.join, {
+            displayName: 'qwertyu',
+            joined: false,
+            device: "test",
+            rtpCapabilities: this.device.rtpCapabilities,
+        });
+
         const body = {
+            transportType: 'producer',
             sctpCapabilities: this.device.sctpCapabilities,
         }
 
@@ -57,7 +73,7 @@ export class MeetingService
             iceCandidates,
             dtlsParameters,
             sctpParameters
-        } = await this.signaling.send(RequestMethod.createTransportRequest, body) as mediasoupTypes.TransportOptions;
+        } = await this.signaling.sendRequest(SignalMethod.createTransport, body) as mediasoupTypes.TransportOptions;
 
         console.log("Transport ID: " + id);
         console.log("Transport ICE Parameters: " + JSON.stringify(iceParameters));
@@ -73,12 +89,12 @@ export class MeetingService
         });
 
         this.sendTransport.on('connect', async ({dtlsParameters}, done) => {
-            console.log('Connect event, handled by sendTransport')
-            await this.signaling.send(
-                RequestMethod.connectTransportRequest,
+            console.log('Connect event, handled by sendTransport');
+            await this.signaling.sendRequest(
+                SignalMethod.connectTransport,
                 {
                     transportId: this.sendTransport.id,
-                    dtlsParameters
+                    dtlsParameters,
                 });
             console.log('Connect event handling done');
             done();
@@ -87,8 +103,8 @@ export class MeetingService
         this.sendTransport.on('produce', async ({ kind, rtpParameters, appData }, done, errBack) => {
             console.log('Produce event, handled by sendTransport');
             try {
-                const {id} = await this.signaling.send(
-                    RequestMethod.produceRequest,
+                const {id} = await this.signaling.sendRequest(
+                    SignalMethod.produce,
                     {
                         transportId : this.sendTransport.id,
                         kind,
@@ -101,6 +117,36 @@ export class MeetingService
                 errBack(err);
             }
         });
+
+        this.recvTransport = this.device.createRecvTransport(
+            await this.signaling.sendRequest(SignalMethod.createTransport, {
+                transportType: 'consumer',
+                sctpCapabilities: this.device.sctpCapabilities,
+            }) as mediasoupTypes.TransportOptions
+        );
+
+        this.recvTransport.on('connect', async ({dtlsParameters}, done) => {
+            console.log('Connect event, handled by recvTransport');
+            await this.signaling.sendRequest(
+                SignalMethod.connectTransport,
+                {
+                    transportId: this.recvTransport.id,
+                    dtlsParameters,
+                });
+            console.log('Connect event handling done');
+            done();
+        });
+
+        this.signaling.registerListener(SignalType.notify, SignalMethod.newPeer, async (data) => {
+            this.consumer = await this.recvTransport.consume({
+                id            : data.consumerId,
+                producerId    : data.producerId,
+                kind          : data.kind,
+                rtpParameters : data.rtpParameters
+            });
+            const { track } = this.consumer;
+            // this.consumingStream.addTrack(track);
+        })
     }
 
     public async sendVideoTrack(stream: MediaStream)
@@ -124,8 +170,20 @@ export class MeetingService
         }
     }
 
-    public async subscribeVideoTrack()
+    public async subscribeVideo()
     {
-
+        const peerInfos = await this.signaling.sendRequest(SignalMethod.consume, {subscribeIds: [this.userToken]});
+        const peerInfo = peerInfos[0];
+        console.log(peerInfos);
+        this.consumer = await this.recvTransport.consume({
+            id            : peerInfo.consumerId,
+            producerId    : peerInfo.producerId,
+            kind          : peerInfo.kind,
+            rtpParameters : peerInfo.rtpParameters
+        });
+        const { track } = this.consumer;
+        this.consumingStream = new MediaStream([track]);
+        console.log(track);
+        console.log('new track added' + this.consumingStream.getVideoTracks().length);
     }
 }
