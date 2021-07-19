@@ -12,7 +12,7 @@ export const utils = {
 }
 
 export const config_key = {
-    username: '用户名',
+    username: 'Summer',
     userId: 0,
     camera: true,
     microphone: false,

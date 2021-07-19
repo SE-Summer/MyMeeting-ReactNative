@@ -118,11 +118,6 @@ export default function App() {
                                 <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>
                             )
                         },
-                        headerRight: () => {
-                            return (
-                                <TextButton text={"完成"} pressEvent={() => {}} />
-                            )
-                        },
                         title: "注册",
                         headerTitleAlign: 'center',
                         headerTintColor: 'green',
