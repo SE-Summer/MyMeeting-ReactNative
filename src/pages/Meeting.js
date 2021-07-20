@@ -49,7 +49,6 @@ export default class Meeting extends Component
                 {
                     this.state.outputStream && <RTCView style={{height: 200, width: 100}} zOrder={1}  streamURL={this.state.outputStream.toURL()} />
                 }
-                <Button onPress={() => this.props.navigation.goBack()} title="Create, Go back home" />
                 <Button onPress={() => this.playVideoFromCamera()} title="play video" />
                 <Button onPress={() => this.produceVideo()} title="produce video" />
                 <Button onPress={() => this.meetingService.subscribeVideo()} title="subscribe video" />
