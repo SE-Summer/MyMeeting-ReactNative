@@ -49,14 +49,14 @@ export default class RegisterScreen extends Component {
         })
     }
 
-    onOk = () => {
+    onOk = async () => {
         const {username, password, confirmPassword, nameFilled, passwordFilled, confirmFilled, confirmWarning} = this.state;
         this.usernameChange(username);
         this.passwordChange(password);
         this.confirmPasswordChange(confirmPassword);
 
         if (nameFilled && passwordFilled && confirmFilled && !confirmWarning) {
-            if (this.checkResult()) {
+            if (await this.checkResult()) {
                 this.setState({
                     username: null,
                     password: null,
@@ -75,7 +75,7 @@ export default class RegisterScreen extends Component {
         }
     }
 
-    checkResult = () => {
+    checkResult = async () => {
         return true;
     }
 

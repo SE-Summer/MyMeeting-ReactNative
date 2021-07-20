@@ -5,6 +5,8 @@ import {SwitchItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
 import {config_key} from "../utils/Constants";
+import {create} from "../Service/MeetingService";
+import * as Progress from 'react-native-progress';
 
 const style = StyleSheet.create({
     input: {
@@ -28,20 +30,46 @@ export default class ReServeMeetingScreen extends Component{
             password: null,
             cameraStatus: config_key.camera,
             microphoneStatus: config_key.microphone,
+            loading: false,
         }
     }
 
     componentDidMount() {
         const {navigation} = this.props;
+        navigation.addListener('focus', () => {
+            this.setState({
+                loading: false,
+            })
+        })
         navigation.setOptions({
             headerRight: () => {
+                if (this.state.loading) {
+                    return (
+                        <Progress.CircleSnail color={['#9be3b1', '#06b45f', '#05783d']} style={{marginRight: 7}}/>
+                    )
+                }
                 return (
-                    <TextButton text={"完成"} pressEvent={() => {
-                        navigation.navigate('Meeting', {'id': this.state.id, 'password': this.state.password})
-                    }} />
+                    <TextButton text={"完成"} pressEvent={
+                        () => {
+                            const {name, password} = this.state;
+                            if (name == null || name.length === 0 || password == null || password.length === 0) {
+                                return;
+                            }
+
+                            this.setState({
+                                loading: true
+                            }, () => {
+                                create(this.state.name, this.state.password, this.navigate);
+                            })
+                        }}
+                    />
                 )
             },
         })
+    }
+
+    navigate = () => {
+        this.props.navigation.navigate('Meeting', {'id': this.state.id, 'password': this.state.password})
     }
 
     cameraSwitch = (value) => {
