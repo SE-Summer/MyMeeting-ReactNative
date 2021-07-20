@@ -3,14 +3,14 @@ import * as React from "react";
 import {Component} from "react";
 import {RTCView} from "react-native-webrtc";
 import {MediaStreamFactory} from "../utils/local_media/MediaStreamFactory";
-import {MeetingService} from "../service/MeetingService";
+import {MediaService} from "../service/MediaService";
 
-export default class CreateMeetingScreen extends Component
+export default class Meeting extends Component
 {
     constructor(props) {
         super(props);
         this.mediaStreamFactory = new MediaStreamFactory();
-        this.meetingService = new MeetingService();
+        this.meetingService = new MediaService();
         this.state = {
             inputStream: null,
             outputStream: null,

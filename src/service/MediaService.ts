@@ -5,7 +5,7 @@ import {printError} from "../utils/PrintError";
 import {serviceConfig, SignalMethod, SignalType} from "../ServiceConfig";
 import {SignalingService} from "./SignalingService";
 
-export class MeetingService
+export class MediaService
 {
     private roomToken: string = null;
     private userToken: string = null;
