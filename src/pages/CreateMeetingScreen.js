@@ -5,7 +5,7 @@ import {SwitchItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
 import {config_key} from "../utils/Constants";
-import {create} from "../Service/MeetingService";
+import {create} from "../service/MeetingService";
 import * as Progress from 'react-native-progress';
 
 const style = StyleSheet.create({
