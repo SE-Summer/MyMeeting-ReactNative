@@ -19,7 +19,7 @@ const style = StyleSheet.create({
     }
 })
 
-export default class CreateMeetingScreen extends Component{
+export default class ReServeMeetingScreen extends Component{
     constructor() {
         super();
         this.state={
