@@ -23,10 +23,10 @@ export const serviceConfig = {
 export enum RequestMethod {
     getRouterRtpCapabilitiesRequest = 'getRouterRtpCapabilities',
     join = 'join',
-    createProducerTransportRequest = 'createProducerTransport',
+    createTransportRequest = 'createTransport',
     connectTransportRequest = 'connectTransport',
-    createProducerRequest = 'createProducer',
     produceRequest = 'produce',
+    consumeRequest = 'consume',
     closeProducer = 'closeProducer',
     pauseProducer = 'pauseProducer',
     resumeProducer = 'resumeProducer',

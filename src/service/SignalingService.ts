@@ -36,6 +36,7 @@ export class SignalingService
     public waitForConnection()
     {
         return new Promise<void>((resolve, reject) => {
+            console.log('Waiting for connection...');
             this.socket.on('connection', this.timeoutCallback(() => {resolve()}, serviceConfig.connectTimeout));
             this.socket.on('connect_error', this.timeoutCallback(() => {reject()}, serviceConfig.connectTimeout));
         });

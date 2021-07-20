@@ -57,7 +57,7 @@ export class MeetingService
             iceCandidates,
             dtlsParameters,
             sctpParameters
-        } = await this.signaling.send(RequestMethod.createProducerTransportRequest, body) as mediasoupTypes.TransportOptions;
+        } = await this.signaling.send(RequestMethod.createTransportRequest, body) as mediasoupTypes.TransportOptions;
 
         console.log("Transport ID: " + id);
         console.log("Transport ICE Parameters: " + JSON.stringify(iceParameters));
