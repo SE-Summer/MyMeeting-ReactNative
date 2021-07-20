@@ -1,89 +1,104 @@
 import * as React from 'react';
-import {Text, View, StyleSheet, TouchableHighlight, Image} from 'react-native';
-import { Avatar } from "react-native-elements";
-import { config } from "../utils/Constants";
+import {Text, View, StyleSheet} from 'react-native';
 import { Component } from "react";
+import {RoundButton} from "../components/MyButton";
+import LinearGradient from "react-native-linear-gradient";
 
 export default class HomeScreen extends Component{
+    navigateToCreateMeeting = () => {
+        this.props.navigation.navigate('CreateMeeting');
+    }
+
+    navigateToMeeting = () => {
+        this.props.navigation.navigate('JoinMeeting', {'quickJoin': false});
+    }
+
+    navigateToReserveMeeting = () => {
+        this.props.navigation.navigate('ReServeMeeting');
+    }
+
     render() {
         return (
-            <View>
-                <View
-                    style={styles.rowContainer}
+                <LinearGradient
+                    start={{x: 0, y: 0}}
+                    end={{x: 0, y: 1}}
+                    colors={['#bce9d5', '#047957']}
+                    style={{flex: 1, justifyContent: "flex-end"}}
                 >
-                    <Avatar
-                        rounded
-                        size={70}
-                        source={{
-                            uri: config.unKnownUri
-                        }}
-                        onPress={() => {
-                            this.props.navigation.navigate('User');
-                        }}
-                    />
-                    <Text style={styles.titleText}>用户名</Text>
-                </View>
-                <View style={styles.cardContainer}>
-                    <View>
-                        <TouchableHighlight
-                            activeOpacity={0.6}
-                            underlayColor="#DDDDDD"
-                            onPress={() => {this.props.navigation.navigate('CreateMeeting')}}
-                            style={styles.card}
+                    <View style={styles.titleContainer}>
+                        <View
+                            style={{
+                                backgroundColor: 'transparent',
+                                flex: 1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
                         >
-                            <Image source={require('../assets/add.png')} style={styles.cardImg}/>
-                        </TouchableHighlight>
-                        <Text style={styles.cardText}>创建会议</Text>
+                            <Text
+                                style={{
+                                    fontSize: 72,
+                                    color: 'white',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Start
+                            </Text>
+                            <Text
+                                style={{
+                                    fontSize: 60,
+                                    color: 'white',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Meeting
+                            </Text>
+                        </View>
                     </View>
-                    <View>
-                        <TouchableHighlight
-                            activeOpacity={0.6}
-                            underlayColor="#DDDDDD"
-                            onPress={() => {this.props.navigation.navigate('Meeting')}}
-                            style={styles.card}
-                        >
-                            <Image source={require('../assets/add.png')} style={styles.cardImg}/>
-                        </TouchableHighlight>
-                        <Text style={styles.cardText}>加入会议</Text>
+                    <View style={{height: 100}}/>
+                    <View style={styles.buttonContainer}>
+                        <RoundButton
+                            iconText={"add-outline"}
+                            iconSize={35}
+                            pressEvent={this.navigateToCreateMeeting}
+                            theStyle={{backgroundColor: "#069b49"}}
+                            title={"创建"}
+                        />
+                        <RoundButton
+                            iconText={"arrow-forward-outline"}
+                            pressEvent={this.navigateToMeeting}
+                            theStyle={{backgroundColor: "#06b45f"}}
+                            title={"加入"}
+                        />
+                        <RoundButton
+                            iconText={"calendar"}
+                            pressEvent={this.navigateToReserveMeeting}
+                            theStyle={{backgroundColor: "#85e1ab"}}
+                            title={"预约"}
+                        />
                     </View>
-                </View>
-            </View>
+                </LinearGradient>
         );
     }
 }
 
 const styles = StyleSheet.create({
-    rowContainer: {
-        margin: 15,
-        flexDirection: "row"
-    },
-    titleText: {
-        marginLeft: 15,
-        textAlignVertical: "center"
-    },
-    cardContainer: {
+    buttonContainer: {
         flexDirection: "row",
-        justifyContent: "space-around",
-    },
-    card:  {
-
-        height: 100,
-        elevation: 5,
-        shadowOffset: { // 设置阴影偏移量
-            width: 3,
-            height: 4
-        },
-        shadowRadius: 4, // 设置阴影模糊半径
-        shadowOpacity: 0.13, // 设置阴影的不透明度
-        borderRadius: 10, // 设置圆角
-        shadowColor: 'rgba(96,96,96,1)' // 设置阴影色
-    },
-    cardImg: {
-        width: 100,
-        height: 100,
+        backgroundColor: "white",
+        marginLeft: 10,
+        marginRight: 10,
+        marginBottom: 50,
         borderRadius: 10,
+        padding: 20,
+        justifyContent: "space-around"
     },
-    cardText: {
+    titleContainer: {
         alignItems: "center",
-    }
+        flex: 1,
+        justifyContent: "center",
+    },
+    infText: {
+        textAlign: "center",
+        fontSize: 17,
+    },
 });
