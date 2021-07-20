@@ -9,7 +9,8 @@ export class MeetingService
 {
     private roomToken: string = null;
     private userToken: string = null;
-    private serverWsURL: string = null;
+    private serverURL: string = null;
+
     private signaling: SignalingService = null;
     private device: mediasoupTypes.Device = null;
     private sendTransport: mediasoupTypes.Transport = null;
@@ -37,9 +38,9 @@ export class MeetingService
     {
         this.roomToken = roomToken;
         this.userToken = userToken;
-        this.serverWsURL = `${serviceConfig.serverWsURL}?roomId=${this.roomToken}&peerId=${this.userToken}`;
+        this.serverURL = `${serviceConfig.serverWsURL}?roomId=${this.roomToken}&peerId=${this.userToken}`;
 
-        this.signaling = new SignalingService(this.serverWsURL, {
+        this.signaling = new SignalingService(this.serverURL, {
             timeout: 3000,
             // reconnection: true,
             // reconnectionAttempts: Infinity,
