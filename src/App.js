@@ -15,6 +15,7 @@ import MeetingSettingScreen from "./pages/MeetingSetting";
 import UserSettingScreen from "./pages/UserSetting";
 import TabScreen from "./pages/TabRouter";
 import EmailCheck, {ValidatePage} from "./pages/EmailCheck";
+import EditProfileScreen from "./pages/EditProfile";
 
 const forFade = ({ current }) => ({
     cardStyle: {
@@ -76,6 +77,10 @@ export default function App() {
                         headerTitleAlign: 'center',
                         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
                     }} />
+                    <Stack.Screen name={"EditProfile"} component={EditProfileScreen} options={{
+                        headerTitleAlign: 'center',
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                    }}/>
                     <Stack.Screen name={"Login"} component={LoginScreen} options={{
                         headerShown: false,
                         cardStyleInterpolator: forFade,

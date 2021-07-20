@@ -25,6 +25,9 @@ class Splash extends Component {
         const userId = await getFromStorage(config.userIdIndex);
         config_key.userId = userId? userId: config_key.userId;
 
+        const nickname = await getFromStorage(config.nicknameIndex);
+        config_key.nickname = nickname ? nickname : config_key.nickname;
+
         const camera = await getFromStorage(config.cameraIndex);
         config_key.camera = camera === 'true';
 

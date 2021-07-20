@@ -25,7 +25,19 @@ export default class UserSettingScreen extends Component {
         super();
         this.state = {
             avatarUri: config.unKnownUri,
+            username: null,
+            nickname: null,
         }
+    }
+
+    componentDidMount() {
+        const {navigation} = this.props;
+        navigation.addListener('focus', () => {
+            this.setState({
+                username: config_key.username,
+                nickname: config_key.nickname,
+            })
+        })
     }
 
     avatarSettings = () => {
@@ -40,11 +52,13 @@ export default class UserSettingScreen extends Component {
             this.setState({
                 avatarUri: 'data:'+image.mime+';base64,'+image.data,
             })
+        }).catch(e => {
+            console.log(e)
         });
     }
 
-    usernameSettings = () => {
-
+    usernameSettings = (type) => {
+        this.props.navigation.navigate('EditProfile', {type: type})
     }
 
     render() {
@@ -57,17 +71,17 @@ export default class UserSettingScreen extends Component {
                 </View>
                 <View style={{height: 30}}/>
                 <View style={styles.itemContainer}>
-                    <TouchableItem text={'用户名'} pressEvent={this.usernameSettings} rightComponent={
-                        <Text>{config_key.username}</Text>
+                    <TouchableItem text={'用户名'} pressEvent={() => {this.usernameSettings('name')}} rightComponent={
+                        <Text>{this.state.username}</Text>
                     }/>
                     <Divider style={styles.divider}/>
-                    <TouchableItem text={'入会名称'} pressEvent={this.usernameSettings} rightComponent={
-                        <Text>{config_key.username}</Text>
+                    <TouchableItem text={'入会名称'} pressEvent={() => {this.usernameSettings('nickname')}} rightComponent={
+                        <Text>{this.state.nickname}</Text>
                     }/>
                 </View>
                 <View style={{height: 30}}/>
                 <View style={styles.itemContainer}>
-                    <TouchableItem text={'修改密码'} pressEvent={this.usernameSettings} />
+                    <TouchableItem text={'修改密码'} pressEvent={() => {}} />
                 </View>
             </View>
         );

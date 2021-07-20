@@ -3,6 +3,7 @@ export const config = {
     qGreen: '#44CE55',
     usernameIndex: 'user_name',
     userIdIndex: 'user_id',
+    nicknameIndex: 'nick_name',
     cameraIndex: 'camera',
     microphoneIndex: 'microphone',
 }
@@ -12,8 +13,9 @@ export const utils = {
 }
 
 export const config_key = {
-    username: 'Summer',
+    username: 'User0',
     userId: 0,
+    nickname: 'anonymous',
     camera: true,
     microphone: false,
 }
