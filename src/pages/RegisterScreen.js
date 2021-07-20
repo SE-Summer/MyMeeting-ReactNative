@@ -49,7 +49,7 @@ export default class RegisterScreen extends Component {
         })
     }
 
-    onOk = async () => {
+    onOk = () => {
         const {username, password, confirmPassword, nameFilled, passwordFilled, confirmFilled, confirmWarning} = this.state;
         this.usernameChange(username);
         this.passwordChange(password);

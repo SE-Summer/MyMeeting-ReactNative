@@ -14,6 +14,7 @@ import MeetingPage from "./pages/Meeting";
 import MeetingSettingScreen from "./pages/MeetingSetting";
 import UserSettingScreen from "./pages/UserSetting";
 import TabScreen from "./pages/TabRouter";
+import EmailCheck, {ValidatePage} from "./pages/EmailCheck";
 
 const forFade = ({ current }) => ({
     cardStyle: {
@@ -80,11 +81,29 @@ export default function App() {
                         cardStyleInterpolator: forFade,
                         gesturesEnabled: false,
                     }}/>
-                    <Stack.Screen name={"Register"} component={RegisterScreen} options={({navigation}) => ({
+                    <Stack.Screen name={"EmailCheck"} component={EmailCheck} options={({navigation}) => ({
                         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                         headerLeft: () => {
                             return (
                                 <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>
+                            )
+                        },
+                        headerTitle: null,
+                    })} />
+                    <Stack.Screen name={"Validate"} component={ValidatePage} options={({navigation}) => ({
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        headerTitle: null,
+                        headerLeft: () => {
+                            return (
+                                <TextButton text={"取消"} pressEvent={() => {navigation.pop()}}/>
+                            )
+                        },
+                    })} />
+                    <Stack.Screen name={"Register"} component={RegisterScreen} options={({navigation}) => ({
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        headerLeft: () => {
+                            return (
+                                <TextButton text={"取消"} pressEvent={() => {navigation.navigate('EmailCheck')}}/>
                             )
                         },
                         title: "注册",

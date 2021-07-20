@@ -1,11 +1,11 @@
 import * as React from "react";
-import {View, StyleSheet, TextInput, ImageBackground, Image, BackHandler, ToastAndroid, Text} from "react-native";
+import {View, StyleSheet, TextInput, ImageBackground, Image, BackHandler, ToastAndroid, Text, Dimensions } from "react-native";
 import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import {config_key, utils} from "../utils/Constants";
-import { Dimensions } from 'react-native';
+import {utils} from "../utils/Constants";
+import {validateEmail} from "../utils/Utils";
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
@@ -26,12 +26,12 @@ export default class LoginScreen extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            username: config_key.username,
+            userEmail: null,
             password: null,
             backTimes: 0,
             userInput: 0,
             passwordInput: 0,
-            nameTip: null,
+            EmailTip: null,
             passwordTip: null,
         }
     }
@@ -63,12 +63,12 @@ export default class LoginScreen extends Component {
     }
 
     log = async () => {
-        const {username, password} = this.state;
-        const nameFilled = username != null && username.length !== 0;
-        if (!nameFilled) {
+        const {userEmail, password} = this.state;
+        const EmailFilled = userEmail != null && userEmail.length !== 0;
+        if (!EmailFilled) {
             this.setState({
                 userInput: 1,
-                nameTip: '输入用户名',
+                EmailTip: '输入邮箱',
                 backTimes: 0,
             })
         }
@@ -82,26 +82,26 @@ export default class LoginScreen extends Component {
             })
         }
 
-        if (nameFilled && passwordFilled) {
+        if (EmailFilled && passwordFilled) {
             if (await this.confirm()) {
                 this.setState({
                     password: null,
                     backTimes: 0,
                     userInput: 0,
                     passwordInput: 0,
-                    nameTip: null,
+                    EmailTip: null,
                     passwordTip: null,
                 })
                 this.props.navigation.navigate('Tab');
             } else {
                 this.setState({
-                    username: null,
+                    userEmail: null,
                     password: null,
                     backTimes: 0,
                     userInput: 1,
                     passwordInput: 1,
-                    nameTip: '用户名或密码错误',
-                    passwordTip: '用户名或密码错误',
+                    EmailTip: '邮箱或密码错误',
+                    passwordTip: '邮箱或密码错误',
                 })
             }
         }
@@ -112,15 +112,16 @@ export default class LoginScreen extends Component {
     }
 
     register = () => {
-        this.props.navigation.navigate('Register');
+        this.props.navigation.navigate('EmailCheck');
     }
 
-    onUsernameChange = (value) => {
+    onUserEmailChange = (value) => {
         const unfilled = value == null || value.length === 0;
+        const validated = validateEmail(value);
         this.setState({
-            username: value,
-            userInput: unfilled ? 1 : 0,
-            nameTip: unfilled ? '输入用户名' : null,
+            userEmail: value,
+            userInput: unfilled || !validated ? 1 : 0,
+            EmailTip: unfilled ? '输入邮箱' : (validated ? null : '格式不对'),
             backTimes: 0,
         })
     }
@@ -157,19 +158,19 @@ export default class LoginScreen extends Component {
                     <ImageBackground source={require('../assets/greyBg.png')} style={styles.imageView}>
                         <View style={styles.inputContainer}>
                             <View style={styles.labelContainer}>
-                                <InputLabel text={this.state.nameTip}/>
+                                <InputLabel text={this.state.EmailTip}/>
                             </View>
                             <ImageBackground source={utils.buttonOutline[this.state.userInput]} style={styles.imgBg}>
                                 <TextInput
-                                    value={this.state.username}
+                                    value={this.state.userEmail}
                                     style={styles.input}
-                                    placeholder={"用户名"}
+                                    placeholder={"邮箱"}
                                     numberOfLines={1}
-                                    maxLength={15}
                                     placeholderTextColor={'#aaaaaa'}
                                     selectionColor={"green"}
-                                    keyboardType={"visible-password"}
-                                    onChangeText={this.onUsernameChange}
+                                    keyboardType={"email-address"}
+                                    textContentType={'emailAddress'}
+                                    onChangeText={this.onUserEmailChange}
                                 />
                             </ImageBackground>
                             <View style={styles.labelContainer}>

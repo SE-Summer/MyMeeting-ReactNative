@@ -4,6 +4,7 @@ import {Image, View, StyleSheet, Text} from "react-native";
 import {TouchableItem} from "../components/Item";
 import {config, config_key} from "../utils/Constants";
 import {Divider} from "react-native-elements/dist/divider/Divider";
+import ImagePicker from 'react-native-image-crop-picker';
 
 const styles = StyleSheet.create({
     itemContainer: {
@@ -20,8 +21,26 @@ const styles = StyleSheet.create({
 })
 
 export default class UserSettingScreen extends Component {
-    avatarSettings = () => {
+    constructor() {
+        super();
+        this.state = {
+            avatarUri: config.unKnownUri,
+        }
+    }
 
+    avatarSettings = () => {
+        ImagePicker.openPicker({
+            width: 300,
+            height: 300,
+            cropping: true,
+            includeBase64: true,
+            cropperCircleOverlay: true,
+            cropperActiveWidgetColor: '#059677',
+        }).then(image => {
+            this.setState({
+                avatarUri: 'data:'+image.mime+';base64,'+image.data,
+            })
+        });
     }
 
     usernameSettings = () => {
@@ -33,7 +52,7 @@ export default class UserSettingScreen extends Component {
             <View>
                 <View style={styles.itemContainer}>
                     <TouchableItem text={'头像'} pressEvent={this.avatarSettings} rightComponent={
-                        <Image source={{uri: config.unKnownUri}} style={{width: 60, height: 60, borderRadius: 10}}/>
+                        <Image source={{uri: this.state.avatarUri}} style={{width: 60, height: 60, borderRadius: 10}}/>
                     }/>
                 </View>
                 <View style={{height: 30}}/>
