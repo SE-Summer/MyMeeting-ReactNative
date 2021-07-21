@@ -6,7 +6,7 @@ import {StyleSheet} from "react-native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Divider} from "react-native-elements";
 import {removeFromStorage} from "../utils/StorageUtils";
-import {config} from "../utils/Constants";
+import {config, config_key} from "../utils/Constants";
 
 const Item = ({icon, text, func}) => {
     return(
@@ -21,6 +21,24 @@ const Item = ({icon, text, func}) => {
 }
 
 export default class UserScreen extends Component{
+    constructor() {
+        super();
+        this.state = {
+            avatarUri: config_key.avatarUri,
+            username: config_key.username,
+        }
+    }
+
+    componentDidMount() {
+        const {navigation} = this.props;
+        navigation.addListener('focus', () => {
+            this.setState({
+                avatarUri: config_key.avatarUri,
+                username: config_key.username,
+            })
+        })
+    }
+
     navigateToHistory = () => {
         this.props.navigation.navigate('History');
     }
@@ -42,7 +60,7 @@ export default class UserScreen extends Component{
     render() {
         return (
             <View>
-                <UserInf style={userScreenStyles.inf}/>
+                <UserInf avatarUri={this.state.avatarUri} username={this.state.username} style={userScreenStyles.inf}/>
                 <View style={userScreenStyles.optionsContainer}>
                     <Item icon={"document-text-outline"} text={"历史记录"} func={this.navigateToHistory}/>
                 </View>
