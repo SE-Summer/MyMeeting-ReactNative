@@ -10,7 +10,7 @@ export class SignalingService
     constructor(URL: string, opts)
     {
         this.URL = URL;
-        this.socket = io(URL);
+        this.socket = io(URL, opts);
         console.log('start to connect');
 
         this.callbackMap = new Map<SignalType ,Map<SignalMethod, (data) => void>>();
@@ -29,7 +29,7 @@ export class SignalingService
     private handleSignal(type: SignalType, method: SignalMethod, data)
     {
         let callback = this.callbackMap.get(type).get(method) as (data) => void;
-        if (callback == null) {
+        if (callback == undefined) {
             console.log(`Undefined signal (${type} , ${method})`);
         } else {
             callback(data);
@@ -71,7 +71,10 @@ export class SignalingService
             console.log('Waiting for connection to ' + this.URL + '...');
             this.socket.on('connect', this.timeoutCallback(() => {
                 console.log('Socket connected');
-                resolve();
+                if (this.socket && this.socket.connected)
+                    resolve();
+                else
+                    reject('Socket connection failed');
             }, serviceConfig.connectTimeout));
             // this.socket.on('connect_error', this.timeoutCallback(() => {
             //     console.log('Socket connection failed!!!')

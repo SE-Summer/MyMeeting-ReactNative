@@ -1,4 +1,4 @@
-import {Button, View} from "react-native";
+import {Button, Text, View} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {RTCView} from "react-native-webrtc";
@@ -10,33 +10,29 @@ export default class Meeting extends Component
     constructor(props) {
         super(props);
         this.mediaStreamFactory = new MediaStreamFactory();
-        this.meetingService = new MediaService();
+        this.mediaService = new MediaService(this.updateStreams.bind(this));
         this.state = {
             inputStream: null,
-            outputStream: null,
+            outputStreams: null,
         };
     }
 
-    updateStream()
+    async updateStreams()
     {
-        console.log(this.meetingService.getStream());
         this.setState({
-            outputStream: this.meetingService.getStream(),
+            outputStreams: await this.mediaService.getPeerMediaStreams(),
         });
     }
 
-    async playVideoFromCamera()
+    async startStreaming()
     {
-        const videoStream = await this.mediaStreamFactory.getCamFrontStream(200, 100, 30);
+        await this.mediaService.joinMeeting('room_today', 'user_shenwhang');
+        const _inputStream = await this.mediaStreamFactory.getCamFrontStream(100, 200, 30);
         this.setState({
-            inputStream: videoStream,
+            inputStream: _inputStream,
         });
-        await this.meetingService.joinMeeting("12", "hhh");
-    }
-
-    async produceVideo()
-    {
-        await this.meetingService.sendVideoTrack(this.state.inputStream);
+        await this.mediaService.sendMediaStream(_inputStream);
+        await this.mediaService.sendMediaStream(await this.mediaStreamFactory.getMicStream());
     }
 
     render() {
@@ -47,12 +43,18 @@ export default class Meeting extends Component
                 }
 
                 {
-                    this.state.outputStream && <RTCView style={{height: 200, width: 100}} zOrder={1}  streamURL={this.state.outputStream.toURL()} />
+                    this.state.outputStreams && this.state.outputStreams.forEach((stream, id) => {
+                        return (
+                            <View>
+                                <Text>
+                                    {id}:
+                                </Text>
+                                <RTCView style={{height: 200, width: 100}} zOrder={1}  streamURL={this.state.inputStream.toURL()} />
+                            </View>
+                        )
+                    })
                 }
-                <Button onPress={() => this.playVideoFromCamera()} title="play video" />
-                <Button onPress={() => this.produceVideo()} title="produce video" />
-                <Button onPress={() => this.meetingService.subscribeVideo()} title="subscribe video" />
-                <Button onPress={() => this.updateStream()} title="play video" />
+                <Button onPress={() => this.startStreaming()} title="START!" />
             </View>
         );
     }
