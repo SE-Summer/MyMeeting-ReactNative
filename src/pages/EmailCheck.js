@@ -5,7 +5,7 @@ import {validateEmail} from "../utils/Utils";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
 import VerificationCodeInput from "../components/VerificationCodeInput";
-import {emailCheck} from "../Service/UserService";
+import {emailCheck} from "../service/UserService";
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;

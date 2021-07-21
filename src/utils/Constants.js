@@ -13,6 +13,7 @@ export const utils = {
 }
 
 export const config_key = {
+    avatarUri: config.unKnownUri,
     username: 'User0',
     userId: 0,
     nickname: 'anonymous',
