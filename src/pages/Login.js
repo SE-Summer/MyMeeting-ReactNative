@@ -4,8 +4,9 @@ import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import {utils} from "../utils/Constants";
+import {config_key, utils} from "../utils/Constants";
 import {validateEmail} from "../utils/Utils";
+import {loginService} from "../service/UserService";
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
@@ -26,7 +27,7 @@ export default class LoginScreen extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            userEmail: null,
+            userEmail: config_key.email,
             password: null,
             backTimes: 0,
             userInput: 0,
@@ -83,7 +84,7 @@ export default class LoginScreen extends Component {
         }
 
         if (EmailFilled && passwordFilled) {
-            if (await this.confirm()) {
+            if (await loginService(this.state.userEmail, this.state.password)) {
                 this.setState({
                     password: null,
                     backTimes: 0,
@@ -105,10 +106,6 @@ export default class LoginScreen extends Component {
                 })
             }
         }
-    }
-
-    confirm = async () => {
-        return true;
     }
 
     register = () => {
@@ -248,7 +245,7 @@ const styles = StyleSheet.create({
     },
     labelContainer: {
         marginLeft: 20,
-        width: windowWidth / 5,
+        width: windowWidth / 2,
         height: windowWidth / 20,
     },
     triAngleImg: {

@@ -82,7 +82,7 @@ export default class EmailCheck extends Component {
                     <TextInput
                         value={this.state.userEmail}
                         style={emailStyles.input}
-                        placeholder={"email@my.com"}
+                        placeholder={"my@meeting.com"}
                         numberOfLines={1}
                         textAlign={'center'}
                         placeholderTextColor={'#aaaaaa'}

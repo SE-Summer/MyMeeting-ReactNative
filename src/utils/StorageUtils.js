@@ -3,8 +3,7 @@ import {ToastAndroid} from "react-native";
 
 const getFromStorage = async (name) => {
     try {
-        const value = await AsyncStorage.getItem(name);
-        return value;
+        return await AsyncStorage.getItem(name);
     } catch(e) {
         ToastAndroid.showWithGravityAndOffset(
             "Get storage error",

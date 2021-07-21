@@ -6,9 +6,10 @@ export const TouchableItem = ({text, pressEvent, rightComponent = null}) => {
     return (
         <TouchableOpacity onPress={pressEvent} style={{flexDirection: "row", padding: 15, alignItems: "center"}}>
             <Text style={{fontSize:16, textAlign: "left", marginLeft: 10}}>{text}</Text>
-            <View style={{flex: 4}}/>
-            {rightComponent}
-            <View style={{alignItems: "flex-end", flex: 1, justifyContent: "center"}}>
+            <View style={{alignItems: 'flex-end', flex: 1}}>
+                {rightComponent}
+            </View>
+            <View style={{alignItems: "flex-end", justifyContent: "center", paddingLeft: 20}}>
                 <Ionicons name={"ios-chevron-forward"} size={23}/>
             </View>
         </TouchableOpacity>

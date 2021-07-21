@@ -7,6 +7,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Divider} from "react-native-elements";
 import {removeFromStorage} from "../utils/StorageUtils";
 import {config, config_key} from "../utils/Constants";
+import {logout} from "../service/UserService";
 
 const Item = ({icon, text, func}) => {
     return(
@@ -52,8 +53,7 @@ export default class UserScreen extends Component{
     }
 
     logOut = async () => {
-        await removeFromStorage(config.usernameIndex);
-        await removeFromStorage(config.userIdIndex);
+        await logout();
         this.props.navigation.navigate('Login');
     }
 
