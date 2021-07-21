@@ -21,12 +21,12 @@ export class MediaService
 
     private peerIds: Set<string> = null;
     private peerInfos: Map<string, types.PeerInfo> = null;
-    private peerMediaStreams: Map<string, MediaStream> = null;
+    private peerMediaStreams: Map<string, MediaStreamTrack[]> = null;
 
     private sendTransportOpt: mediasoupTypes.TransportOptions = null;
     private joined: boolean = null;
 
-    private updatePeerMediaStreamCallback: () => void = null;
+    private tracks = [];
 
     public getPeerIds()
     {
@@ -41,24 +41,23 @@ export class MediaService
 
     public getPeerMediaStreams()
     {
-        return this.peerMediaStreams;
+        return this.tracks;
     }
 
-    public getPeerMediaStream(id: string): MediaStream
+    public getPeerMediaStream(id: string): MediaStreamTrack[]
     {
         const stream = this.peerMediaStreams.get(id);
         return (stream == undefined) ? null : stream;
     }
 
-    constructor(updatePeerMediaStreams: () => void)
+    constructor()
     {
         try {
             registerGlobals();
-            this.updatePeerMediaStreamCallback = updatePeerMediaStreams;
             this.device = new mediasoupClient.Device();
             this.peerIds = new Set<string>();
             this.peerInfos = new Map<string, types.PeerInfo>();
-            this.peerMediaStreams = new Map<string, MediaStream>();
+            this.peerMediaStreams = new Map<string, MediaStreamTrack[]>();
             this.joined = false;
 
         } catch (err) {
@@ -80,29 +79,6 @@ export class MediaService
             // transports: ['websocket'],
         });
 
-        this.signaling.registerListener(SignalType.notify, SignalMethod.newPeer, async (data: types.PeerInfo) => {
-            console.log('Handling newPeer notification...');
-            this.peerIds.add(data.id);
-            this.peerInfos.set(data.id, data);
-        })
-
-        this.signaling.registerListener(SignalType.notify, SignalMethod.newConsumer, async (data: types.ConsumerInfo) => {
-            console.log('Handling newConsumer notification...');
-            this.consumer = await this.recvTransport.consume({
-                id            : data.consumerId,
-                producerId    : data.producerId,
-                kind          : data.kind,
-                rtpParameters : data.rtpParameters
-            });
-            const { track } = this.consumer;
-            if (this.peerMediaStreams.has(data.producerPeerId)) {
-                this.peerMediaStreams.get(data.producerPeerId).addTrack(track);
-            } else {
-                this.peerMediaStreams.set(data.producerPeerId, new MediaStream([track]));
-            }
-            this.updatePeerMediaStreamCallback();
-        })
-
         await this.signaling.waitForConnection();
 
         const rtpCapabilities = await this.signaling.sendRequest(SignalMethod.getRouterRtpCapabilities);
@@ -110,20 +86,6 @@ export class MediaService
 
         await this.device.load({routerRtpCapabilities: rtpCapabilities});
         console.log("Device SCTP Capabilities: " + JSON.stringify(this.device.sctpCapabilities));
-
-        const _peerInfos = (await this.signaling.sendRequest(SignalMethod.join, {
-            displayName: 'shenwhang',
-            joined: this.joined,
-            device: "test_swh",
-            rtpCapabilities: this.device.rtpCapabilities,
-        } as types.JoinRequest)) as types.PeerInfo[];
-
-        for (const info of _peerInfos) {
-            this.peerIds.add(info.id);
-            this.peerInfos.set(info.id, info);
-        }
-
-        this.joined = true;
 
         this.sendTransportOpt = await this.signaling.sendRequest(SignalMethod.createTransport, {
             transportType: TransportType.producer,
@@ -186,6 +148,48 @@ export class MediaService
                 } as types.ConnectTransportRequest);
             done();
         });
+
+        this.signaling.registerListener(SignalType.notify, SignalMethod.newPeer, async (data: types.PeerInfo) => {
+            console.log('Handling newPeer notification...');
+            this.peerIds.add(data.id);
+            this.peerInfos.set(data.id, data);
+        })
+
+        this.signaling.registerListener(SignalType.notify, SignalMethod.newConsumer, async (data: types.ConsumerInfo) => {
+            console.log('Handling newConsumer notification...');
+            this.consumer = await this.recvTransport.consume({
+                id            : data.consumerId,
+                producerId    : data.producerId,
+                kind          : data.kind,
+                rtpParameters : data.rtpParameters
+            });
+            console.log('Creating consumer kind:' + data.kind);
+            const { track } = this.consumer;
+            console.log('Track: ' + JSON.stringify(track));
+            // if (!this.peerMediaStreams.has(data.producerPeerId)) {
+            //     this.peerMediaStreams.set(data.producerPeerId, [track]);
+            //     console.log('set')
+            // } else {
+            //     this.peerMediaStreams.get(data.producerPeerId).push(track);
+            //     console.log('add');
+            // }
+            this.tracks.push(track);
+            console.log(this.tracks);
+        })
+
+        const _peerInfos = (await this.signaling.sendRequest(SignalMethod.join, {
+            displayName: 'shenwhang',
+            joined: this.joined,
+            device: "test_swh",
+            rtpCapabilities: this.device.rtpCapabilities,
+        } as types.JoinRequest)) as types.PeerInfo[];
+
+        for (const info of _peerInfos) {
+            this.peerIds.add(info.id);
+            this.peerInfos.set(info.id, info);
+        }
+
+        this.joined = true;
     }
 
     public async sendMediaStream(stream: MediaStream)
