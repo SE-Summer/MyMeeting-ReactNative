@@ -84,7 +84,7 @@ export default class LoginScreen extends Component {
         }
 
         if (EmailFilled && passwordFilled) {
-            if (await loginService(this.state.userEmail, this.state.password)) {
+            if (await loginService(this.state.userEmail, this.state.password).status === 200) {
                 this.setState({
                     password: null,
                     backTimes: 0,

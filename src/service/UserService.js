@@ -8,9 +8,6 @@ export const loginService = async (email, password) => {
     user.email = email;
     user.password = password;
     const response = await postRequest(url, user);
-    if (response == null) {
-        return false;
-    }
 
     if (response.status === 200) {
         const user = response.data.user;
@@ -24,6 +21,8 @@ export const loginService = async (email, password) => {
         config_key.email = user.email;
         return true;
     }
+
+    return false;
 }
 
 export const logout = async () => {

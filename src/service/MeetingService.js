@@ -1,22 +1,31 @@
 import {postRequest} from "../utils/Utils";
+import moment from "moment";
+import {config_key} from "../utils/Constants";
 
-export function create(roomname, password, callback) {
-    //todo: create a room
-    join(1, password, callback);
+export const create = async (roomname, password) => {
+    const inf = {
+        start_time: moment(),
+        end_time: moment().add(1, 'd'),
+        topic: roomname,
+        password: password,
+        host: config_key.userId,
+        max_num: 50,
+    };
+
+    return await reserve(inf);
 }
 
-export function join(roomId, password, callback) {
-    callback();
+export const join = async (roomId, password) => {
+    const url = '/getRoom';
+    const data = {
+        id: roomId,
+        password: password,
+    }
+
+    return await postRequest(url, data)
 }
 
 export const reserve = async (meetingInf) => {
     const url = '/reserve';
-    const response = await postRequest(url, meetingInf);
-    if (response == null) {
-        return null;
-    }
-
-    if (response.status === 200) {
-        return response.data;
-    }
+    return await postRequest(url, meetingInf);
 }

@@ -79,12 +79,25 @@ export default class ReServeMeetingScreen extends Component{
 
         const response = await reserve(inf);
         if (response != null) {
-            ToastAndroid.showWithGravity(
-                '预约成功',
-                ToastAndroid.SHORT,
-                ToastAndroid.CENTER,
-            )
-            this.props.navigation.pop();
+            switch (response.status) {
+                case 200: {
+                    ToastAndroid.showWithGravity(
+                        '预约成功',
+                        ToastAndroid.SHORT,
+                        ToastAndroid.CENTER,
+                    )
+                    this.props.navigation.pop();
+                    break;
+                }
+                case 401: {
+                    ToastAndroid.showWithGravity(
+                        response.data.error,
+                        ToastAndroid.SHORT,
+                        ToastAndroid.CENTER,
+                    )
+                    break;
+                }
+            }
         } else {
             ToastAndroid.showWithGravity(
                 '预约失败',

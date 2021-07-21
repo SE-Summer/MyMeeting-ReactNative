@@ -15,7 +15,7 @@ export const postRequest = async (url, data) => {
         return await instance.post(url, data);
     } catch (e) {
         console.log(e)
-        return null;
+        return e;
     }
 }
 

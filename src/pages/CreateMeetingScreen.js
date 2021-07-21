@@ -1,4 +1,4 @@
-import {View, StyleSheet, TextInput} from "react-native";
+import {View, StyleSheet, TextInput, ToastAndroid} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {SwitchItem} from "../components/Item";
@@ -58,14 +58,39 @@ export default class CreateMeetingScreen extends Component{
 
                             this.setState({
                                 loading: true
-                            }, () => {
-                                create(this.state.name, this.state.password, this.navigate);
+                            }, async () => {
+                                const response = await create(this.state.name, this.state.password, this.navigate);
+                                if (response == null) {
+                                    ToastAndroid.showWithGravity(
+                                        '创建失败',
+                                        ToastAndroid.SHORT,
+                                        ToastAndroid.CENTER,
+                                    )
+                                } else {
+                                    switch (response.status) {
+                                        case 200: {
+                                            await this.joinAfterCreate();
+                                            break;
+                                        }
+                                        case 401: {
+                                            ToastAndroid.showWithGravity(
+                                                response.data.error,
+                                                ToastAndroid.SHORT,
+                                                ToastAndroid.CENTER,
+                                            )
+                                        }
+                                    }
+                                }
                             })
                         }}
                     />
                 )
             },
         })
+    }
+
+    joinAfterCreate = async () => {
+
     }
 
     navigate = () => {
