@@ -4,7 +4,7 @@ import {TextInput, View} from "react-native";
 import {config_key} from "../utils/Constants";
 import {TextButton} from "../components/MyButton";
 import {Tip} from "../components/Tip";
-import {changeNickname, changeUsername} from "../Service/UserService";
+import {changeNickname, changeUsername} from "../service/UserService";
 
 const changeFunctions = [
     async (value) => {
