@@ -21,12 +21,10 @@ export class MediaService
 
     private peerIds: Set<string> = null;
     private peerInfos: Map<string, types.PeerInfo> = null;
-    private peerMediaStreams: Map<string, MediaStreamTrack[]> = null;
+    private peerTracks: Map<string, MediaStreamTrack[]> = null;
 
     private sendTransportOpt: mediasoupTypes.TransportOptions = null;
     private joined: boolean = null;
-
-    private tracks = [];
 
     public getPeerIds()
     {
@@ -39,15 +37,15 @@ export class MediaService
         return (info == undefined) ? null : info;
     }
 
-    public getPeerMediaStreams()
+    public getPeerTracks()
     {
-        return this.tracks;
+        return this.peerTracks;
     }
 
     public getPeerMediaStream(id: string): MediaStreamTrack[]
     {
-        const stream = this.peerMediaStreams.get(id);
-        return (stream == undefined) ? null : stream;
+        const tracks = this.peerTracks.get(id);
+        return (tracks == undefined) ? null : tracks;
     }
 
     constructor()
@@ -57,9 +55,8 @@ export class MediaService
             this.device = new mediasoupClient.Device();
             this.peerIds = new Set<string>();
             this.peerInfos = new Map<string, types.PeerInfo>();
-            this.peerMediaStreams = new Map<string, MediaStreamTrack[]>();
+            this.peerTracks = new Map<string, MediaStreamTrack[]>();
             this.joined = false;
-
         } catch (err) {
             printError(err);
         }
@@ -166,15 +163,12 @@ export class MediaService
             console.log('Creating consumer kind:' + data.kind);
             const { track } = this.consumer;
             console.log('Track: ' + JSON.stringify(track));
-            // if (!this.peerMediaStreams.has(data.producerPeerId)) {
-            //     this.peerMediaStreams.set(data.producerPeerId, [track]);
-            //     console.log('set')
-            // } else {
-            //     this.peerMediaStreams.get(data.producerPeerId).push(track);
-            //     console.log('add');
-            // }
-            this.tracks.push(track);
-            console.log(this.tracks);
+            if (!this.peerTracks.has(data.producerId)) {
+                this.peerTracks.set(data.producerId, [track]);
+            } else {
+                this.peerTracks.get(data.producerId).push(track);
+            }
+            console.log('Current tracks of peer:', data.producerId, this.peerTracks.get(data.producerId));
         })
 
         const _peerInfos = (await this.signaling.sendRequest(SignalMethod.join, {

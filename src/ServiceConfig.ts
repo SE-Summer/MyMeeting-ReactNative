@@ -1,5 +1,5 @@
 const config = {
-    serverIp: '192.168.0.106',
+    serverIp: 'se.imoments.com.cn',
     serverPort: 4446,
     serverUseHttps: false,
 }
