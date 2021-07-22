@@ -6,6 +6,8 @@ export const config = {
     nicknameIndex: 'nick_name',
     cameraIndex: 'camera',
     microphoneIndex: 'microphone',
+    emailIndex: 'email',
+    tokenIndex: 'token',
 }
 
 export const utils = {
@@ -14,9 +16,10 @@ export const utils = {
 
 export const config_key = {
     avatarUri: config.unKnownUri,
-    username: 'User0',
+    email: null,
+    username: null,
     userId: 0,
-    nickname: 'anonymous',
+    nickname: null,
     camera: true,
     microphone: false,
 }

@@ -10,14 +10,14 @@ export const SIMULCASTENCODING: RTCRtpEncodingParameters[] = [
     {maxBitrate: 900000}
 ];
 
-const _serverWsURL = (config.serverUseHttps ? 'https://' : 'http://') + config.serverIp + ':' + config.serverPort + '/room';
+const _serverURL = (config.serverUseHttps ? 'https://' : 'http://') + config.serverIp + ':' + config.serverPort + '/room';
 
 export const serviceConfig = {
     requestTimeout: 10000,
     connectTimeout: 20000,
     serverIp: config.serverIp,
     serverPort: config.serverPort,
-    serverWsURL: _serverWsURL,
+    serverWsURL: _serverURL,
 }
 
 export enum SignalType {

@@ -41,18 +41,15 @@ export default class Meeting extends Component
 
     render() {
         return (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                {
-                    this.state.inputStream && <RTCView style={{height: 200, width: 100}} zOrder={1}  streamURL={this.state.inputStream.toURL()} />
-                }
+            <View style={{ flex: 1 }}>
+                {/*{*/}
+                {/*    this.state.inputStream && <RTCView style={{height: 200, width: 100}} zOrder={1}  streamURL={this.state.inputStream.toURL()} />*/}
+                {/*}*/}
 
-                {
-                    this.state.outputStream && <RTCView style={{height: 200, width: 100}} zOrder={1}  streamURL={this.state.outputStream.toURL()} />
-                }
-                <Button onPress={() => this.playVideoFromCamera()} title="play video" />
-                <Button onPress={() => this.produceVideo()} title="produce video" />
-                <Button onPress={() => this.meetingService.subscribeVideo()} title="subscribe video" />
-                <Button onPress={() => this.updateStream()} title="play video" />
+                {/*{*/}
+                {/*    this.state.outputStream && <RTCView style={{height: 200, width: 100}} zOrder={1}  streamURL={this.state.outputStream.toURL()} />*/}
+                {/*}*/}
+
             </View>
         );
     }
