@@ -56,6 +56,11 @@ export default class JoinMeetingScreen extends Component{
     }
 
     joinM = async () => {
+        //test one
+        this.props.navigation.navigate('Meeting', {id: this.state.id});
+        return;
+
+        //right one
         const response = await join(parseInt(this.state.id), this.state.password, this.navigate);
         if (response == null) {
             ToastAndroid.showWithGravity(
@@ -68,7 +73,7 @@ export default class JoinMeetingScreen extends Component{
 
         switch (response.status) {
             case 200: {
-                this.props.navigation.navigate('Meeting');
+                this.props.navigation.navigate('Meeting', {token: response.data.room.token});
                 return;
             }
             case 401: {

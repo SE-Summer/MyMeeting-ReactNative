@@ -26,6 +26,8 @@ export class MediaService
     private sendTransportOpt: mediasoupTypes.TransportOptions = null;
     private joined: boolean = null;
 
+    private updateStreamsCallback: () => void = null;
+
     public getPeerIds()
     {
         return this.peerIds;
@@ -48,7 +50,7 @@ export class MediaService
         return (tracks == undefined) ? null : tracks;
     }
 
-    constructor()
+    constructor(updateOutputStreams: () => void)
     {
         try {
             registerGlobals();
@@ -57,6 +59,7 @@ export class MediaService
             this.peerInfos = new Map<string, types.PeerInfo>();
             this.peerTracks = new Map<string, MediaStreamTrack[]>();
             this.joined = false;
+            this.updateStreamsCallback = updateOutputStreams;
         } catch (err) {
             printError(err);
         }
@@ -163,12 +166,13 @@ export class MediaService
             console.log('Creating consumer kind:' + data.kind);
             const { track } = this.consumer;
             console.log('Track: ' + JSON.stringify(track));
-            if (!this.peerTracks.has(data.producerId)) {
-                this.peerTracks.set(data.producerId, [track]);
+            if (!this.peerTracks.has(data.producerPeerId)) {
+                this.peerTracks.set(data.producerPeerId, [track]);
             } else {
-                this.peerTracks.get(data.producerId).push(track);
+                this.peerTracks.get(data.producerPeerId).push(track);
             }
-            console.log('Current tracks of peer:', data.producerId, this.peerTracks.get(data.producerId));
+            this.updateStreamsCallback();
+            console.log('Current tracks of peer:', data.producerPeerId, this.peerTracks.get(data.producerId));
         })
 
         const _peerInfos = (await this.signaling.sendRequest(SignalMethod.join, {

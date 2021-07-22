@@ -10,7 +10,7 @@ export default class Meeting extends Component
     constructor(props) {
         super(props);
         this.mediaStreamFactory = new MediaStreamFactory();
-        this.mediaService = new MediaService();
+        this.mediaService = new MediaService(this.updateOutputStreams.bind(this));
         this.state = {
             inputStream: null,
             outputStreams: null,
@@ -23,32 +23,22 @@ export default class Meeting extends Component
         this.setState({
             inputStream: _inputStream,
         });
-        await this.mediaService.joinMeeting('room_today', 'user_LeC');
+        await this.mediaService.joinMeeting('room_today', 'user_' + this.props.route.params.id);
         await this.mediaService.sendMediaStream(_inputStream);
         await this.mediaService.sendMediaStream(await this.mediaStreamFactory.getMicStream());
     }
 
-    async play()
+    async updateOutputStreams()
     {
         const peerTracks = this.mediaService.getPeerTracks();
         let _outputStream = [];
+        let i = 0;
         for (const tracks of peerTracks) {
             _outputStream.push(new MediaStream(tracks[1]))
         }
-        console.log(_outputStream[0].getVideoTracks());
         this.setState({
             outputStreams: _outputStream
         });
-    }
-
-    renderOutputStreams()
-    {
-        if (this.state.outputStreams == null)
-            return;
-        const len = this.state.outputStreams.length;
-        for (let i = 0; i < len; i++) {
-            return (<RTCView style={{height: 200, width: 100}} zOrder={5}  streamURL={this.state.outputStreams[i].toURL()} />);
-        }
     }
 
     render() {
@@ -57,13 +47,14 @@ export default class Meeting extends Component
                 <Text>
                     Input stream:
                 </Text>
-                {this.state.inputStream && <RTCView style={{height: 200, width: 100}} zOrder={5}  streamURL={this.state.inputStream.toURL()} />}
+                {this.state.inputStream && <RTCView style={{height: 200, width: 100}} zOrder={5}  streamURL={this.state.inputStream.toURL()} mirror={true}/>}
                 <Text>
                     Received stream:
                 </Text>
-                {this.renderOutputStreams()}
+                {this.state.outputStreams && this.state.outputStreams.map((stream, index) => {
+                    return <RTCView style={{height: 200, width: 100}} zOrder={5}  streamURL={stream.toURL()} mirror={true}/>;
+                })}
                 <Button onPress={() => this.startStreaming()} title="START!" />
-                <Button onPress={() => this.play()} title="Play!" />
             </View>
         );
     }
