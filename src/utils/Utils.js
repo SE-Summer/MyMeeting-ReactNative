@@ -6,7 +6,7 @@ export const validateEmail = (email) => {
 }
 
 const instance = axios.create({
-    baseURL: 'https://some-domain.com/api/',
+    baseURL: 'http://192.168.0.101:4446',
     timeout: 1000,
 });
 
@@ -14,7 +14,8 @@ export const postRequest = async (url, data) => {
     try {
         return await instance.post(url, data);
     } catch (e) {
-        return null;
+        console.log(e.response)
+        return e.response;
     }
 }
 

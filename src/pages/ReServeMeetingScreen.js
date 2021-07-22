@@ -1,10 +1,15 @@
-import {View, StyleSheet, TextInput, Text} from "react-native";
+import {View, StyleSheet, TextInput, Text, ToastAndroid, Alert} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {DateTimeModal} from "../components/DateTimeModal";
-import {SwitchItem, TouchableItem} from "../components/Item";
+import {TouchableItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
+import moment from "moment";
+import {config, config_key} from "../utils/Constants";
+import {reserve} from "../service/MeetingService";
+import * as Progress from "react-native-progress";
+import {getFromStorage} from "../utils/StorageUtils";
 
 const style = StyleSheet.create({
     input: {
@@ -25,12 +30,11 @@ export default class ReServeMeetingScreen extends Component{
         this.state={
             nameText: null,
             secretText: null,
-            showDate: false,
-            date: new Date(),
             showTimeStart: false,
-            startTime: new Date(),
+            startTime: moment().add(1, 'h'),
             showTimeEnd: false,
-            endTime: new Date(),
+            endTime: moment().add(2, 'h'),
+            loading: false,
         }
     }
 
@@ -38,65 +42,86 @@ export default class ReServeMeetingScreen extends Component{
         const {navigation} = this.props;
         navigation.setOptions({
             headerRight: () => {
+                if (this.state.loading) {
+                    return (
+                        <Progress.CircleSnail color={['#9be3b1', '#06b45f', '#05783d']} style={{marginRight: 7}}/>
+                    )
+                }
+
                 return (
-                    <TextButton text={"完成"} pressEvent={() => {}} />
+                    <TextButton text={"完成"} pressEvent={() => {
+                        const {nameText, secretText} = this.state;
+
+                        if (nameText == null || nameText.length === 0 || secretText == null || secretText.length !== 8) {
+                            return;
+                        }
+
+                        this.setState({
+                            loading: true,
+                        }, async () => {
+                            await this.onCommit();
+                        })
+                    }} />
                 )
             },
         })
     }
 
-    showDatePicker = () => {
-        this.setState({
-            showDate: true,
-        })
-    }
+    onCommit = async () => {
+        const {nameText, secretText, startTime, endTime} = this.state;
+        const {navigation} = this.props;
 
-    finishDatePicker = () => {
-        this.setState({
-            showDate: false,
-        });
-    }
+        const inf = {};
+        inf.start_time = moment(startTime).format('YYYY-MM-DD HH:mm:ss');
+        inf.end_time = moment(endTime).format('YYYY-MM-DD HH:mm:ss');
+        inf.topic = nameText;
+        inf.password = secretText;
+        inf.token = await getFromStorage(config.tokenIndex);
+        inf.max_num = 50;
 
-    handleDateChange = (date) => {
-        this.setState({
-            date: date
-        });
-    }
-
-    showTimeStartPicker = () => {
-        this.setState({
-            showTimeStart: true,
-        });
-    }
-
-    finishTimeStartPicker = () => {
-        this.setState({
-            showTimeStart: false,
-        })
-    }
-
-    handleStartTimeChange = (time) => {
-        this.setState({
-            startTime: time,
-        })
-    }
-
-    showTimeEndPicker = () => {
-        this.setState({
-            showTimeEnd: true,
-        });
-    }
-
-    finishTimeEndPicker = () => {
-        this.setState({
-            showTimeEnd: false,
-        })
-    }
-
-    handleEndTimeChange = (time) => {
-        this.setState({
-            endTime: time,
-        })
+        const response = await reserve(inf);
+        if (response != null) {
+            switch (response.status) {
+                case 200: {
+                    console.log(response.data);
+                    const room = response.data.room;
+                    const msg = '会议主题：' + room.topic + '\n会议号：' + room.id + '\n会议密码：'
+                        + room.password + '\n' + '开始时间： ' + moment(room.start_time).format('YY-MM-DD HH:mm:ss') +
+                        '\n结束时间：' + moment(room.end_time).format('YY-MM-DD HH:mm:ss') ;
+                    Alert.alert(
+                        '预约信息',
+                        msg,
+                        [
+                            {
+                                text: "确定",
+                                onPress: () => {
+                                    navigation.pop();
+                                },
+                                style: "cancel",
+                            },
+                        ],
+                    )
+                    break;
+                }
+                case 401: {
+                    ToastAndroid.showWithGravity(
+                        response.data.error,
+                        ToastAndroid.SHORT,
+                        ToastAndroid.CENTER,
+                    )
+                    break;
+                }
+            }
+        } else {
+            ToastAndroid.showWithGravity(
+                '预约失败',
+                ToastAndroid.SHORT,
+                ToastAndroid.CENTER,
+            )
+            this.setState({
+                loading: false,
+            })
+        }
     }
 
     render() {
@@ -109,6 +134,11 @@ export default class ReServeMeetingScreen extends Component{
                         placeholder={"会议标题"}
                         textAlign={"center"}
                         numberOfLines={1}
+                        onChangeText={value => {
+                            this.setState({
+                                nameText: value,
+                            })
+                        }}
                     />
                     <Divider />
                     <TextInput
@@ -120,42 +150,66 @@ export default class ReServeMeetingScreen extends Component{
                         keyboardType={"numeric"}
                         maxLength={8}
                         secureTextEntry={true}
+                        onChangeText={value => {
+                            this.setState({
+                                secretText: value,
+                            })
+                        }}
                     />
                 </View>
                 <View style={{marginTop: 100, marginLeft: 10, marginRight: 10, borderRadius: 10, backgroundColor: "white"}}>
-                    <TouchableItem text={"日期"} pressEvent={this.showDatePicker} rightComponent={
-                        <Text style={style.itemText}>{this.state.date.toDateString()}</Text>
-                    }/>
-                    <DateTimeModal
-                        visible={this.state.showDate}
-                        date={this.state.date}
-                        mode={'date'}
-                        dateChange={this.handleDateChange}
-                        onOk={this.finishDatePicker}
-                        text={"日期"}
+                    <TouchableItem
+                        text={"开始时间"}
+                        pressEvent={() => {
+                            this.setState({
+                            showTimeStart: true,
+                            });
+                        }}
+                        rightComponent={
+                            <Text style={style.itemText}>{moment(this.state.startTime).format('YYYY-MM-DD HH:mm')}</Text>
+                        }
                     />
-                    <Divider style={style.divider}/>
-                    <TouchableItem text={"开始时间"} pressEvent={this.showTimeStartPicker} rightComponent={
-                        <Text style={style.itemText}>{this.state.startTime.getHours()}时{this.state.startTime.getMinutes()}分</Text>
-                    }/>
                     <DateTimeModal
                         visible={this.state.showTimeStart}
                         date={this.state.startTime}
-                        mode={'time'}
-                        dateChange={this.handleStartTimeChange}
-                        onOk={this.finishTimeStartPicker}
+                        mode={'datetime'}
+                        dateChange={(time) => {
+                            this.setState({
+                                startTime: time,
+                            })
+                        }}
+                        onOk={() => {
+                            this.setState({
+                                showTimeStart: false,
+                            })
+                        }}
                         text={"时间"}
                     />
                     <Divider style={style.divider} />
-                    <TouchableItem text={"结束时间"} pressEvent={this.showTimeEndPicker} rightComponent={
-                        <Text style={style.itemText}>{this.state.endTime.getHours()}时{this.state.endTime.getMinutes()}分</Text>
+                    <TouchableItem
+                        text={"结束时间"}
+                        pressEvent={() => {
+                            this.setState({
+                                showTimeEnd: true,
+                            });
+                        }}
+                        rightComponent={
+                            <Text style={style.itemText}>{moment(this.state.endTime).format('YYYY-MM-DD HH:mm')}</Text>
                     }/>
                     <DateTimeModal
                         visible={this.state.showTimeEnd}
                         date={this.state.endTime}
-                        mode={'time'}
-                        dateChange={this.handleEndTimeChange}
-                        onOk={this.finishTimeEndPicker}
+                        mode={'datetime'}
+                        dateChange={(time) => {
+                            this.setState({
+                                endTime: time,
+                            })
+                        }}
+                        onOk={() => {
+                            this.setState({
+                                showTimeEnd: false,
+                            })
+                        }}
                         text={"时间"}
                     />
                 </View>

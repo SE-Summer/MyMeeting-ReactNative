@@ -36,7 +36,9 @@ export default function App() {
                     <Stack.Screen name={"History"} component={HistoryScreen} options={{
                         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                     }}/>
-                    <Stack.Screen name={"Meeting"} component={MeetingPage} />
+                    <Stack.Screen name={"Meeting"} component={MeetingPage} options={{
+                        headerShown: false,
+                    }}/>
                     <Stack.Screen name={"CreateMeeting"} component={CreateMeetingScreen} options={({navigation}) => ({
                         cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
                         headerLeft: () => {

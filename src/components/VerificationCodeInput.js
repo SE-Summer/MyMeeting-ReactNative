@@ -65,7 +65,7 @@ export default class VerificationCodeInput extends Component {
                         underlineColorAndroid="transparent"
                         maxLength={this.props.inputSize}
                         autoFocus={true}
-                        keyboardType={"numeric"}
+                        keyboardType={"visible-password"}
                         selectionColor="transparent"
                     />
                 </View>

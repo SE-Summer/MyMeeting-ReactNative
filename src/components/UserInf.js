@@ -1,11 +1,16 @@
 import {Component} from "react";
 import {Avatar} from "react-native-elements";
-import {config, config_key} from "../utils/Constants";
 import {ImageBackground, Text, View} from "react-native";
 import * as React from "react";
 import {StyleSheet} from "react-native";
+import PropTypes from "prop-types";
 
 export default class UserInf extends Component {
+    static propTypes = {
+        avatarUri: PropTypes.string,
+        username: PropTypes.string,
+    }
+
     render() {
         return (
             <View style={this.props.style}>
@@ -14,10 +19,10 @@ export default class UserInf extends Component {
                         rounded
                         size={70}
                         source={{
-                            uri: config.unKnownUri
+                            uri: this.props.avatarUri
                         }}
                     />
-                    <Text style={styles.titleText}>{config_key.username}</Text>
+                    <Text style={styles.titleText}>{this.props.username}</Text>
                 </ImageBackground>
             </View>
         );
