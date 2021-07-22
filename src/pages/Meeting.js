@@ -35,9 +35,20 @@ export default class Meeting extends Component
         for (const tracks of peerTracks) {
             _outputStream.push(new MediaStream(tracks[1]))
         }
+        console.log(_outputStream[0].getVideoTracks());
         this.setState({
             outputStreams: _outputStream
         });
+    }
+
+    renderOutputStreams()
+    {
+        if (this.state.outputStreams == null)
+            return;
+        const len = this.state.outputStreams.length;
+        for (let i = 0; i < len; i++) {
+            return (<RTCView style={{height: 200, width: 100}} zOrder={5}  streamURL={this.state.outputStreams[i].toURL()} />);
+        }
     }
 
     render() {
@@ -50,9 +61,7 @@ export default class Meeting extends Component
                 <Text>
                     Received stream:
                 </Text>
-                {this.state.outputStreams && this.state.outputStreams.forEach((stream) => {
-                    return (<RTCView style={{height: 200, width: 100}} zOrder={5}  streamURL={stream.toURL()} />);
-                })}
+                {this.renderOutputStreams()}
                 <Button onPress={() => this.startStreaming()} title="START!" />
                 <Button onPress={() => this.play()} title="Play!" />
             </View>
