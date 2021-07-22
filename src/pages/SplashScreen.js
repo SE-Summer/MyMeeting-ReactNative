@@ -1,12 +1,9 @@
 import React, {Component} from 'react';
-import {
-    View,
-    Animated,
-} from 'react-native';
+import {Animated, Dimensions, View,} from 'react-native';
 import {MaskedMyMeeting} from "../components/MaskedText";
 import {config, config_key} from "../utils/Constants";
 import {getFromStorage} from "../utils/StorageUtils";
-import { Dimensions } from 'react-native';
+import {autoLogin} from "../service/UserService";
 
 const windowHeight = Dimensions.get('window').height;
 
@@ -18,25 +15,35 @@ class Splash extends Component {
         };
     }
 
-    readStorage = async () => {
-        const username = await getFromStorage(config.usernameIndex);
-        config_key.username = username? username: config_key.username;
+    autoLoginAndReadStorage = async () => {
+        const response = await autoLogin();
 
-        const userId = await getFromStorage(config.userIdIndex);
-        config_key.userId = userId? userId: config_key.userId;
+        console.log(response)
 
-        const nickname = await getFromStorage(config.nicknameIndex);
-        config_key.nickname = nickname ? nickname : config_key.nickname;
+        config_key.email= await getFromStorage(config.emailIndex);
+
+        if (response == null || response.status !== 200) {
+            return false;
+        }
+
+        config_key.username = await getFromStorage(config.usernameIndex);
+
+        config_key.userId = await getFromStorage(config.userIdIndex);
+
+        config_key.nickname = await getFromStorage(config.nicknameIndex);
+
 
         const camera = await getFromStorage(config.cameraIndex);
         config_key.camera = camera === 'true';
 
         const microphone = await getFromStorage(config.microphoneIndex);
         config_key.microphone = microphone === 'true';
+
+        return true;
     }
 
     async componentDidMount() {
-        await this.readStorage();
+        const autoStatus = await this.autoLoginAndReadStorage();
         const {animateEnd} = this.props;
         Animated.timing(this.state.fadeAnim,
             {
@@ -46,7 +53,7 @@ class Splash extends Component {
             }
         ).start(() => {
             if (animateEnd) {
-                animateEnd()
+                animateEnd(autoStatus)
             }
         });
     }
@@ -65,8 +72,11 @@ class Splash extends Component {
 }
 
 export default class SplashScreen extends Component {
-    _animateEnd = ()=>{
-        this.props.navigation.navigate('Login');
+    _animateEnd = (autoStatus) =>{
+        if (autoStatus)
+            this.props.navigation.navigate('Tab');
+        else
+            this.props.navigation.navigate('Login');
     }
 
     render() {

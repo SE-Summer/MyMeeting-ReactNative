@@ -110,7 +110,7 @@ export default class LoginScreen extends Component {
                     userInput: 1,
                     passwordInput: 1,
                     EmailTip: '邮箱或密码错误',
-                    passwordTip: '邮箱或密码错误',
+                    passwordTip: null,
                 })
             }
         }

@@ -145,7 +145,7 @@ export default class ReServeMeetingScreen extends Component{
                     />
                     <Divider />
                     <TextInput
-                        ref={'textInput1'}
+                        ref={'textInput2'}
                         value={this.state.secretText}
                         style={style.input}
                         placeholder={"会议密码(8位数字)"}

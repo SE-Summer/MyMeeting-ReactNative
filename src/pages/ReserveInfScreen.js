@@ -1,7 +1,8 @@
 import * as React from 'react';
 import {Component} from "react";
-import {ToastAndroid, View} from "react-native";
+import {Button, FlatList, Text, ToastAndroid, View} from "react-native";
 import {meetingsInf} from "../service/MeetingService";
+import {ListItem} from "../components/ListItem";
 
 export default class ReserveInfScreen extends Component {
     constructor() {
@@ -23,16 +24,26 @@ export default class ReserveInfScreen extends Component {
             return;
         }
 
-        console.log(response.data);
         this.setState({
-            data: response.data,
+            data: response.data.rooms,
         })
+    }
+
+    renderItem = ({item}) => {
+        return (
+            <ListItem item={item} pressEvent={() => {}}/>
+        )
     }
 
     render() {
         return (
-            <View>
+            <View style={{flex: 1,}}>
+                <FlatList
+                    data={this.state.data}
+                    keyExtractor={(item) => item.id}
+                    renderItem={this.renderItem}
 
+                />
             </View>
         );
     }

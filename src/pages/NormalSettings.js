@@ -12,7 +12,7 @@ export default class NormalSettings extends Component {
     render() {
         return (
             <View>
-                <TouchableOpacity onPress={() => {}} style={{
+                <TouchableOpacity onPress={this.logOut} style={{
                     margin: 20,
                     padding: 14,
                     backgroundColor:"white",

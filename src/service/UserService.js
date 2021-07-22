@@ -26,7 +26,12 @@ export const loginService = async (email, password) => {
     } else {
         return false;
     }
+}
 
+export const autoLogin = async () => {
+    const url = '/autoLogin';
+    const token = await getFromStorage(config.tokenIndex);
+    return await postRequest(url, {"token": token});
 }
 
 export const logout = async () => {
