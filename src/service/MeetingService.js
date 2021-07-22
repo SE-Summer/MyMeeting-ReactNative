@@ -1,14 +1,15 @@
 import {postRequest} from "../utils/Utils";
 import moment from "moment";
-import {config_key} from "../utils/Constants";
+import {config, config_key} from "../utils/Constants";
+import {getFromStorage} from "../utils/StorageUtils";
 
 export const create = async (roomname, password) => {
     const inf = {
-        start_time: moment(),
-        end_time: moment().add(1, 'd'),
+        start_time: moment().format('YY-MM-DD HH:mm:ss'),
+        end_time: moment().add(1, 'd').format('YY-MM-DD HH:mm:ss'),
         topic: roomname,
         password: password,
-        host: config_key.userId,
+        token: await getFromStorage(config.tokenIndex),
         max_num: 50,
     };
 

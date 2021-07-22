@@ -16,10 +16,10 @@ export const utils = {
 
 export const config_key = {
     avatarUri: config.unKnownUri,
-    email: 'my@meeting.com',
-    username: 'Anonymous',
+    email: null,
+    username: null,
     userId: 0,
-    nickname: 'anonymous',
+    nickname: null,
     camera: true,
     microphone: false,
 }

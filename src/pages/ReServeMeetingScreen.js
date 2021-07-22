@@ -1,4 +1,4 @@
-import {View, StyleSheet, TextInput, Text, ToastAndroid} from "react-native";
+import {View, StyleSheet, TextInput, Text, ToastAndroid, Alert} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {DateTimeModal} from "../components/DateTimeModal";
@@ -6,9 +6,10 @@ import {TouchableItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
 import moment from "moment";
-import {config_key} from "../utils/Constants";
+import {config, config_key} from "../utils/Constants";
 import {reserve} from "../service/MeetingService";
 import * as Progress from "react-native-progress";
+import {getFromStorage} from "../utils/StorageUtils";
 
 const style = StyleSheet.create({
     input: {
@@ -51,7 +52,7 @@ export default class ReServeMeetingScreen extends Component{
                     <TextButton text={"完成"} pressEvent={() => {
                         const {nameText, secretText} = this.state;
 
-                        if (nameText == null || nameText.length === 0 || secretText == null || secretText.length !== 0) {
+                        if (nameText == null || nameText.length === 0 || secretText == null || secretText.length !== 8) {
                             return;
                         }
 
@@ -68,25 +69,38 @@ export default class ReServeMeetingScreen extends Component{
 
     onCommit = async () => {
         const {nameText, secretText, startTime, endTime} = this.state;
+        const {navigation} = this.props;
 
         const inf = {};
         inf.start_time = moment(startTime).format('YYYY-MM-DD HH:mm:ss');
         inf.end_time = moment(endTime).format('YYYY-MM-DD HH:mm:ss');
         inf.topic = nameText;
         inf.password = secretText;
-        inf.host = config_key.userId;
+        inf.token = await getFromStorage(config.tokenIndex);
         inf.max_num = 50;
 
         const response = await reserve(inf);
         if (response != null) {
             switch (response.status) {
                 case 200: {
-                    ToastAndroid.showWithGravity(
-                        '预约成功',
-                        ToastAndroid.SHORT,
-                        ToastAndroid.CENTER,
+                    console.log(response.data);
+                    const room = response.data.room;
+                    const msg = '会议主题：' + room.topic + '\n会议号：' + room.id + '\n会议密码：'
+                        + room.password + '\n' + '开始时间： ' + moment(room.start_time).format('YY-MM-DD HH:mm:ss') +
+                        '\n结束时间：' + moment(room.end_time).format('YY-MM-DD HH:mm:ss') ;
+                    Alert.alert(
+                        '预约信息',
+                        msg,
+                        [
+                            {
+                                text: "确定",
+                                onPress: () => {
+                                    navigation.pop();
+                                },
+                                style: "cancel",
+                            },
+                        ],
                     )
-                    this.props.navigation.pop();
                     break;
                 }
                 case 401: {

@@ -56,7 +56,7 @@ export default class JoinMeetingScreen extends Component{
     }
 
     joinM = async () => {
-        const response = await join(this.state.id, this.state.password, this.navigate);
+        const response = await join(parseInt(this.state.id), this.state.password, this.navigate);
         if (response == null) {
             ToastAndroid.showWithGravity(
                 '错误',

@@ -5,7 +5,7 @@ import {validateEmail} from "../utils/Utils";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
 import VerificationCodeInput from "../components/VerificationCodeInput";
-import {emailCheck} from "../service/UserService";
+import {emailCheck, verifyCode} from "../service/UserService";
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -55,11 +55,12 @@ export default class EmailCheck extends Component {
         })
     }
 
-    onCommit = () => {
+    onCommit = async () => {
         const {navigation} = this.props;
         const {userEmail} = this.state;
         this.onUserEmailChange(userEmail);
-        if (validateEmail(userEmail)) {
+        if (await validateEmail(userEmail)) {
+            await emailCheck(userEmail);
             navigation.navigate('Validate', {'email': userEmail})
         }
     }
@@ -105,9 +106,9 @@ export class ValidatePage extends Component {
         }
     }
 
-    checkCode = (value) => {
-        //todo: add network check
-        emailCheck();
+    checkCode = async (value) => {
+        const {navigation, route} = this.props;
+        const response = await verifyCode(route.params.email, value);
         const flag = true;
         if (flag) {
             ToastAndroid.showWithGravity(
@@ -115,7 +116,7 @@ export class ValidatePage extends Component {
                 500,
                 ToastAndroid.CENTER
             )
-            this.props.navigation.navigate('Register', {'email': this.props.route.params.email});
+            navigation.navigate('Register', {'email': route.params.email});
         } else {
             ToastAndroid.showWithGravity(
                 '验证码错误',

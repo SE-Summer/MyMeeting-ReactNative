@@ -35,8 +35,19 @@ export const registerService = () => {
 
 }
 
-export const emailCheck = () => {
+export const emailCheck = async (email) => {
+    const url = '/email';
+    const data = {email: email};
+    await postRequest(url, data);
+}
 
+export const verifyCode = async (email, code) => {
+    const url = '/verify';
+    const data = {
+        email: email,
+        verify: code,
+    }
+    return await postRequest(url, data);
 }
 
 export const changeUsername = async (value) => {

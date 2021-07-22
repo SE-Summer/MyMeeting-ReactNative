@@ -5,7 +5,7 @@ import {SwitchItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
 import {config_key} from "../utils/Constants";
-import {create} from "../service/MeetingService";
+import {create, join} from "../service/MeetingService";
 import * as Progress from 'react-native-progress';
 
 const style = StyleSheet.create({
@@ -45,14 +45,19 @@ export default class CreateMeetingScreen extends Component{
             headerRight: () => {
                 if (this.state.loading) {
                     return (
-                        <Progress.CircleSnail color={['#9be3b1', '#06b45f', '#05783d']} style={{marginRight: 7}}/>
+                        <Progress.CircleSnail spinDuration={4000} duration={800} color={['#9be3b1', '#06b45f', '#05783d']} style={{marginRight: 7}}/>
                     )
                 }
                 return (
                     <TextButton text={"完成"} pressEvent={
                         () => {
                             const {name, password} = this.state;
-                            if (name == null || name.length === 0 || password == null || password.length === 0) {
+                            if (name == null || name.length === 0 || password == null || password.length !== 8) {
+                                ToastAndroid.showWithGravity(
+                                    '输入信息格式有误',
+                                    ToastAndroid.SHORT,
+                                    ToastAndroid.CENTER,
+                                )
                                 return;
                             }
 
@@ -69,7 +74,7 @@ export default class CreateMeetingScreen extends Component{
                                 } else {
                                     switch (response.status) {
                                         case 200: {
-                                            await this.joinAfterCreate();
+                                            await this.joinAfterCreate(response.data.room);
                                             break;
                                         }
                                         case 401: {
@@ -89,8 +94,19 @@ export default class CreateMeetingScreen extends Component{
         })
     }
 
-    joinAfterCreate = async () => {
-
+    joinAfterCreate = async (room) => {
+        const response = await join(room.id, room.password);
+        if (response.status === 200) {
+            this.setState({
+                loading: false
+            }, () => {
+                this.props.navigation.navigate('Meeting');
+            })
+        } else {
+            this.setState({
+                loading: false,
+            })
+        }
     }
 
     navigate = () => {
