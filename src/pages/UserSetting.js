@@ -1,10 +1,11 @@
 import * as React from 'react';
 import {Component} from "react";
-import {Image, View, StyleSheet, Text} from "react-native";
+import {Image, View, StyleSheet, Text, ToastAndroid} from "react-native";
 import {TouchableItem} from "../components/Item";
 import {config, config_key} from "../utils/Constants";
 import {Divider} from "react-native-elements/dist/divider/Divider";
 import ImagePicker from 'react-native-image-crop-picker';
+import {getAvatar, uploadAvatar} from "../service/UserService";
 
 const styles = StyleSheet.create({
     itemContainer: {
@@ -24,7 +25,7 @@ export default class UserSettingScreen extends Component {
     constructor() {
         super();
         this.state = {
-            avatarUri: config.unKnownUri,
+            avatarUri: config_key.avatarUri,
             username: null,
             nickname: null,
         }
@@ -36,6 +37,7 @@ export default class UserSettingScreen extends Component {
             this.setState({
                 username: config_key.username,
                 nickname: config_key.nickname,
+                avatarUri: config_key.avatarUri,
             })
         })
     }
@@ -45,16 +47,28 @@ export default class UserSettingScreen extends Component {
             width: 300,
             height: 300,
             cropping: true,
-            includeBase64: true,
             cropperCircleOverlay: true,
             cropperActiveWidgetColor: '#059677',
-        }).then(image => {
-            this.setState({
-                avatarUri: 'data:'+image.mime+';base64,'+image.data,
-            })
+        }).then(async image => {
+            const response = await uploadAvatar(image);
+            if (response == null || response.status !== 200) {
+                ToastAndroid.show('上传失败', 1000);
+            } else {
+                await this.refreshAvatar();
+            }
         }).catch(e => {
             console.log(e)
         });
+    }
+
+    refreshAvatar = async () => {
+        const response = await getAvatar();
+        if (response.status === 200) {
+            config_key.avatarUri = config.baseURL + response.data.path;
+            this.setState({
+                avatarUri: config_key.avatarUri,
+            })
+        }
     }
 
     usernameSettings = (type) => {

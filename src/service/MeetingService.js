@@ -1,6 +1,6 @@
 import {postRequest} from "../utils/Utils";
 import moment from "moment";
-import {config, config_key} from "../utils/Constants";
+import {config} from "../utils/Constants";
 import {getFromStorage} from "../utils/StorageUtils";
 
 export const create = async (roomname, password) => {
@@ -29,4 +29,12 @@ export const join = async (roomId, password) => {
 export const reserve = async (meetingInf) => {
     const url = '/reserve';
     return await postRequest(url, meetingInf);
+}
+
+export const meetingsInf = async () => {
+    const url = '/getReservations';
+    const data = {
+        token: await getFromStorage(config.tokenIndex)
+    };
+    return await postRequest(url, data);
 }

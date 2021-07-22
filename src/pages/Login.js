@@ -55,7 +55,15 @@ export default class LoginScreen extends Component {
 
     componentDidMount() {
         this.props.navigation.addListener('focus', () => {
-            this.setState({backTimes: 0});
+            this.setState({
+                userEmail: config_key.email,
+                password: null,
+                backTimes: 0,
+                userInput: 0,
+                passwordInput: 0,
+                EmailTip: null,
+                passwordTip: null,
+            });
             BackHandler.addEventListener("hardwareBackPress", this.backAction);
         })
         this.props.navigation.addListener('blur', () => {

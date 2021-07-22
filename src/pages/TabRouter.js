@@ -6,6 +6,7 @@ import {config} from "../utils/Constants";
 import HomeScreen from "./HomeScreen";
 import UserScreen from "./UserScreen";
 import * as React from "react";
+import ReserveInfScreen from "./ReserveInfScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -48,12 +49,15 @@ export default class TabScreen extends Component{
             <Tab.Navigator
                 screenOptions={({route}) => ({
                     tabBarIcon: ({focused}) => {
-                        if (route.name === 'Home') {
+                        if (route.name === 'Meetings') {
                             return focused ? <Ionicons name="time" color={config.qGreen} size={30}/> :
                                 <Ionicons name={"time-outline"} size={25}/>;
                         } else if (route.name === 'User') {
                             return focused ? <Ionicons name="person" color={config.qGreen} size={30}/> :
                                 <Ionicons name={"person-outline"} size={25}/>;
+                        } else if (route.name === 'Home') {
+                            return focused ? <Ionicons name="home" color={config.qGreen} size={30}/> :
+                                <Ionicons name={"home-outline"} size={25}/>;
                         }
                     },
                 })}
@@ -63,6 +67,7 @@ export default class TabScreen extends Component{
                 }}
             >
                 <Tab.Screen name={"Home"} component={HomeScreen}/>
+                <Tab.Screen name={"Meetings"} component={ReserveInfScreen}/>
                 <Tab.Screen name={"User"} component={UserScreen}/>
             </Tab.Navigator>
         )

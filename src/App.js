@@ -4,7 +4,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import {CardStyleInterpolators, createStackNavigator } from "@react-navigation/stack";
 import CreateMeetingScreen from "./pages/CreateMeetingScreen";
 import JoinMeetingScreen from "./pages/JoinMeetingScreen";
-import HistoryScreen from "./pages/HistoryScreen";
 import {TextButton} from "./components/MyButton";
 import ReServeMeetingScreen from "./pages/ReServeMeetingScreen";
 import LoginScreen from "./pages/Login";
@@ -16,6 +15,7 @@ import UserSettingScreen from "./pages/UserSetting";
 import TabScreen from "./pages/TabRouter";
 import EmailCheck, {ValidatePage} from "./pages/EmailCheck";
 import EditProfileScreen from "./pages/EditProfile";
+import NormalSettings from "./pages/NormalSettings";
 
 const forFade = ({ current }) => ({
     cardStyle: {
@@ -32,9 +32,6 @@ export default function App() {
                 <Stack.Navigator initialRouteName={'Splash'}>
                     <Stack.Screen name={"Tab"} component={TabScreen} options={{
                         headerShown: false,
-                    }}/>
-                    <Stack.Screen name={"History"} component={HistoryScreen} options={{
-                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                     }}/>
                     <Stack.Screen name={"Meeting"} component={MeetingPage} options={{
                         headerShown: false,
@@ -72,11 +69,19 @@ export default function App() {
                     <Stack.Screen name={"MeetingSetting"} component={MeetingSettingScreen} options={{
                         title: '会议设置',
                         headerTitleAlign: 'center',
+                        headerBackTitle: 'User',
                         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
                     }}/>
                     <Stack.Screen name={"UserSetting"} component={UserSettingScreen} options={{
                         title: '个人信息',
                         headerTitleAlign: 'center',
+                        headerBackTitle: 'User',
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
+                    }} />
+                    <Stack.Screen name={"NormalSetting"} component={NormalSettings} options={{
+                        title: '通用',
+                        headerTitleAlign: 'center',
+                        headerBackTitle: 'User',
                         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
                     }} />
                     <Stack.Screen name={"EditProfile"} component={EditProfileScreen} options={{
