@@ -39,6 +39,8 @@ export default class JoinMeetingScreen extends Component{
                 return (
                     <TextButton text={"加入"} pressEvent={
                         () => {
+                            this.refs.textInput1.blur();
+                            this.refs.textInput2.blur();
                             const {id, password} = this.state;
                             if (id == null || id.length === 0 || password == null || password.length === 0)
                                 return;
@@ -129,6 +131,7 @@ export default class JoinMeetingScreen extends Component{
             <View style={{ flex: 1}}>
                 <View style={{borderRadius: 10, marginTop: 20, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
                     <TextInput
+                        ref={'textInput1'}
                         value={this.state.id}
                         style={{transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }]}}
                         placeholder={"会议号"}
@@ -140,6 +143,7 @@ export default class JoinMeetingScreen extends Component{
                     />
                     <Divider />
                     <TextInput
+                        ref={'textInput2'}
                         value={this.state.password}
                         style={{transform: [{scaleX: 1.1}, {scaleY: 1.1}]}}
                         placeholder={"会议密码(8位数字)"}

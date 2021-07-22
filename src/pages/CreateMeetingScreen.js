@@ -51,6 +51,8 @@ export default class CreateMeetingScreen extends Component{
                 return (
                     <TextButton text={"完成"} pressEvent={
                         () => {
+                            this.refs.textInput1.blur();
+                            this.refs.textInput2.blur();
                             const {name, password} = this.state;
                             if (name == null || name.length === 0 || password == null || password.length !== 8) {
                                 ToastAndroid.showWithGravity(
@@ -64,7 +66,7 @@ export default class CreateMeetingScreen extends Component{
                             this.setState({
                                 loading: true
                             }, async () => {
-                                const response = await create(this.state.name, this.state.password, this.navigate);
+                                const response = await create(this.state.name, this.state.password);
                                 if (response == null) {
                                     ToastAndroid.showWithGravity(
                                         '创建失败',
@@ -103,6 +105,11 @@ export default class CreateMeetingScreen extends Component{
                 this.props.navigation.navigate('Meeting');
             })
         } else {
+            ToastAndroid.showWithGravity(
+                response.data.error,
+                ToastAndroid.SHORT,
+                ToastAndroid.CENTER,
+            )
             this.setState({
                 loading: false,
             })
@@ -142,6 +149,7 @@ export default class CreateMeetingScreen extends Component{
             <View style={{backgroundColor: "#EDEDED", flex: 1}}>
                 <View style={{borderRadius: 10, marginTop: 20, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
                     <TextInput
+                        ref={"textInput1"}
                         value={this.state.name}
                         style={style.input}
                         placeholder={"会议标题"}
@@ -151,6 +159,7 @@ export default class CreateMeetingScreen extends Component{
                     />
                     <Divider />
                     <TextInput
+                        ref={"textInput2"}
                         value={this.state.password}
                         style={style.input}
                         placeholder={"会议密码(8位数字)"}
