@@ -31,8 +31,9 @@ export const logout = async () => {
     await removeFromStorage(config.tokenIndex);
 }
 
-export const registerService = () => {
-
+export const registerService = async (userInf) => {
+    const url = '/register';
+    return await postRequest(url, userInf);
 }
 
 export const emailCheck = async (email) => {

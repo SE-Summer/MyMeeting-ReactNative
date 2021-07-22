@@ -32,7 +32,7 @@ export default class JoinMeetingScreen extends Component{
             headerRight: () => {
                 if (this.state.loading) {
                     return (
-                        <Progress.CircleSnail color={['#9be3b1', '#06b45f', '#05783d']} style={{marginRight: 7}}/>
+                        <Progress.CircleSnail spinDuration={4000} duration={800} color={['#9be3b1', '#06b45f', '#05783d']} style={{marginRight: 7}}/>
                     )
                 }
 
@@ -77,6 +77,9 @@ export default class JoinMeetingScreen extends Component{
                     ToastAndroid.SHORT,
                     ToastAndroid.CENTER,
                 )
+                this.setState({
+                    loading: false,
+                })
                 return;
             }
             default: {
@@ -85,6 +88,9 @@ export default class JoinMeetingScreen extends Component{
                     ToastAndroid.SHORT,
                     ToastAndroid.CENTER,
                 )
+                this.setState({
+                    loading: false,
+                })
             }
         }
     }
