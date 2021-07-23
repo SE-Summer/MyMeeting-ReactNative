@@ -53,3 +53,11 @@ export enum SignalMethod {
     peerClosed = 'peerClosed',
     close = 'close',
 }
+
+export const sockectConnectionOptions = {
+    // timeout: 3000,
+    // reconnection: true,
+    // reconnectionAttempts: Infinity,
+    // reconnectionDelayMax: 2000,
+    // transports: ['websocket'],
+}

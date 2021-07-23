@@ -11,7 +11,7 @@ export class SignalingService
     {
         this.URL = URL;
         this.socket = io(URL, opts);
-        console.log('start to connect');
+        console.log('[Socket]  Socket start to connect');
 
         this.callbackMap = new Map<SignalType ,Map<SignalMethod, (data) => void>>();
         this.callbackMap.set(SignalType.request, new Map<SignalMethod, (data) => void>());
@@ -26,7 +26,7 @@ export class SignalingService
         });
 
         this.socket.on('disconnect', () => {
-            console.log('Socket disconnected');
+            console.log('[Socket]  Socket disconnected');
             this.socket.disconnect();
         })
     }
@@ -35,10 +35,10 @@ export class SignalingService
     {
         let callback = this.callbackMap.get(type).get(method) as (data) => void;
         if (callback == undefined) {
-            console.log(`Undefined signal (${type} , ${method})`);
+            console.log(`[Socket]  Undefined signal (${type} , ${method})`);
         } else {
             callback(data);
-            console.log(`Signal handled (${type} , ${method})`);
+            console.log(`[Socket]  Signal handled (${type} , ${method})`);
         }
     }
 
@@ -73,9 +73,9 @@ export class SignalingService
     public waitForConnection()
     {
         return new Promise<void>((resolve, reject) => {
-            console.log('Waiting for connection to ' + this.URL + '...');
+            console.log('[Socket]  Waiting for connection to ' + this.URL + '...');
             this.socket.on('connect', this.timeoutCallback(() => {
-                console.log('Socket connected');
+                console.log('[Socket]  Socket connected');
                 if (this.socket && this.socket.connected)
                     resolve();
                 else
@@ -97,7 +97,7 @@ export class SignalingService
                 this.socket.emit(SignalType.request, { method, data },
                     this.timeoutCallback((err, response) => {
                         if (err) {
-                            console.log('sendRequest ' + method + ' error! socket:\n', method, this.socket);
+                            console.log('[Socket]  sendRequest ' + method + ' error! socket:\n', method, this.socket);
                             reject(err);
                         } else {
                             resolve(response);
