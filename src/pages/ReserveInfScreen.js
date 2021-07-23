@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {Component} from "react";
 import {Button, FlatList, Text, ToastAndroid, View} from "react-native";
-import {meetingsInf} from "../service/MeetingService";
+import {join, meetingsInf} from "../service/MeetingService";
 import {ListItem} from "../components/ListItem";
 
 export default class ReserveInfScreen extends Component {
@@ -9,6 +9,7 @@ export default class ReserveInfScreen extends Component {
         super();
         this.state = {
             data: [],
+            count: 0,
         }
     }
 
@@ -29,20 +30,23 @@ export default class ReserveInfScreen extends Component {
         })
     }
 
-    renderItem = ({item}) => {
+    goMeeting = () => {
+       this.props.navigation.navigate('Meeting');
+    }
+
+    renderItem = ({item, index}) => {
         return (
-            <ListItem item={item} pressEvent={() => {}}/>
+            <ListItem date={new Date()} item={item} index={index} pressEvent={this.goMeeting}/>
         )
     }
 
     render() {
         return (
-            <View style={{flex: 1,}}>
+            <View style={{flex: 1, paddingTop: 10}}>
                 <FlatList
                     data={this.state.data}
                     keyExtractor={(item) => item.id}
                     renderItem={this.renderItem}
-
                 />
             </View>
         );

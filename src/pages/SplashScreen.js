@@ -18,8 +18,6 @@ class Splash extends Component {
     autoLoginAndReadStorage = async () => {
         const response = await autoLogin();
 
-        console.log(response)
-
         config_key.email= await getFromStorage(config.emailIndex);
 
         if (response == null || response.status !== 200) {
