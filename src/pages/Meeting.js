@@ -2,7 +2,7 @@ import {Button, Text, View} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {RTCView} from "react-native-webrtc";
-import {MediaStreamFactory} from "../utils/local_media/MediaStreamFactory";
+import {MediaStreamFactory} from "../utils/media/MediaStreamFactory";
 import {MediaService} from "../service/MediaService";
 
 export default class Meeting extends Component
@@ -13,7 +13,6 @@ export default class Meeting extends Component
         this.mediaService = new MediaService(this.updateOutputStreams.bind(this));
         this.state = {
             inputStream: null,
-            outputStreams: null,
         };
     }
 
@@ -23,22 +22,55 @@ export default class Meeting extends Component
         this.setState({
             inputStream: _inputStream,
         });
-        await this.mediaService.joinMeeting('room_today', 'user_' + this.props.route.params.id);
+
+        const userToken = this.props.route.params.id;
+
+        await this.mediaService.joinMeeting('room_today', 'user_' + userToken, 'displayName_' + userToken, 'deviceName_' + userToken);
         await this.mediaService.sendMediaStream(_inputStream);
         await this.mediaService.sendMediaStream(await this.mediaStreamFactory.getMicStream());
     }
 
+    async leaveMeeting()
+    {
+        delete this.state.inputStream;
+        delete this.state.peerMedia;
+        await this.mediaService.leaveMeeting();
+        this.setState({
+            peerMedia: null,
+            inputStream: null,
+        });
+    }
+
     async updateOutputStreams()
     {
-        const peerTracks = this.mediaService.getPeerTracks();
-        let _outputStream = [];
-        let i = 0;
-        for (const tracks of peerTracks) {
-            _outputStream.push(new MediaStream(tracks[1]))
-        }
         this.setState({
-            outputStreams: _outputStream
+            peerMedia: this.mediaService.getPeerMedia(),
         });
+    }
+
+    renderMeetings()
+    {
+        if (this.state.peerMedia == null)
+            return null;
+
+        return (
+            <View>
+                {this.state.peerMedia.map((peerDetail, index) => {
+                    if (peerDetail.getTracks().length === 0) {
+                        return (<Text>{index}:{peerDetail.getPeerInfo().displayName} no media</Text>);
+                    } else {
+                        const stream = new MediaStream(peerDetail.getTracks());
+                        return (
+                            <View>
+                                <RTCView style={{height: 200, width: 100}} zOrder={5} streamURL={stream.toURL()} mirror={true} key={index}/>
+                                <Text>{index}:{peerDetail.getPeerInfo().displayName}</Text>
+                            </View>
+                        )
+                    }
+                })}
+            </View>
+        )
+
     }
 
     render() {
@@ -51,10 +83,9 @@ export default class Meeting extends Component
                 <Text>
                     Received stream:
                 </Text>
-                {this.state.outputStreams && this.state.outputStreams.map((stream, index) => {
-                    return <RTCView style={{height: 200, width: 100}} zOrder={5}  streamURL={stream.toURL()} mirror={true}/>;
-                })}
+                {this.renderMeetings()}
                 <Button onPress={() => this.startStreaming()} title="START!" />
+                <Button onPress={() => this.leaveMeeting()} title="STOP!" />
             </View>
         );
     }

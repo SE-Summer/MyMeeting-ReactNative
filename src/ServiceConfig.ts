@@ -49,4 +49,7 @@ export enum SignalMethod {
     resumeConsumer = 'resumeConsumer',
     newConsumer = 'newConsumer',
     newPeer = 'newPeer',
+    consumerClosed = 'consumerClosed',
+    peerClosed = 'peerClosed',
+    close = 'close',
 }

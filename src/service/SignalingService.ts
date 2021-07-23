@@ -24,6 +24,11 @@ export class SignalingService
         this.socket.on(SignalType.notify, ({ method, data }) => {
             this.handleSignal(SignalType.notify, method, data);
         });
+
+        this.socket.on('disconnect', () => {
+            console.log('Socket disconnected');
+            this.socket.disconnect();
+        })
     }
 
     private handleSignal(type: SignalType, method: SignalMethod, data)

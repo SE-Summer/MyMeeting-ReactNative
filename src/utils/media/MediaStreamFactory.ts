@@ -93,7 +93,7 @@ export class MediaStreamFactory
 
     public async getCamFrontStream(_width: number, _height: number, _frameRate: number)
     {
-        let stream = null;
+        let stream: MediaStream = null;
         let constraints = {
             audio: false,
             video: {
@@ -105,7 +105,7 @@ export class MediaStreamFactory
         };
 
         try {
-            stream = await mediaDevices.getUserMedia(constraints)
+            stream = await mediaDevices.getUserMedia(constraints);
         } catch (err) {
             printError(err);
         }
