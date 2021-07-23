@@ -118,56 +118,11 @@ export class MediaStreamFactory
         let constraints = {
             audio: {
                 deviceId: this.micDeviceId,
+                autoGainControl: true,
+                echoCancellation: true,
+                noiseSuppression: true,
             },
             video: false,
-        };
-
-        try {
-            stream = await mediaDevices.getUserMedia(constraints)
-        } catch (err) {
-            printError(err);
-        }
-
-        return stream;
-    }
-
-    public async getCamEnvAndMicStream(_width: number, _height: number, _frameRate: number)
-    {
-        let stream = null;
-        let constraints = {
-            audio: {
-                deviceId: this.micDeviceId,
-            },
-            video: {
-                deviceId: this.camEnvDeviceId,
-                frameRate: {ideal: _frameRate},
-                width: _width,
-                height: _height,
-            },
-        };
-
-        try {
-            stream = await mediaDevices.getUserMedia(constraints)
-        } catch (err) {
-            printError(err);
-        }
-
-        return stream;
-    }
-
-    public async getCamFrontAndMicStream(_width: number, _height: number, _frameRate: number)
-    {
-        let stream = null;
-        let constraints = {
-            audio: {
-                deviceId: this.micDeviceId,
-            },
-            video: {
-                deviceId: this.camFrontDeviceId,
-                frameRate: {ideal: _frameRate},
-                width: _width,
-                height: _height,
-            },
         };
 
         try {
