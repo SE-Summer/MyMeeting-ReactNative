@@ -43,8 +43,12 @@ export default class ReserveInfScreen extends Component {
         })
     }
 
-    goMeeting = () => {
-       this.props.navigation.navigate('Meeting');
+    goMeeting = (room) => {
+        const params = {
+            token: room.token,
+            topic: room.topic
+        };
+        this.props.navigation.navigate('Meeting', params);
     }
 
     renderItem = ({item, index}) => {

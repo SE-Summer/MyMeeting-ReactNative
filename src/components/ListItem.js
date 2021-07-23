@@ -9,14 +9,15 @@ const colors = [
 ]
 
 export const ListItem = ({date, item, index, pressEvent}) => {
+    const theColor = colors[index % 5];
     let icon, iconColor, onPress, shareColor;
     if (moment(date).isBefore(item.end_time, 'minute') && moment(date).isAfter(item.start_time, 'minute')) {
         icon = 'door-open';
-        iconColor = '#06ae7aaa';
+        iconColor = theColor;
         onPress = async () => {
             const response = await join(item.id, item.password);
             if (response != null && response.status === 200) {
-                pressEvent();
+                pressEvent(response.data.room);
             }
         };
     } else {
@@ -26,14 +27,14 @@ export const ListItem = ({date, item, index, pressEvent}) => {
     }
 
     if (moment(date).isBefore(item.end_time, 'minute')) {
-        shareColor = '#06ae7aaa';
+        shareColor = theColor;
     } else {
         shareColor = '#aaaaaa';
     }
 
     return (
         <View style={styles.itemContainer}>
-            <View style={[styles.indexContainer, {backgroundColor: colors[index % 5]}]}>
+            <View style={[styles.indexContainer, {backgroundColor: theColor}]}>
                 <Text style={styles.indexFont}>{index + 1}</Text>
             </View>
             <View style={styles.contentContainer}>
@@ -53,10 +54,10 @@ export const ListItem = ({date, item, index, pressEvent}) => {
                 </View>
             </View>
             <View style={styles.iconContainer}>
-                <TouchableOpacity onPress={onPress} style={[{borderColor: iconColor}]}>
+                <TouchableOpacity onPress={onPress}>
                     <FontAwesome5 name={icon} size={20} color={iconColor} />
                 </TouchableOpacity>
-                <TouchableOpacity style={[{borderColor: iconColor}]}>
+                <TouchableOpacity>
                     <FontAwesome5 name={'share-alt'} size={20} color={shareColor} />
                 </TouchableOpacity>
             </View>

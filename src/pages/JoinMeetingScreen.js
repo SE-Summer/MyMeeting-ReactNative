@@ -70,7 +70,12 @@ export default class JoinMeetingScreen extends Component{
 
         switch (response.status) {
             case 200: {
-                this.props.navigation.navigate('Meeting');
+                const room = response.data.room;
+                const params = {
+                    token: room.token,
+                    topic: room.topic,
+                }
+                this.props.navigation.navigate('Meeting', params);
                 return;
             }
             case 401: {
@@ -95,11 +100,6 @@ export default class JoinMeetingScreen extends Component{
                 })
             }
         }
-    }
-
-    navigate = () => {
-        console.log(1)
-        this.props.navigation.navigate('Meeting', {'id': this.state.id, 'password': this.state.password})
     }
 
     cameraSwitch = (value) => {
