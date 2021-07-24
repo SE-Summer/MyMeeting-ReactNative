@@ -8,17 +8,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     fontStyle: {
-        color: 'white',
         fontSize: 10,
     }
 })
 
-export const IconWithLabel = ({text, iconName, pressEvent}) => {
+export const IconWithLabel = ({text, iconName, pressEvent, color = 'white'}) => {
     return(
         <TouchableOpacity onPress={pressEvent}>
             <View style={styles.container}>
-                <Ionicons name={iconName} color={'white'} size={25}/>
-                <Text style={styles.fontStyle}>{text}</Text>
+                <Ionicons name={iconName} color={color} size={25}/>
+                <Text style={[styles.fontStyle, {color: color}]}>{text}</Text>
             </View>
         </TouchableOpacity>
     )

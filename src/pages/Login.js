@@ -73,6 +73,12 @@ export default class LoginScreen extends Component {
 
     log = async () => {
         const {userEmail, password} = this.state;
+
+        /*delete this after test*/
+        if (userEmail != null && userEmail === 'dev') {
+            this.props.navigation.navigate('Meeting');
+        }
+
         const EmailFilled = userEmail != null && userEmail.length !== 0;
         if (!EmailFilled) {
             this.setState({
