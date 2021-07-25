@@ -63,19 +63,18 @@ export default class Meeting extends Component
     }
 
     async componentDidMount() {
-        setTimeout(async () => {
-            console.log(this.mediaStreamFactory);
-            const camStream = await this.mediaStreamFactory.getCamFrontStream(200, 100, 30);
-            const micStream = await this.mediaStreamFactory.getMicStream();
-            const myStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
-            this.setState({
-                myStream: camStream,
-            });
-            this.userName = config_key.username;
-            await this.mediaService.joinMeeting(this.props.route.params.token, await getFromStorage(config.tokenIndex),
-                this.userName, `${this.userName}'s mobile device`);
-            this.mediaService.sendMediaStream(myStream);
-        }, 1);
+        await this.mediaStreamFactory.waitForUpdate();
+        console.log(this.mediaStreamFactory);
+        const camStream = await this.mediaStreamFactory.getCamFrontStream(200, 100, 30);
+        const micStream = await this.mediaStreamFactory.getMicStream();
+        const myStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
+        this.setState({
+            myStream: camStream,
+        });
+        this.userName = config_key.username;
+        await this.mediaService.joinMeeting(this.props.route.params.token, await getFromStorage(config.tokenIndex),
+            this.userName, `${this.userName}'s mobile device`);
+        await this.mediaService.sendMediaStream(myStream);
     }
 
     updateStream() {

@@ -1,6 +1,7 @@
 import {printError} from "../PrintError";
 import {mediaDevices} from "react-native-webrtc";
 import {serviceConfig} from "../../ServiceConfig";
+import * as events from "events"
 
 
 export class MediaStreamFactory
@@ -10,45 +11,89 @@ export class MediaStreamFactory
     private micDeviceId: string = null;
     private speakerDeviceId: string = null;
 
+    private updated: boolean = null;
+    private eventEmitter: events.EventEmitter = null;
+
     constructor()
     {
+        this.updated = false;
+        this.eventEmitter = new events.EventEmitter();
         this.updateLocalDeviceInfos();
         mediaDevices.ondevicechange = (event) => {
             this.updateLocalDeviceInfos();
         }
     }
 
-    private updateLocalDeviceInfos()
+    private timeoutCallback(callback, timeout: number)
     {
-        this.camEnvDeviceId = null;
-        this.camFrontDeviceId = null;
-        this.micDeviceId = null;
-        mediaDevices.enumerateDevices()
-            .then((devices) => {
-                devices.forEach((device) => {
-                    let deviceId = device.deviceId;
-                    switch (device.kind) {
-                        case "videoinput":
-                            if (device.facing === 'environment' && this.camEnvDeviceId == null) {
-                                this.camEnvDeviceId = deviceId;
-                            } else if (this.camFrontDeviceId == null) {
-                                this.camFrontDeviceId = deviceId;
-                            }
-                            break;
-                        case "audioinput":
-                            if (this.micDeviceId == null) {
-                                this.micDeviceId = deviceId
-                            }
-                            break;
-                        case "audiooutput":
-                            if (this.speakerDeviceId == null) {
-                                this.speakerDeviceId = deviceId
-                            }
-                            break;
-                    }
-                });
-            })
-            .catch(printError);
+        let called = false;
+
+        const interval = setTimeout(() => {
+            if (called) {
+                return;
+            }
+            called = true;
+            callback(new Error('Update device timeout.'), null);
+        }, timeout);
+
+        return (...args) => {
+            if (called) {
+                return;
+            }
+            called = true;
+            clearTimeout(interval);
+
+            callback(...args);
+        };
+    }
+
+    public waitForUpdate()
+    {
+        return new Promise<void>((resolve, reject) => {
+            console.log('Waiting for MediaStreamFactory to update device info...');
+            this.eventEmitter.on('localDeviceUpdated', this.timeoutCallback(() => {
+                if (this.updated)
+                    resolve();
+                else
+                    reject('Device info update failed');
+            }, serviceConfig.mediaTimeout));
+        });
+    }
+
+    private async updateLocalDeviceInfos()
+    {
+        try {
+            this.camEnvDeviceId = null;
+            this.camFrontDeviceId = null;
+            this.micDeviceId = null;
+            const devices = await mediaDevices.enumerateDevices();
+            devices.forEach((device) => {
+                let deviceId = device.deviceId;
+                switch (device.kind) {
+                    case "videoinput":
+                        if (device.facing === 'environment' && this.camEnvDeviceId == null) {
+                            this.camEnvDeviceId = deviceId;
+                        } else if (this.camFrontDeviceId == null) {
+                            this.camFrontDeviceId = deviceId;
+                        }
+                        break;
+                    case "audioinput":
+                        if (this.micDeviceId == null) {
+                            this.micDeviceId = deviceId
+                        }
+                        break;
+                    case "audiooutput":
+                        if (this.speakerDeviceId == null) {
+                            this.speakerDeviceId = deviceId
+                        }
+                        break;
+                }
+            });
+            this.eventEmitter.emit('localDeviceUpdated');
+            this.updated = true;
+        } catch (err) {
+            printError(err);
+        }
     }
 
     public getCamEnvDeviceId()

@@ -15,6 +15,7 @@ const _serverURL = (config.serverUseHttps ? 'https://' : 'http://') + config.ser
 export const serviceConfig = {
     requestTimeout: 10000,
     connectTimeout: 20000,
+    mediaTimeout: 10000,
     serverIp: config.serverIp,
     serverPort: config.serverPort,
     serverURL: _serverURL,
