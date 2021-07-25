@@ -4,9 +4,10 @@ import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import {config_key, utils} from "../utils/Constants";
+import {config, config_key, utils} from "../utils/Constants";
 import {validateEmail} from "../utils/Utils";
 import {loginService} from "../service/UserService";
+import {setInStorage} from "../utils/StorageUtils";
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
@@ -76,7 +77,9 @@ export default class LoginScreen extends Component {
 
         /*delete this after test*/
         if (userEmail != null && userEmail === 'dev') {
-            this.props.navigation.navigate('Meeting');
+            await setInStorage(config.tokenIndex, password);
+            config_key.username = 'test';
+            this.props.navigation.navigate('Meeting', {token: 12});
         }
 
         const EmailFilled = userEmail != null && userEmail.length !== 0;

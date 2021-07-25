@@ -7,8 +7,6 @@ import {
     Dimensions,
     Modal,
     FlatList,
-    UIManager,
-    findNodeHandle
 } from "react-native";
 import * as React from "react";
 import {Component, useState} from "react";
@@ -16,6 +14,9 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import {config, config_key} from "../utils/Constants";
 import {IconWithLabel} from "../components/IconWithLabel";
 import Window from "../components/Window";
+import {MediaService} from "../service/MediaService";
+import {getFromStorage} from "../utils/StorageUtils";
+import {MediaStreamFactory} from "../utils/media/MediaStreamFactory";
 
 const windowWidth = Dimensions.get('window').width;
 const smallWindowWidth = windowWidth / 3;
@@ -39,9 +40,31 @@ export default class Meeting extends Component
 {
     constructor(props) {
         super(props);
+        this.mediaStreamFactory = new MediaStreamFactory();
+        this.mediaService = new MediaService(this.updateStream.bind(this));
         this.state = {
             view: 'portrait',
+            peerMedia: null,
+            myStream: null,
         };
+    }
+
+    async componentDidMount() {
+        const camStream = await this.mediaStreamFactory.getCamFrontDeviceId();
+        const micStream = await this.mediaStreamFactory.getMicStream();
+        const myStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
+        this.setState({
+            myStream: myStream,
+        });
+        this.userName = config_key.username;
+        await this.mediaService.joinMeeting(this.props.route.params.token, await getFromStorage(config.tokenIndex),
+            this.userName, `${this.userName}'s mobile device`);
+    }
+
+    updateStream() {
+        this.setState({
+            peerMedia: this.mediaService.getPeerMedia(),
+        })
     }
 
     render() {
@@ -89,8 +112,11 @@ const PortraitView = ({}) => {
     return (
         <View style={{flex: 1,}}>
             <Window style={{flex: 1, justifyContent:'flex-end', alignItems: 'flex-end'}}
+                    stream={new MediaStream(this.state.peerMedia[0].getTracks())}
                     children={
-                        <Window style={{width: smallWindowWidth, height: smallWindowHeight, margin: 10}}/>
+                        <Window style={{width: smallWindowWidth, height: smallWindowHeight, margin: 10}}
+                                stream={this.state.myStream}
+                        />
                     }
             />
         </View>

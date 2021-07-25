@@ -115,7 +115,7 @@ export class PeerMedia
         this.peerId2Details.delete(peerId);
     }
 
-    public getPeerMedia()
+    public getPeerMedia(): PeerDetail[]
     {
         let peerMedia = [];
         this.peerId2Details.forEach((peerDetail) => {
