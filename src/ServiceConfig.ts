@@ -1,5 +1,5 @@
 const config = {
-    serverIp: '192.168.0.106',
+    serverIp: '192.168.0.101',
     serverPort: 4446,
     serverUseHttps: false,
 }

@@ -47,18 +47,35 @@ export default class Meeting extends Component
             peerMedia: null,
             myStream: null,
         };
+        // this.mediaStreamFactory.getCamFrontStream(200, 100, 30)
+        //     .then(async (stream) => {
+        //         const camStream = stream;
+        //         const micStream = await this.mediaStreamFactory.getMicStream();
+        //         const myStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
+        //         this.setState({
+        //             myStream: camStream,
+        //         });
+        //         this.userName = config_key.username;
+        //         await this.mediaService.joinMeeting(this.props.route.params.token, await getFromStorage(config.tokenIndex),
+        //             this.userName, `${this.userName}'s mobile device`);
+        //         this.mediaService.sendMediaStream(myStream);
+        //     })
     }
 
     async componentDidMount() {
-        const camStream = await this.mediaStreamFactory.getCamFrontDeviceId();
-        const micStream = await this.mediaStreamFactory.getMicStream();
-        const myStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
-        this.setState({
-            myStream: myStream,
-        });
-        this.userName = config_key.username;
-        await this.mediaService.joinMeeting(this.props.route.params.token, await getFromStorage(config.tokenIndex),
-            this.userName, `${this.userName}'s mobile device`);
+        setTimeout(async () => {
+            console.log(this.mediaStreamFactory);
+            const camStream = await this.mediaStreamFactory.getCamFrontStream(200, 100, 30);
+            const micStream = await this.mediaStreamFactory.getMicStream();
+            const myStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
+            this.setState({
+                myStream: camStream,
+            });
+            this.userName = config_key.username;
+            await this.mediaService.joinMeeting(this.props.route.params.token, await getFromStorage(config.tokenIndex),
+                this.userName, `${this.userName}'s mobile device`);
+            this.mediaService.sendMediaStream(myStream);
+        }, 1);
     }
 
     updateStream() {
@@ -77,7 +94,7 @@ export default class Meeting extends Component
                         this.state.view === 'grid' ?
                             <GridView />
                             :
-                            <PortraitView />
+                            <PortraitView myStream={this.state.myStream} peerMedia={this.state.peerMedia}/>
                     }
                 </View>
                 <Footer style={screenStyle.footer} setView={(type) => { this.setState({ view: type, }); }}/>
@@ -108,14 +125,14 @@ const GridView = ({}) => {
     )
 }
 
-const PortraitView = ({}) => {
+const PortraitView = ({peerMedia, myStream}) => {
     return (
         <View style={{flex: 1,}}>
             <Window style={{flex: 1, justifyContent:'flex-end', alignItems: 'flex-end'}}
-                    stream={new MediaStream(this.state.peerMedia[0].getTracks())}
+                    stream={peerMedia ? new MediaStream(peerMedia[0].getTracks()) : null}
                     children={
                         <Window style={{width: smallWindowWidth, height: smallWindowHeight, margin: 10}}
-                                stream={this.state.myStream}
+                                stream={myStream}
                         />
                     }
             />

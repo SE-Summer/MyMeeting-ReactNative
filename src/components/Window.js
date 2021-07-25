@@ -8,7 +8,8 @@ export default class Window extends Component {
         const {style} = this.props;
         return (
             <View style={[style,{borderColor:'#aaaaaa', borderWidth: 1}]} >
-                {this.props.stream && <RTCView streamURL={this.props.stream.toURL()} mirror={true}/>}
+                {this.props.stream && <RTCView style={{flex: 1}} streamURL={this.props.stream.toURL()} mirror={true}/>}
+                {/*<RTCView style={{height: 200, width: 100}} zOrder={5}  streamURL={stream.toURL()} />*/}
                 {this.props.children}
             </View>
         );

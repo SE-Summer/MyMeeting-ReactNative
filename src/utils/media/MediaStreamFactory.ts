@@ -1,5 +1,6 @@
 import {printError} from "../PrintError";
 import {mediaDevices} from "react-native-webrtc";
+import {serviceConfig} from "../../ServiceConfig";
 
 
 export class MediaStreamFactory
