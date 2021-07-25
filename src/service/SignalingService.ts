@@ -10,8 +10,8 @@ export class SignalingService
     constructor(URL: string, opts)
     {
         this.URL = URL;
-        this.socket = io(URL);
-        console.log('start to connect');
+        this.socket = io(URL, opts);
+        console.log('[Socket]  Socket start to connect');
 
         this.callbackMap = new Map<SignalType ,Map<SignalMethod, (data) => void>>();
         this.callbackMap.set(SignalType.request, new Map<SignalMethod, (data) => void>());
@@ -24,16 +24,21 @@ export class SignalingService
         this.socket.on(SignalType.notify, ({ method, data }) => {
             this.handleSignal(SignalType.notify, method, data);
         });
+
+        this.socket.on('disconnect', () => {
+            console.log('[Socket]  Socket disconnected');
+            this.socket.disconnect();
+        })
     }
 
     private handleSignal(type: SignalType, method: SignalMethod, data)
     {
         let callback = this.callbackMap.get(type).get(method) as (data) => void;
-        if (callback == null) {
-            console.log(`Undefined signal (${type} , ${method})`);
+        if (callback == undefined) {
+            console.log(`[Socket]  Undefined signal (${type} , ${method})`);
         } else {
             callback(data);
-            console.log(`Signal handled (${type} , ${method})`);
+            console.log(`[Socket]  Signal handled (${type} , ${method})`);
         }
     }
 
@@ -68,10 +73,13 @@ export class SignalingService
     public waitForConnection()
     {
         return new Promise<void>((resolve, reject) => {
-            console.log('Waiting for connection to ' + this.URL + '...');
+            console.log('[Socket]  Waiting for connection to ' + this.URL + '...');
             this.socket.on('connect', this.timeoutCallback(() => {
-                console.log('Socket connected');
-                resolve();
+                console.log('[Socket]  Socket connected');
+                if (this.socket && this.socket.connected)
+                    resolve();
+                else
+                    reject('Socket connection failed');
             }, serviceConfig.connectTimeout));
             // this.socket.on('connect_error', this.timeoutCallback(() => {
             //     console.log('Socket connection failed!!!')
@@ -89,7 +97,7 @@ export class SignalingService
                 this.socket.emit(SignalType.request, { method, data },
                     this.timeoutCallback((err, response) => {
                         if (err) {
-                            console.log('sendRequest ' + method + ' error! socket:\n', method, this.socket);
+                            console.log('[Socket]  sendRequest ' + method + ' error! socket:\n', method, this.socket);
                             reject(err);
                         } else {
                             resolve(response);

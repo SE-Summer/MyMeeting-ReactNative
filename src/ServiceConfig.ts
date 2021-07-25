@@ -1,5 +1,5 @@
 const config = {
-    serverIp: 'se.imoments.com.cn',
+    serverIp: '192.168.0.106',
     serverPort: 4446,
     serverUseHttps: false,
 }
@@ -17,12 +17,22 @@ export const serviceConfig = {
     connectTimeout: 20000,
     serverIp: config.serverIp,
     serverPort: config.serverPort,
-    serverWsURL: _serverURL,
+    serverURL: _serverURL,
 }
 
 export enum SignalType {
     request = 'request',
     notify = 'notify'
+}
+
+export enum MediaKind {
+    video = 'video',
+    audio = 'audio'
+}
+
+export enum TransportType {
+    producer = 'producer',
+    consumer = 'consumer'
 }
 
 export enum SignalMethod {
@@ -37,5 +47,17 @@ export enum SignalMethod {
     resumeProducer = 'resumeProducer',
     pauseConsumer = 'pauseConsumer',
     resumeConsumer = 'resumeConsumer',
+    newConsumer = 'newConsumer',
     newPeer = 'newPeer',
+    consumerClosed = 'consumerClosed',
+    peerClosed = 'peerClosed',
+    close = 'close',
+}
+
+export const sockectConnectionOptions = {
+    // timeout: 3000,
+    // reconnection: true,
+    // reconnectionAttempts: Infinity,
+    // reconnectionDelayMax: 2000,
+    // transports: ['websocket'],
 }
