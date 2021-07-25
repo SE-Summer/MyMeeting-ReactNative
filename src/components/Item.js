@@ -27,7 +27,7 @@ export const SwitchItem = ({text, status, switchEvent}) => {
                     ios_backgroundColor="#3e3e3e"
                     onValueChange={switchEvent}
                     value={status}
-                    style={{ transform: [{ scaleX: 1.4 }, { scaleY: 1.4 }] }}
+                    style={{ transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }] }}
                 />
             </View>
         </View>

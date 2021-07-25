@@ -55,7 +55,15 @@ export default class LoginScreen extends Component {
 
     componentDidMount() {
         this.props.navigation.addListener('focus', () => {
-            this.setState({backTimes: 0});
+            this.setState({
+                userEmail: config_key.email,
+                password: null,
+                backTimes: 0,
+                userInput: 0,
+                passwordInput: 0,
+                EmailTip: null,
+                passwordTip: null,
+            });
             BackHandler.addEventListener("hardwareBackPress", this.backAction);
         })
         this.props.navigation.addListener('blur', () => {
@@ -65,6 +73,12 @@ export default class LoginScreen extends Component {
 
     log = async () => {
         const {userEmail, password} = this.state;
+
+        /*delete this after test*/
+        if (userEmail != null && userEmail === 'dev') {
+            this.props.navigation.navigate('Meeting');
+        }
+
         const EmailFilled = userEmail != null && userEmail.length !== 0;
         if (!EmailFilled) {
             this.setState({
@@ -102,7 +116,7 @@ export default class LoginScreen extends Component {
                     userInput: 1,
                     passwordInput: 1,
                     EmailTip: '邮箱或密码错误',
-                    passwordTip: '邮箱或密码错误',
+                    passwordTip: null,
                 })
             }
         }

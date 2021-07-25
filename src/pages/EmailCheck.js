@@ -109,14 +109,13 @@ export class ValidatePage extends Component {
     checkCode = async (value) => {
         const {navigation, route} = this.props;
         const response = await verifyCode(route.params.email, value);
-        const flag = true;
-        if (flag) {
+        if (response.status === 200) {
             ToastAndroid.showWithGravity(
                 '验证成功',
                 500,
                 ToastAndroid.CENTER
             )
-            navigation.navigate('Register', {'email': route.params.email});
+            navigation.navigate('Register', {'token': response.data.token});
         } else {
             ToastAndroid.showWithGravity(
                 '验证码错误',

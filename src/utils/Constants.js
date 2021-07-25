@@ -1,5 +1,6 @@
 export const config = {
     unKnownUri: 'https://www.imoments.com.cn/resource/img/web/UNavatar.jpg',
+    baseURL: 'http://se-summer.cn:4446',
     qGreen: '#44CE55',
     usernameIndex: 'user_name',
     userIdIndex: 'user_id',

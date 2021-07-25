@@ -1,13 +1,11 @@
-import {Text, TouchableOpacity, View} from "react-native";
+import {Text, ToastAndroid, TouchableOpacity, View} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import UserInf from "../components/UserInf";
 import {StyleSheet} from "react-native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {Divider} from "react-native-elements";
-import {removeFromStorage} from "../utils/StorageUtils";
 import {config, config_key} from "../utils/Constants";
-import {logout} from "../service/UserService";
+import {getAvatar, logout} from "../service/UserService";
 
 const Item = ({icon, text, func}) => {
     return(
@@ -30,8 +28,14 @@ export default class UserScreen extends Component{
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         const {navigation} = this.props;
+        const response = await getAvatar();
+        if (response == null ||response.status !== 200) {
+            ToastAndroid.show('获取头像失败', 1000);
+        } else {
+            config_key.avatarUri = config.baseURL + response.data.path;
+        }
         navigation.addListener('focus', () => {
             this.setState({
                 avatarUri: config_key.avatarUri,
@@ -40,38 +44,26 @@ export default class UserScreen extends Component{
         })
     }
 
-    navigateToHistory = () => {
-        this.props.navigation.navigate('History');
-    }
-
-    navigateToUserSettings = () => {
-        this.props.navigation.navigate('UserSetting');
-    }
-
-    navigateToMeetingSettings = () => {
-        this.props.navigation.navigate('MeetingSetting');
-    }
-
-    logOut = async () => {
-        await logout();
-        this.props.navigation.navigate('Login');
-    }
-
     render() {
         return (
-            <View>
+            <View style={{flex: 1}}>
                 <UserInf avatarUri={this.state.avatarUri} username={this.state.username} style={userScreenStyles.inf}/>
+                <View style={{height: 20}}/>
                 <View style={userScreenStyles.optionsContainer}>
-                    <Item icon={"document-text-outline"} text={"历史记录"} func={this.navigateToHistory}/>
+                    <Item icon={"videocam-outline"} text={"会议设置"} func={() => {
+                        this.props.navigation.navigate('MeetingSetting');
+                    }}/>
                 </View>
                 <View style={userScreenStyles.optionsContainer}>
-                    <Item icon={"settings-outline"} text={"会议设置"} func={this.navigateToMeetingSettings}/>
-                    <Divider />
-                    <Item icon={"person-circle-outline"} text={"个人信息"} func={this.navigateToUserSettings} />
+                    <Item icon={"person-circle-outline"} text={"个人信息"} func={() => {
+                        this.props.navigation.navigate('UserSetting');
+                    }} />
                 </View>
-                <TouchableOpacity onPress={this.logOut} style={userScreenStyles.logOut}>
-                    <Text style={{fontSize:15, textAlign: "center", color: "red"}}>退出登录</Text>
-                </TouchableOpacity>
+                <View style={userScreenStyles.optionsContainer}>
+                    <Item icon={"settings-outline"} text={"通用"} func={() => {
+                        this.props.navigation.navigate('NormalSetting');
+                    }} />
+                </View>
             </View>
         );
     }
@@ -81,18 +73,10 @@ const userScreenStyles = StyleSheet.create({
     inf: {
         elevation: 5,
     },
-    logOut: {
-        marginRight: 10,
-        marginLeft: 10,
-        marginTop: 100,
-        padding: 14,
-        backgroundColor:"white",
-        borderRadius: 10
-    },
     optionsContainer: {
         marginRight: 10,
         marginLeft: 10,
-        marginTop: 30,
+        marginTop: 10,
         backgroundColor:"white",
         borderRadius: 10
     }

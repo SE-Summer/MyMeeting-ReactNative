@@ -50,6 +50,8 @@ export default class ReServeMeetingScreen extends Component{
 
                 return (
                     <TextButton text={"完成"} pressEvent={() => {
+                        this.refs.textInput1.blur();
+                        this.refs.textInput2.blur();
                         const {nameText, secretText} = this.state;
 
                         if (nameText == null || nameText.length === 0 || secretText == null || secretText.length !== 8) {
@@ -129,6 +131,7 @@ export default class ReServeMeetingScreen extends Component{
             <View style={{backgroundColor: "#EDEDED", flex: 1}}>
                 <View style={{borderRadius: 10, marginTop: 20, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
                     <TextInput
+                        ref={'textInput1'}
                         value={this.state.nameText}
                         style={style.input}
                         placeholder={"会议标题"}
@@ -142,6 +145,7 @@ export default class ReServeMeetingScreen extends Component{
                     />
                     <Divider />
                     <TextInput
+                        ref={'textInput2'}
                         value={this.state.secretText}
                         style={style.input}
                         placeholder={"会议密码(8位数字)"}

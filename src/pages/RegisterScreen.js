@@ -3,6 +3,8 @@ import {Component} from "react";
 import {TextInput, View, StyleSheet, ToastAndroid} from "react-native";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
+import {registerService} from "../service/UserService";
+import * as Progress from "react-native-progress";
 
 const styles = StyleSheet.create({
     input: {
@@ -35,6 +37,7 @@ export default class RegisterScreen extends Component {
             nameFilled: false,
             passwordFilled: true,
             confirmFilled: true,
+            loading: false,
         }
     }
 
@@ -42,6 +45,12 @@ export default class RegisterScreen extends Component {
         const {navigation} = this.props;
         navigation.setOptions({
             headerRight: () => {
+                if (this.state.loading) {
+                    return (
+                        <Progress.CircleSnail spinDuration={4000} duration={800} color={['#9be3b1', '#06b45f', '#05783d']} style={{marginRight: 7}}/>
+                    )
+                }
+
                 return (
                     <TextButton text={"完成"} pressEvent={this.onOk} />
                 )
@@ -56,27 +65,43 @@ export default class RegisterScreen extends Component {
         this.confirmPasswordChange(confirmPassword);
 
         if (nameFilled && passwordFilled && confirmFilled && !confirmWarning) {
-            if (await this.checkResult()) {
-                this.setState({
-                    username: null,
-                    password: null,
-                    confirmPassword: null,
-                });
-                this.props.navigation.navigate('Login');
-                ToastAndroid.show('注册成功', ToastAndroid.SHORT);
-            } else {
-                this.setState({
-                    username: null,
-                    password: null,
-                    confirmPassword: null,
-                });
-                ToastAndroid.show('出错了', ToastAndroid.SHORT);
-            }
+            this.setState({
+                loading: true,
+            }, async () => {
+                if (await this.checkResult()) {
+                    this.setState({
+                        username: null,
+                        password: null,
+                        confirmPassword: null,
+                        loading: false,
+                    });
+                    this.props.navigation.navigate('Login');
+                    ToastAndroid.show('注册成功', ToastAndroid.SHORT);
+                } else {
+                    this.setState({
+                        username: null,
+                        password: null,
+                        confirmPassword: null,
+                        loading: false,
+                    });
+                    ToastAndroid.show('出错了', ToastAndroid.SHORT);
+                }
+            })
+
         }
     }
 
     checkResult = async () => {
-        return true;
+        const token = this.props.route.params.token;
+        const userInf = {
+            nickname: this.state.username,
+            password: this.state.password,
+            token: token,
+        }
+
+        const response = await registerService(userInf);
+        return response.status === 200;
+
     }
 
     usernameChange = (value) => {
@@ -121,7 +146,6 @@ export default class RegisterScreen extends Component {
                         maxLength={15}
                         multiline={false}
                         onChangeText={this.usernameChange}
-                        keyboardType={"visible-password"}
                     />
                 </View>
                 <Tip text={passwordTip}/>
