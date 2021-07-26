@@ -116,10 +116,9 @@ export class MediaStreamFactory
         return this.speakerDeviceId;
     }
 
-    public async getCamEnvStream(_width: number, _height: number, _frameRate: number)
+    public async getCamEnvStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
     {
-        let stream = null;
-        let constraints = {
+        const constraints = {
             audio: false,
             video: {
                 deviceId: this.camEnvDeviceId,
@@ -130,17 +129,16 @@ export class MediaStreamFactory
         };
 
         try {
-            stream = await mediaDevices.getUserMedia(constraints)
+            return await mediaDevices.getUserMedia(constraints)
         } catch (err) {
             printError(err);
+            return Promise.reject("Fail to get camera env stream.");
         }
-        return stream;
     }
 
-    public async getCamFrontStream(_width: number, _height: number, _frameRate: number)
+    public async getCamFrontStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
     {
-        let stream: MediaStream = null;
-        let constraints = {
+        const constraints = {
             audio: false,
             video: {
                 deviceId: this.camFrontDeviceId,
@@ -151,17 +149,16 @@ export class MediaStreamFactory
         };
 
         try {
-            stream = await mediaDevices.getUserMedia(constraints);
+            return await mediaDevices.getUserMedia(constraints);
         } catch (err) {
             printError(err);
+            return Promise.reject("Fail to get camera front stream.");
         }
-        return stream;
     }
 
-    public async getMicStream()
+    public async getMicStream(): Promise<MediaStream>
     {
-        let stream = null;
-        let constraints = {
+        const constraints = {
             audio: {
                 deviceId: this.micDeviceId,
                 autoGainControl: true,
@@ -172,18 +169,16 @@ export class MediaStreamFactory
         };
 
         try {
-            stream = await mediaDevices.getUserMedia(constraints)
+            return await mediaDevices.getUserMedia(constraints)
         } catch (err) {
             printError(err);
+            return Promise.reject("Fail to get camera front stream.");
         }
-
-        return stream;
     }
 
-    public async getDisplayStream(_width: number, _height: number, _frameRate: number)
+    public async getDisplayStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
     {
-        let stream = null;
-        let constraints = {
+        const constraints = {
             audio: true,
             video: {
                 frameRate: {ideal: _frameRate},
@@ -192,11 +187,10 @@ export class MediaStreamFactory
             },
         };
         try {
-            stream = await mediaDevices.getDisplayMedia(constraints);
+            return await mediaDevices.getDisplayMedia(constraints);
         } catch (err) {
             printError(err);
+            return Promise.reject("Fail to get display stream.");
         }
-
-        return stream;
     }
 }

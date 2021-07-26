@@ -45,7 +45,7 @@ export default class Meeting extends Component
         this.mediaService = new MediaService(this.updateStream.bind(this));
         this.state = {
             view: 'portrait',
-            peerMedia: null,
+            peerDetails: null,
             myStream: null,
             width: 0,
             height: 0,
@@ -83,27 +83,36 @@ export default class Meeting extends Component
     async componentDidMount() {
         this.handleBack();
         await this.mediaStreamFactory.waitForUpdate();
-        const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width, this.state.height, 30);
-        const micStream = await this.mediaStreamFactory.getMicStream();
-        const myStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
-        this.setState({
-            myStream: camStream,
-        });
         this.userName = config_key.username;
         await this.mediaService.joinMeeting(this.props.route.params.token, config_key.token,
             this.userName, `${this.userName}'s mobile device`);
-        await this.mediaService.sendMediaStream(myStream);
     }
 
     openCamera = async () => {
+        const camStream = await this.mediaStreamFactory.getCamFrontStream(config.mediaWidth, config.mediaHeight, 30);
+        const micStream = await this.mediaStreamFactory.getMicStream();
 
+        if (camStream.getVideoTracks().length === 0 || micStream.getAudioTracks().length === 0) {
+            return Promise.reject("Fail to get local media.");
+        }
+
+        const sendStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
+        this.setState({
+            myStream: camStream,
+        });
+        await this.mediaService.sendMediaStream(sendStream);
+    }
+
+    closeCamera = async () => {
+        closeMediaStream(this.state.myStream);
+        this.setState({
+            myStream: null,
+        });
     }
 
     updateStream() {
         this.setState({
-            peerMedia: this.mediaService.getPeerMedia(),
-        }, () => {
-            console.log('peerMedia', this.state.peerMedia[0].getTracks())
+            peerDetails: this.mediaService.getPeerDetails().length === 0 ? null : this.mediaService.getPeerDetails(),
         })
     }
 
@@ -140,7 +149,7 @@ export default class Meeting extends Component
                         this.state.view === 'grid' ?
                             <GridView width={width} height={height}/>
                             :
-                            <PortraitView width={width} height={height} myStream={this.state.myStream} peerMedia={this.state.peerMedia}/>
+                            <PortraitView width={width} height={height} myStream={this.state.myStream} peerMedia={this.state.peerDetails}/>
                     }
                 </View>
                 <Footer

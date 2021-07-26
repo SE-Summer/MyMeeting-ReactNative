@@ -46,9 +46,9 @@ export class MediaService
         }
     }
 
-    public getPeerMedia()
+    public getPeerDetails()
     {
-        return this.peerMeida.getPeerMedia();
+        return this.peerMeida.getPeerDetails();
     }
 
     private log(info: string, err = null)

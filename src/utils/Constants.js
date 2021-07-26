@@ -9,6 +9,8 @@ export const config = {
     microphoneIndex: 'microphone',
     emailIndex: 'email',
     tokenIndex: 'token',
+    mediaHeight: 800,
+    mediaWidth: 600,
 }
 
 export const smallUtils = {
