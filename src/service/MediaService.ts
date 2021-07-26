@@ -56,7 +56,7 @@ export class MediaService
         if (!info || !this.device) {
             console.log('[Logger error] Try to access null');
         }
-        console.log(`${info}   with device name: ${this.device}`);
+        console.log(`${info}   with device name: ${this.deviceName}`);
         if (err) {
             printError(err);
         }

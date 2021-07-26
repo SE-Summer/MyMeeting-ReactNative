@@ -17,6 +17,7 @@ import Window from "../components/Window";
 import {MediaService} from "../service/MediaService";
 import {MediaStreamFactory} from "../utils/media/MediaStreamFactory";
 import {closeMediaStream} from "../utils/media/MediaUtils";
+import {RTCView} from "react-native-webrtc";
 
 const windowWidth = Dimensions.get('window').width;
 const smallWindowWidth = windowWidth / 3;
@@ -94,11 +95,15 @@ export default class Meeting extends Component
         await this.mediaService.sendMediaStream(myStream);
     }
 
+    openCamera = async () => {
+
+    }
+
     updateStream() {
         this.setState({
             peerMedia: this.mediaService.getPeerMedia(),
         }, () => {
-            console.log('peerMedia', this.state.peerMedia)
+            console.log('peerMedia', this.state.peerMedia[0].getTracks())
         })
     }
 
@@ -111,7 +116,7 @@ export default class Meeting extends Component
     }
 
     exit = async () => {
-        closeMediaStream();
+        closeMediaStream(this.state.myStream);
         await this.mediaService.leaveMeeting();
         this.backAction();
     }
@@ -174,18 +179,19 @@ const GridView = ({width, height}) => {
 const PortraitView = ({peerMedia, myStream}) => {
     if (peerMedia) {
         return (
-            <View style={{flex: 1}}>
-                <Window
-                    style={{flex: 1, justifyContent:'flex-end', alignItems: 'flex-end'}}
-                    stream={new MediaStream(peerMedia[0].getTracks())}
-                    children={
-                        <Window
-                            style={{width: smallWindowWidth, height: smallWindowHeight, margin: 10}}
-                            stream={myStream}
-                        />
-                    }
-                />
-            </View>
+            <RTCView  style={{flex: 1}}  streamURL={(new MediaStream(peerMedia[0].getTracks())).toURL()} />
+            // <View style={{flex: 1}}>
+            //     <Window
+            //         style={{flex: 1, justifyContent:'flex-end', alignItems: 'flex-end'}}
+            //         stream={new MediaStream(peerMedia[0].getTracks())}
+            //         children={
+            //             <Window
+            //                 style={{width: smallWindowWidth, height: smallWindowHeight, margin: 10}}
+            //                 stream={myStream}
+            //             />
+            //         }
+            //     />
+            // </View>
         )
     } else {
         return (
