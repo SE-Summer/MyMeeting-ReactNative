@@ -4,7 +4,6 @@ import {
     StyleSheet,
     Text,
     TouchableHighlight,
-    Dimensions,
     Modal,
     FlatList, BackHandler, Alert,
 } from "react-native";
@@ -18,8 +17,6 @@ import {MediaStreamFactory} from "../utils/media/MediaStreamFactory";
 import {closeMediaStream} from "../utils/media/MediaUtils";
 import {RTCView} from "react-native-webrtc";
 import moment from "moment";
-
-const testData = [{id: 1}, {id: 2},{id: 3},{id: 4}, {id: 5}, {id: 6}, {id: 7}, {id: 8}];
 
 const screenStyle = StyleSheet.create({
     header: {
@@ -187,9 +184,9 @@ export default class Meeting extends Component
                 <View style={{flex: 1}} onLayout={this.onLayout}>
                     {
                         this.state.view === 'grid' ?
-                            <GridView width={width} height={height} myStream={this.state.myCameraStream} peerMedia={this.state.peerDetails}/>
+                            <GridView width={width} height={height} myStream={this.state.myCameraStream} peerDetails={this.state.peerDetails}/>
                             :
-                            <PortraitView width={width} height={height} myStream={this.state.myCameraStream} peerMedia={this.state.peerDetails}/>
+                            <PortraitView width={width} height={height} myStream={this.state.myCameraStream} peerDetails={this.state.peerDetails}/>
                     }
                 </View>
                 <Footer
@@ -208,11 +205,12 @@ export default class Meeting extends Component
     }
 }
 
-const GridView = ({width, height, myStream, peerMedia}) => {
+const GridView = ({width, height, myStream, peerDetails}) => {
+    console.log(width)
     const gridStyle = StyleSheet.create({
         rtcView: {
             width: width / 3,
-            height: height / 4 ,
+            height: height / 6,
         }
     })
 
@@ -220,8 +218,10 @@ const GridView = ({width, height, myStream, peerMedia}) => {
     if (myStream) {
         streamData.push(myStream);
     }
-    if (peerMedia) {
-
+    if (peerDetails) {
+        peerDetails.map((item) => {
+            streamData.push(new MediaStream(item.getTracks()));
+        })
     }
 
 
@@ -249,7 +249,7 @@ const GridView = ({width, height, myStream, peerMedia}) => {
     )
 }
 
-const PortraitView = ({width, height, peerMedia, myStream}) => {
+const PortraitView = ({width, height, peerDetails, myStream}) => {
     const portraitStyle = StyleSheet.create({
         smallWindow: {
             position: 'absolute',
@@ -267,9 +267,7 @@ const PortraitView = ({width, height, peerMedia, myStream}) => {
         },
     })
 
-    console.log('peerMedia', peerMedia);
-    console.log('myStream', myStream);
-    if (peerMedia && myStream) {
+    if (peerDetails && myStream) {
         return (
             <View>
                 <RTCView
@@ -281,12 +279,12 @@ const PortraitView = ({width, height, peerMedia, myStream}) => {
                 <RTCView
                     zOrder={1}
                     style={portraitStyle.bigWindow}
-                    streamURL={(new MediaStream(peerMedia[0].getTracks())).toURL()}
+                    streamURL={(new MediaStream(peerDetails[0].getTracks())).toURL()}
                 />
             </View>
 
         )
-    } else if (peerMedia == null && myStream) {
+    } else if (peerDetails == null && myStream) {
         return (
             <RTCView
                 zOrder={1}
@@ -295,12 +293,12 @@ const PortraitView = ({width, height, peerMedia, myStream}) => {
                 streamURL={myStream.toURL()}
             />
         )
-    } else if (peerMedia && myStream == null ){
+    } else if (peerDetails && myStream == null ){
         return (
             <RTCView
                 zOrder={1}
                 style={portraitStyle.bigWindow}
-                streamURL={(new MediaStream(peerMedia[0].getTracks())).toURL()}
+                streamURL={(new MediaStream(peerDetails[0].getTracks())).toURL()}
             />
         )
     } else {

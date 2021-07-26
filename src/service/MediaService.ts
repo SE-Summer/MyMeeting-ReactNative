@@ -203,6 +203,7 @@ export class MediaService
     public async closeTrack(track: MediaStreamTrack)
     {
         const producer = this.producers.get(track.id);
+        console.log(producer);
         await this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
         this.producers.delete(track.id);
     }
@@ -232,14 +233,14 @@ export class MediaService
             this.log('[Transport event]  event: produce, handled by sendTransport');
             try {
                 // producerId
-                const {id} = await this.signaling.sendRequest(
+                const {producerId} = await this.signaling.sendRequest(
                     SignalMethod.produce, {
                         transportId : this.sendTransport.id,
                         kind,
                         rtpParameters,
                         appData
-                    }) as {id: string};
-                done({id});
+                    }) as {producerId: string};
+                done({id: producerId});
             } catch (err) {
                 errBack(err);
             }

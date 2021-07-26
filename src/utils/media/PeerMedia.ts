@@ -129,6 +129,7 @@ export class PeerMedia
         } else {
             const peerDetail = this.peerId2Details.get(peerId);
             peerDetail.addConsumerAndTrack(consumer, track);
+            this.consumerId2Details.set(consumer.id, peerDetail);
         }
     }
 
