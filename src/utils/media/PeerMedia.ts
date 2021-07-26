@@ -3,6 +3,8 @@ import * as types from "../Types";
 
 class PeerDetail
 {
+    private _hasAudio: boolean = null;
+    private _hasVideo: boolean = null;
     private peerInfo: types.PeerInfo = null;
     // consumerId ==> Consumer
     private consumers: Map<string, mediasoupTypes.Consumer> = null;
@@ -10,6 +12,8 @@ class PeerDetail
     private tracks: Map<string, MediaStreamTrack> = null;
     constructor()
     {
+        this._hasAudio = false;
+        this._hasVideo = false;
         this.consumers = new Map<string, mediasoupTypes.Consumer>();
         this.tracks = new Map<string, MediaStreamTrack>();
     }
@@ -23,12 +27,23 @@ class PeerDetail
     {
         this.consumers.set(consumer.id, consumer);
         this.tracks.set(consumer.id, track);
+
+        if (track.kind === 'audio')
+            this._hasAudio = true;
+        else if (track.kind === 'video')
+            this._hasVideo = true;
     }
 
     public deleteConsumerAndTrack(consumerId: string)
     {
         this.consumers.delete(consumerId);
-        this.tracks.delete(consumerId);
+
+        if (this.tracks.has(consumerId)) {
+            this.tracks.get(consumerId).stop();
+            this.tracks.delete(consumerId);
+        }
+
+        this.updateMediaStatus();
     }
 
     public getConsumerIds()
@@ -52,6 +67,28 @@ class PeerDetail
             tracks.push(track);
         });
         return tracks;
+    }
+
+    public hasVideo()
+    {
+        return this._hasVideo;
+    }
+
+    public hasAudio()
+    {
+        return this._hasAudio;
+    }
+
+    private updateMediaStatus()
+    {
+        this._hasAudio = false;
+        this._hasVideo = false;
+        this.tracks.forEach((track) => {
+            if (track.kind === 'video')
+                this._hasVideo = true;
+            else if (track.kind === 'audio')
+                this._hasAudio = true;
+        });
     }
 }
 

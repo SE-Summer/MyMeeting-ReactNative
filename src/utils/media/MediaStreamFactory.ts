@@ -116,15 +116,12 @@ export class MediaStreamFactory
         return this.speakerDeviceId;
     }
 
-    public async getCamEnvStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
+    public async getCamEnvStream(): Promise<MediaStream>
     {
         const constraints = {
             audio: false,
             video: {
                 deviceId: this.camEnvDeviceId,
-                frameRate: {ideal: _frameRate},
-                width: _width,
-                height: _height,
             },
         };
 
@@ -136,15 +133,12 @@ export class MediaStreamFactory
         }
     }
 
-    public async getCamFrontStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
+    public async getCamFrontStream(): Promise<MediaStream>
     {
         const constraints = {
             audio: false,
             video: {
                 deviceId: this.camFrontDeviceId,
-                frameRate: {ideal: _frameRate},
-                // width: _width,
-                // height: _height,
             },
         };
 
@@ -176,15 +170,11 @@ export class MediaStreamFactory
         }
     }
 
-    public async getDisplayStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
+    public async getDisplayStream(): Promise<MediaStream>
     {
         const constraints = {
             audio: true,
-            video: {
-                frameRate: {ideal: _frameRate},
-                width: _width,
-                height: _height,
-            },
+            video: true,
         };
         try {
             return await mediaDevices.getDisplayMedia(constraints);

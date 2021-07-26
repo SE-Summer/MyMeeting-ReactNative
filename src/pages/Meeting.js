@@ -43,7 +43,9 @@ export default class Meeting extends Component
         this.state = {
             view: 'portrait',
             peerDetails: null,
-            myStream: null,
+            myCameraStream: null,
+            myDisplayStream: null,
+            myMicrophoneStream: null,
             width: 0,
             height: 0,
         };
@@ -85,25 +87,45 @@ export default class Meeting extends Component
             this.userName, `${this.userName}'s mobile device`);
     }
 
-    openCamera = async () => {
-        const camStream = await this.mediaStreamFactory.getCamFrontStream(config.mediaWidth, config.mediaHeight, 30);
+    openMicrophone = async () => {
         const micStream = await this.mediaStreamFactory.getMicStream();
 
-        if (camStream.getVideoTracks().length === 0 || micStream.getAudioTracks().length === 0) {
-            return Promise.reject("Fail to get local media.");
+        if (micStream.getAudioTracks().length === 0) {
+            return Promise.reject("Fail to get local microphone media.");
         }
 
-        const sendStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
         this.setState({
-            myStream: camStream,
+            myMicrophoneStream: micStream,
         });
-        await this.mediaService.sendMediaStream(sendStream);
+
+        await this.mediaService.sendMediaStream(micStream);
+    }
+
+    closeMicrophone = async () => {
+        closeMediaStream(this.state.myMicrophoneStream);
+        this.setState({
+            myMicrophoneStream: null,
+        });
+    }
+
+    openCamera = async () => {
+        const camStream = await this.mediaStreamFactory.getCamFrontStream();
+
+        if (camStream.getVideoTracks().length === 0) {
+            return Promise.reject("Fail to get local camera media.");
+        }
+
+        this.setState({
+            myCameraStream: camStream,
+        });
+
+        await this.mediaService.sendMediaStream(camStream);
     }
 
     closeCamera = async () => {
-        closeMediaStream(this.state.myStream);
+        closeMediaStream(this.state.myCameraStream);
         this.setState({
-            myStream: null,
+            myCameraStream: null,
         });
     }
 
