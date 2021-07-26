@@ -21,6 +21,7 @@ export class MediaService
     private sendTransport: mediasoupTypes.Transport = null;
     private recvTransport: mediasoupTypes.Transport = null;
 
+    // track.id ==> producer
     private producers: Map<string, mediasoupTypes.Producer> = null;
     private peerMeida: PeerMedia = null;
 
@@ -159,16 +160,16 @@ export class MediaService
 
                 producer.on('transportclose', () => {
                     this.log(`[Producer event]  ${source}_transport_close`);
-                    this.producers.delete(producer.id);
+                    this.producers.delete(track.id);
                 });
 
                 producer.on('trackended', () => {
                    this.log(`[Producer event]  ${source}_track_ended`);
                     this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
-                    this.producers.delete(producer.id);
+                    this.producers.delete(track.id);
                 });
 
-                this.producers.set(producer.id, producer);
+                this.producers.set(track.id, producer);
 
                 this.log(`[Log]  Producing ${source}`);
             }
@@ -197,6 +198,13 @@ export class MediaService
         this.peerMeida = new PeerMedia();
         this.joined = false;
         this.signaling = null;
+    }
+
+    public async closeTrack(track: MediaStreamTrack)
+    {
+        const producer = this.producers.get(track.id);
+        await this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
+        this.producers.delete(track.id);
     }
 
     private async createSendTransport()

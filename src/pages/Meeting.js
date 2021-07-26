@@ -110,6 +110,9 @@ export default class Meeting extends Component
     }
 
     closeMicrophone = async () => {
+        if (this.state.myMicrophoneStream.getAudioTracks().length === 0)
+            return;
+        await this.mediaService.closeTrack(this.state.myMicrophoneStream.getAudioTracks()[0]);
         closeMediaStream(this.state.myMicrophoneStream);
         this.setState({
             myMicrophoneStream: null,
@@ -131,6 +134,9 @@ export default class Meeting extends Component
     }
 
     closeCamera = async () => {
+        if (this.state.myCameraStream.getVideoTracks().length === 0)
+            return;
+        await this.mediaService.closeTrack(this.state.myCameraStream.getVideoTracks()[0]);
         closeMediaStream(this.state.myCameraStream);
         this.setState({
             myCameraStream: null,
