@@ -8,8 +8,17 @@ const colors = [
     '#05783d','#069b49', '#06b45f', '#87e0a5', '#9be3b1aa',
 ]
 
+const calColorIndex = index => {
+    const turn = Math.floor(index / 4);
+    if (turn % 2 === 0) {
+        return index % 4;
+    } else {
+        return 4 - index % 4;
+    }
+}
+
 export const ListItem = ({date, item, index, pressEvent}) => {
-    const theColor = colors[index % 5];
+    const theColor = colors[calColorIndex(index)];
     let icon, iconColor, onPress, shareColor;
     if (moment(date).isBefore(item.end_time, 'minute') && moment(date).isAfter(item.start_time, 'minute')) {
         icon = 'door-open';
@@ -22,14 +31,14 @@ export const ListItem = ({date, item, index, pressEvent}) => {
         };
     } else {
         icon = 'door-closed';
-        iconColor = '#aaaaaa';
+        iconColor = '#aaaaaaaa';
         onPress = () => {};
     }
 
     if (moment(date).isBefore(item.end_time, 'minute')) {
         shareColor = theColor;
     } else {
-        shareColor = '#aaaaaa';
+        shareColor = '#aaaaaaaa';
     }
 
     return (

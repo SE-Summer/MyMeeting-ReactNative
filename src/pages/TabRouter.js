@@ -1,4 +1,5 @@
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {Component} from "react";
 import {BackHandler, ToastAndroid} from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -46,30 +47,33 @@ export default class TabScreen extends Component{
 
     render() {
         return (
-            <Tab.Navigator
-                screenOptions={({route}) => ({
-                    tabBarIcon: ({focused}) => {
-                        if (route.name === 'Meetings') {
-                            return focused ? <Ionicons name="time" color={config.qGreen} size={30}/> :
-                                <Ionicons name={"time-outline"} size={25}/>;
-                        } else if (route.name === 'User') {
-                            return focused ? <Ionicons name="person" color={config.qGreen} size={30}/> :
-                                <Ionicons name={"person-outline"} size={25}/>;
-                        } else if (route.name === 'Home') {
-                            return focused ? <Ionicons name="home" color={config.qGreen} size={30}/> :
-                                <Ionicons name={"home-outline"} size={25}/>;
-                        }
-                    },
-                })}
-                tabBarOptions={{
-                    activeTintColor: config.qGreen,
-                    inactiveTintColor: 'gray',
-                }}
-            >
-                <Tab.Screen name={"Home"} component={HomeScreen}/>
-                <Tab.Screen name={"Meetings"} component={ReserveInfScreen}/>
-                <Tab.Screen name={"User"} component={UserScreen}/>
-            </Tab.Navigator>
+            <SafeAreaView style={{flex: 1}}>
+                <Tab.Navigator
+                    screenOptions={({route}) => ({
+                        tabBarIcon: ({focused}) => {
+                            if (route.name === 'Meetings') {
+                                return focused ? <Ionicons name="time" color={config.qGreen} size={30}/> :
+                                    <Ionicons name={"time-outline"} size={25}/>;
+                            } else if (route.name === 'User') {
+                                return focused ? <Ionicons name="person" color={config.qGreen} size={30}/> :
+                                    <Ionicons name={"person-outline"} size={25}/>;
+                            } else if (route.name === 'Home') {
+                                return focused ? <Ionicons name="home" color={config.qGreen} size={30}/> :
+                                    <Ionicons name={"home-outline"} size={25}/>;
+                            }
+                        },
+                    })}
+                    tabBarOptions={{
+                        activeTintColor: config.qGreen,
+                        inactiveTintColor: 'gray',
+                    }}
+                >
+                    <Tab.Screen name={"Home"} component={HomeScreen}/>
+                    <Tab.Screen name={"Meetings"} component={ReserveInfScreen}/>
+                    <Tab.Screen name={"User"} component={UserScreen}/>
+                </Tab.Navigator>
+            </SafeAreaView>
+
         )
     }
 }

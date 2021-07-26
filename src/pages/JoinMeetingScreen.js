@@ -133,7 +133,7 @@ export default class JoinMeetingScreen extends Component{
                     <TextInput
                         ref={'textInput1'}
                         value={this.state.id}
-                        style={{transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }]}}
+                        style={{fontSize:17}}
                         placeholder={"会议号"}
                         textAlign={"center"}
                         numberOfLines={1}
@@ -145,7 +145,7 @@ export default class JoinMeetingScreen extends Component{
                     <TextInput
                         ref={'textInput2'}
                         value={this.state.password}
-                        style={{transform: [{scaleX: 1.1}, {scaleY: 1.1}]}}
+                        style={{fontSize: 17}}
                         placeholder={"会议密码(8位数字)"}
                         textAlign={"center"}
                         numberOfLines={1}

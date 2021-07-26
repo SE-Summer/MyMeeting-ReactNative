@@ -99,7 +99,7 @@ export default class EditProfileScreen extends Component {
                     multiline={false}
                     onChangeText={this.textChange}
                     keyboardType={"visible-password"}
-                    style={{backgroundColor: "white", borderRadius: 10}}
+                    style={{backgroundColor: "white", borderRadius: 10, fontSize: 16}}
                 />
             </View>
         );

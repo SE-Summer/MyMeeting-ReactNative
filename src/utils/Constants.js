@@ -11,12 +11,13 @@ export const config = {
     tokenIndex: 'token',
 }
 
-export const utils = {
+export const smallUtils = {
     buttonOutline: [require('../assets/myButton_Outlined.png'), require('../assets/myButton_Outline_error.png')],
 }
 
 export const config_key = {
     avatarUri: config.unKnownUri,
+    token: null,
     email: null,
     username: null,
     userId: 0,

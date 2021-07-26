@@ -16,6 +16,7 @@ import TabScreen from "./pages/TabRouter";
 import EmailCheck, {ValidatePage} from "./pages/EmailCheck";
 import EditProfileScreen from "./pages/EditProfile";
 import NormalSettings from "./pages/NormalSettings";
+import MeetingChat from "./pages/MeetingChat";
 
 const forFade = ({ current }) => ({
     cardStyle: {
@@ -66,6 +67,11 @@ export default function App() {
                         headerTitleAlign: "center",
                         title: "预约",
                     })}/>
+                    <Stack.Screen name={"MeetingChat"} component={MeetingChat} options={{
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                        headerTitleAlign: 'center',
+                        title: '聊天室',
+                    }} />
                     <Stack.Screen name={"MeetingSetting"} component={MeetingSettingScreen} options={{
                         title: '会议设置',
                         headerTitleAlign: 'center',

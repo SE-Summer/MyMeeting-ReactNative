@@ -1,5 +1,5 @@
 const config = {
-    serverIp: '192.168.0.101',
+    serverIp: 'se-summer.cn',
     serverPort: 4446,
     serverUseHttps: false,
 }

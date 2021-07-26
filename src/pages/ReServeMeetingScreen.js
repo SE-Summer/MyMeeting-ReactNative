@@ -9,11 +9,10 @@ import moment from "moment";
 import {config, config_key} from "../utils/Constants";
 import {reserve} from "../service/MeetingService";
 import * as Progress from "react-native-progress";
-import {getFromStorage} from "../utils/StorageUtils";
 
 const style = StyleSheet.create({
     input: {
-        transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }]
+        fontSize: 17,
     },
     divider: {
         marginLeft: 5,
@@ -78,7 +77,7 @@ export default class ReServeMeetingScreen extends Component{
         inf.end_time = moment(endTime).format('YYYY-MM-DD HH:mm:ss');
         inf.topic = nameText;
         inf.password = secretText;
-        inf.token = await getFromStorage(config.tokenIndex);
+        inf.token = config_key.token;
         inf.max_num = 50;
 
         const response = await reserve(inf);

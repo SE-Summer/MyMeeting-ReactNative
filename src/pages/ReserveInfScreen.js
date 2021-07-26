@@ -23,6 +23,10 @@ export default class ReserveInfScreen extends Component {
     }
 
     async componentDidMount() {
+        const {navigation} = this.props;
+        navigation.addListener('focus', async () => {
+            await this.fetch();
+        })
         await this.fetch();
     }
 

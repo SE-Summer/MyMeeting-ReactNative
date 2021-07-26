@@ -8,7 +8,7 @@ import * as Progress from "react-native-progress";
 
 const styles = StyleSheet.create({
     input: {
-        transform: [{scaleX: 1.1}, {scaleY: 1.1}],
+        fontSize: 17,
         marginLeft: 30,
         marginRight: 30,
     },

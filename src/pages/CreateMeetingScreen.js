@@ -7,10 +7,11 @@ import {TextButton} from "../components/MyButton";
 import {config_key} from "../utils/Constants";
 import {create, join} from "../service/MeetingService";
 import * as Progress from 'react-native-progress';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const style = StyleSheet.create({
     input: {
-        transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }]
+        fontSize: 17,
     },
     divider: {
         marginLeft: 5,
@@ -146,7 +147,7 @@ export default class CreateMeetingScreen extends Component{
 
     render() {
         return (
-            <View style={{backgroundColor: "#EDEDED", flex: 1}}>
+            <SafeAreaView style={{backgroundColor: "#EDEDED", flex: 1}}>
                 <View style={{borderRadius: 10, marginTop: 20, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
                     <TextInput
                         ref={"textInput1"}
@@ -176,7 +177,7 @@ export default class CreateMeetingScreen extends Component{
                     <Divider style={style.divider}/>
                     <SwitchItem text={"麦克风"} status={this.state.microphoneStatus} switchEvent={this.microphoneSwitch}/>
                 </View>
-            </View>
+            </SafeAreaView>
         );
     }
 }

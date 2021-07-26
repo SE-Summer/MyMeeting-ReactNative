@@ -22,6 +22,7 @@ export const loginService = async (email, password) => {
         config_key.nickname = user.nickname;
         config_key.userId = user.id;
         config_key.email = user.email;
+        config_key.token = user.token;
         return true;
     } else {
         return false;

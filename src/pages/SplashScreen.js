@@ -4,6 +4,7 @@ import {MaskedMyMeeting} from "../components/MaskedText";
 import {config, config_key} from "../utils/Constants";
 import {getFromStorage} from "../utils/StorageUtils";
 import {autoLogin} from "../service/UserService";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const windowHeight = Dimensions.get('window').height;
 
@@ -23,6 +24,8 @@ class Splash extends Component {
         if (response == null || response.status !== 200) {
             return false;
         }
+
+        config_key.token = await getFromStorage(config.tokenIndex);
 
         config_key.username = await getFromStorage(config.usernameIndex);
 
@@ -79,7 +82,9 @@ export default class SplashScreen extends Component {
 
     render() {
         return (
-            <Splash animateEnd={this._animateEnd}/>
+            <SafeAreaView style={{flex: 1}}>
+                <Splash animateEnd={this._animateEnd}/>
+            </SafeAreaView>
         );
     }
 }

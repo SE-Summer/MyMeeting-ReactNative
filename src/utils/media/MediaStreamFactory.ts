@@ -89,8 +89,8 @@ export class MediaStreamFactory
                         break;
                 }
             });
-            this.eventEmitter.emit('localDeviceUpdated');
             this.updated = true;
+            this.eventEmitter.emit('localDeviceUpdated');
         } catch (err) {
             printError(err);
         }

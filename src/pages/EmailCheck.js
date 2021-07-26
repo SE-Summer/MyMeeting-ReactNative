@@ -25,6 +25,7 @@ const emailStyles = StyleSheet.create({
     },
     input: {
         backgroundColor: 'white',
+        fontSize: 16,
     },
     titleContainer: {
         height: windowHeight / 3,

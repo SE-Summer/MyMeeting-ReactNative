@@ -6,7 +6,7 @@ import {
     TouchableHighlight,
     Dimensions,
     Modal,
-    FlatList,
+    FlatList, BackHandler, Alert,
 } from "react-native";
 import * as React from "react";
 import {Component, useState} from "react";
@@ -15,8 +15,8 @@ import {config, config_key} from "../utils/Constants";
 import {IconWithLabel} from "../components/IconWithLabel";
 import Window from "../components/Window";
 import {MediaService} from "../service/MediaService";
-import {getFromStorage} from "../utils/StorageUtils";
 import {MediaStreamFactory} from "../utils/media/MediaStreamFactory";
+import {closeMediaStream} from "../utils/media/MediaUtils";
 
 const windowWidth = Dimensions.get('window').width;
 const smallWindowWidth = windowWidth / 3;
@@ -46,33 +46,50 @@ export default class Meeting extends Component
             view: 'portrait',
             peerMedia: null,
             myStream: null,
+            width: 0,
+            height: 0,
         };
-        // this.mediaStreamFactory.getCamFrontStream(200, 100, 30)
-        //     .then(async (stream) => {
-        //         const camStream = stream;
-        //         const micStream = await this.mediaStreamFactory.getMicStream();
-        //         const myStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
-        //         this.setState({
-        //             myStream: camStream,
-        //         });
-        //         this.userName = config_key.username;
-        //         await this.mediaService.joinMeeting(this.props.route.params.token, await getFromStorage(config.tokenIndex),
-        //             this.userName, `${this.userName}'s mobile device`);
-        //         this.mediaService.sendMediaStream(myStream);
-        //     })
+    }
+
+    backAction = () => {
+        Alert.alert(
+            "是否要退出会议",
+            null,
+            [
+                {
+                    text: "确定",
+                    onPress: () => this.props.navigation.pop(),
+                    style: 'default',
+                },
+            ],
+            {
+                cancelable: true,
+            }
+        );
+        return true;
+    }
+
+    handleBack = () => {
+        const {navigation} = this.props;
+        navigation.addListener('focus', () => {
+            BackHandler.addEventListener('hardwareBackPress', this.backAction)
+        });
+        navigation.addListener('blur', () => {
+            BackHandler.removeEventListener('hardwareBackPress', this.backAction)
+        });
     }
 
     async componentDidMount() {
+        this.handleBack();
         await this.mediaStreamFactory.waitForUpdate();
-        console.log(this.mediaStreamFactory);
-        const camStream = await this.mediaStreamFactory.getCamFrontStream(200, 100, 30);
+        const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width, this.state.height, 30);
         const micStream = await this.mediaStreamFactory.getMicStream();
         const myStream = new MediaStream([camStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
         this.setState({
             myStream: camStream,
         });
         this.userName = config_key.username;
-        await this.mediaService.joinMeeting(this.props.route.params.token, await getFromStorage(config.tokenIndex),
+        await this.mediaService.joinMeeting(this.props.route.params.token, config_key.token,
             this.userName, `${this.userName}'s mobile device`);
         await this.mediaService.sendMediaStream(myStream);
     }
@@ -80,34 +97,64 @@ export default class Meeting extends Component
     updateStream() {
         this.setState({
             peerMedia: this.mediaService.getPeerMedia(),
+        }, () => {
+            console.log('peerMedia', this.state.peerMedia)
         })
+    }
+
+    onLayout = event => {
+        let {width,height} = event.nativeEvent.layout;
+        this.setState({
+            width: width,
+            height: height,
+        })
+    }
+
+    exit = async () => {
+        closeMediaStream();
+        await this.mediaService.leaveMeeting();
+        this.backAction();
+    }
+
+    swapCam = () => {
+
+    }
+
+    openChatRoom = () => {
+        this.props.navigation.navigate('MeetingChat');
     }
 
     render() {
         const roomInf = this.props.route.params;
+        const {width, height} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
-                <Header style={screenStyle.header} roomInf={roomInf}/>
-                <View style={{flex: 1}}>
+                <Header style={screenStyle.header} roomInf={roomInf} exit={this.exit}/>
+                <View style={{flex: 1}} onLayout={this.onLayout}>
                     {
                         this.state.view === 'grid' ?
-                            <GridView />
+                            <GridView width={width} height={height}/>
                             :
-                            <PortraitView myStream={this.state.myStream} peerMedia={this.state.peerMedia}/>
+                            <PortraitView width={width} height={height} myStream={this.state.myStream} peerMedia={this.state.peerMedia}/>
                     }
                 </View>
-                <Footer style={screenStyle.footer} setView={(type) => { this.setState({ view: type, }); }}/>
+                <Footer
+                    openChatRoom={this.openChatRoom}
+                    swapCam={this.swapCam}
+                    style={screenStyle.footer}
+                    setView={(type) => { this.setState({ view: type, }); }}
+                />
             </View>
         );
     }
 }
 
-const GridView = ({}) => {
+const GridView = ({width, height}) => {
 
     const renderItem = ({item}) => {
         return (
             <View>
-                <Window style={{width: windowWidth / 3, height: 100}}/>
+                <Window style={{width: width / 3, height: height / 6}}/>
             </View>
         )
     }
@@ -125,21 +172,34 @@ const GridView = ({}) => {
 }
 
 const PortraitView = ({peerMedia, myStream}) => {
-    return (
-        <View style={{flex: 1,}}>
-            <Window style={{flex: 1, justifyContent:'flex-end', alignItems: 'flex-end'}}
-                    stream={peerMedia ? new MediaStream(peerMedia[0].getTracks()) : null}
+    if (peerMedia) {
+        return (
+            <View style={{flex: 1}}>
+                <Window
+                    style={{flex: 1, justifyContent:'flex-end', alignItems: 'flex-end'}}
+                    stream={new MediaStream(peerMedia[0].getTracks())}
                     children={
-                        <Window style={{width: smallWindowWidth, height: smallWindowHeight, margin: 10}}
-                                stream={myStream}
+                        <Window
+                            style={{width: smallWindowWidth, height: smallWindowHeight, margin: 10}}
+                            stream={myStream}
                         />
                     }
-            />
-        </View>
-    )
+                />
+            </View>
+        )
+    } else {
+        return (
+            <View style={{flex: 1}}>
+                <Window
+                    style={{flex: 1 }}
+                    stream={myStream}
+                />
+            </View>
+        )
+    }
 }
 
-const Footer = ({style, setView}) => {
+const Footer = ({style, setView, swapCam, openChatRoom}) => {
     const footerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -163,7 +223,7 @@ const Footer = ({style, setView}) => {
     const [shareScreen, setShareScreen] = useState(false);
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [viewType, setViewType] = useState('portrait');
-    const [beauty, setBeauty] =useState(false);
+    const [beauty, setBeauty] = useState(false);
 
     return (
         <View style={style}>
@@ -189,7 +249,7 @@ const Footer = ({style, setView}) => {
                         setShareScreen(!shareScreen)
                     }}
                 />
-                <IconWithLabel text={'参会人员'} iconName={'people-outline'}/>
+                <IconWithLabel text={'会议聊天'} iconName={'chatbubbles-outline'} pressEvent={openChatRoom}/>
                 <IconWithLabel
                     text={'通用设置'}
                     iconName={settingsVisible ? 'settings':'settings-outline'}
@@ -230,6 +290,7 @@ const Footer = ({style, setView}) => {
                                 }}
                             />
                             <IconWithLabel iconName={'image'} color={'black'} text={'虚拟背景'} />
+                            <IconWithLabel iconName={'swap-horizontal'} color={'black'} text={'切换相机'} pressEvent={swapCam}/>
                             <IconWithLabel iconName={'settings'} color={'black'} text={'关闭设置'} pressEvent={() => {
                                 setSettingsVisible(false);
                             }}/>
@@ -241,7 +302,7 @@ const Footer = ({style, setView}) => {
     )
 }
 
-const Header = ({style, roomInf}) => {
+const Header = ({style, roomInf, exit}) => {
     const headerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -303,7 +364,7 @@ const Header = ({style, roomInf}) => {
                 <View style={headerStyle.titleContainer}>
                     <Text style={headerStyle.title}>MyMeeting</Text>
                 </View>
-                <TouchableHighlight style={headerStyle.exitButton}>
+                <TouchableHighlight style={headerStyle.exitButton} onPress={exit}>
                     <Text style={headerStyle.exitText}>离开</Text>
                 </TouchableHighlight>
                 <Modal
