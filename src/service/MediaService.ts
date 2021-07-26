@@ -180,7 +180,8 @@ export class MediaService
 
     public async leaveMeeting()
     {
-        await this.signaling.sendRequest(SignalMethod.close);
+        if (this.signaling.isConnected())
+            await this.signaling.sendRequest(SignalMethod.close);
 
         delete this.sendTransport;
         delete this.recvTransport;

@@ -107,4 +107,9 @@ export class SignalingService
             }
         });
     }
+
+    public isConnected()
+    {
+        return (this.socket && this.socket.connected);
+    }
 }
