@@ -3,6 +3,7 @@ import {Component} from "react";
 import {FlatList, RefreshControl, Text, ToastAndroid, View} from "react-native";
 import {meetingsInf} from "../service/MeetingService";
 import {ListItem} from "../components/ListItem";
+import {config_key} from "../utils/Constants";
 
 const Empty = ({}) => {
     return (
@@ -49,8 +50,9 @@ export default class ReserveInfScreen extends Component {
 
     goMeeting = (room) => {
         const params = {
-            token: room.token,
-            topic: room.topic
+            roomInf: room,
+            cameraStatus: config_key.camera,
+            microphoneStatus: config_key.microphone,
         };
         this.props.navigation.navigate('Meeting', params);
     }

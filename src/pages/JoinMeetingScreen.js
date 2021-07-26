@@ -72,8 +72,9 @@ export default class JoinMeetingScreen extends Component{
             case 200: {
                 const room = response.data.room;
                 const params = {
-                    token: room.token,
-                    topic: room.topic,
+                    roomInf: room,
+                    cameraStatus: this.state.cameraStatus,
+                    microphoneStatus: this.state.microphoneStatus,
                 }
                 this.props.navigation.navigate('Meeting', params);
                 return;

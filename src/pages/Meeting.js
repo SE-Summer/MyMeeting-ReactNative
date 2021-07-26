@@ -17,8 +17,7 @@ import {MediaService} from "../service/MediaService";
 import {MediaStreamFactory} from "../utils/media/MediaStreamFactory";
 import {closeMediaStream} from "../utils/media/MediaUtils";
 import {RTCView} from "react-native-webrtc";
-
-const windowWidth = Dimensions.get('window').width;
+import moment from "moment";
 
 const testData = [{id: 1}, {id: 2},{id: 3},{id: 4}, {id: 5}, {id: 6}, {id: 7}, {id: 8}];
 
@@ -58,7 +57,7 @@ export default class Meeting extends Component
             [
                 {
                     text: "确定",
-                    onPress: () => this.props.navigation.pop(),
+                    onPress: () => this.exit(),
                     style: 'default',
                 },
             ],
@@ -80,11 +79,20 @@ export default class Meeting extends Component
     }
 
     async componentDidMount() {
+        const {cameraStatus, microphoneStatus} = this.props.route.params;
         this.handleBack();
-        await this.mediaStreamFactory.waitForUpdate();
+
         this.userName = config_key.username;
-        await this.mediaService.joinMeeting(this.props.route.params.token, config_key.token,
+        await this.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token,
             this.userName, `${this.userName}'s mobile device`);
+
+        await this.mediaStreamFactory.waitForUpdate();
+        if (cameraStatus) {
+            await this.openCamera();
+        }
+        if (microphoneStatus) {
+            await this.openMicrophone();
+        }
     }
 
     openMicrophone = async () => {
@@ -144,9 +152,16 @@ export default class Meeting extends Component
     }
 
     exit = async () => {
-        closeMediaStream(this.state.myStream);
-        await this.mediaService.leaveMeeting();
-        this.backAction();
+        if (this.state.myCameraStream) {
+            await this.closeCamera();
+        }
+        if (this.state.myMicrophoneStream) {
+            await this.closeMicrophone();
+        }
+        if (this.mediaService) {
+            await this.mediaService.leaveMeeting();
+        }
+        this.props.navigation.pop();
     }
 
     swapCam = () => {
@@ -158,24 +173,27 @@ export default class Meeting extends Component
     }
 
     render() {
-        const roomInf = this.props.route.params;
+        const {roomInf, cameraStatus, microphoneStatus} = this.props.route.params;
         const {width, height} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
-                <Header style={screenStyle.header} roomInf={roomInf} exit={this.exit}/>
+                <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
                 <View style={{flex: 1}} onLayout={this.onLayout}>
                     {
                         this.state.view === 'grid' ?
-                            <GridView width={width} height={height}/>
+                            <GridView width={width} height={height} myStream={this.state.myCameraStream} peerMedia={this.state.peerDetails}/>
                             :
-                            <PortraitView width={width} height={height} myStream={this.state.myStream} peerMedia={this.state.peerDetails}/>
+                            <PortraitView width={width} height={height} myStream={this.state.myCameraStream} peerMedia={this.state.peerDetails}/>
                     }
                 </View>
                 <Footer
                     openCamera={this.openCamera}
                     closeCamera={this.closeCamera}
+                    openMicro={this.openMicrophone}
+                    closeMicro={this.closeMicrophone}
                     openChatRoom={this.openChatRoom}
                     swapCam={this.swapCam}
+                    init={{camera: cameraStatus, microphone: microphoneStatus}}
                     style={screenStyle.footer}
                     setView={(type) => { this.setState({ view: type, }); }}
                 />
@@ -184,48 +202,109 @@ export default class Meeting extends Component
     }
 }
 
-const GridView = ({width, height}) => {
+const GridView = ({width, height, myStream, peerMedia}) => {
+    const gridStyle = StyleSheet.create({
+        rtcView: {
+            width: width / 3,
+            height: height / 4 ,
+        }
+    })
+
+    let streamData = [];
+    if (myStream) {
+        streamData.push(myStream);
+    }
+    if (peerMedia) {
+
+    }
+
 
     const renderItem = ({item}) => {
+        console.log(item)
         return (
-            <View>
-            </View>
+            <RTCView
+                zOrder={2}
+                mirror={true}
+                style={gridStyle.rtcView}
+                streamURL={item.toURL()}
+            />
         )
     }
 
     return (
         <View style={{flex: 1}}>
             <FlatList
-                data={testData}
+                data={streamData}
                 renderItem={renderItem}
                 numColumns={3}
-                keyExtractor={(item => item.id)}
+                keyExtractor={((item, index) => index)}
             />
         </View>
     )
 }
 
 const PortraitView = ({width, height, peerMedia, myStream}) => {
-    if (peerMedia) {
+    const portraitStyle = StyleSheet.create({
+        smallWindow: {
+            position: 'absolute',
+            left: width*2/3 - 10,
+            top: height*2/3 - 10,
+            width: width / 3,
+            height: height /3
+        },
+        bigWindow: {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: width,
+            height: height
+        },
+    })
+
+    console.log('peerMedia', peerMedia);
+    console.log('myStream', myStream);
+    if (peerMedia && myStream) {
         return (
-            <RTCView  style={{width: width, height: height}}  streamURL={(new MediaStream(peerMedia[0].getTracks())).toURL()} >
-                <RTCView style={{width: width / 3, height: height /3}} streamURL={myStream}/>
-            </RTCView>
+            <View>
+                <RTCView
+                    zOrder={2}
+                    mirror={true}
+                    style={portraitStyle.smallWindow}
+                    streamURL={myStream.toURL()}
+                />
+                <RTCView
+                    zOrder={1}
+                    style={portraitStyle.bigWindow}
+                    streamURL={(new MediaStream(peerMedia[0].getTracks())).toURL()}
+                />
+            </View>
+
         )
-    } else if (myStream) {
+    } else if (peerMedia == null && myStream) {
         return (
-            <RTCView style={{width: width, height: height}} streamURL={myStream.toURL()}/>
+            <RTCView
+                zOrder={1}
+                mirror={true}
+                style={portraitStyle.bigWindow}
+                streamURL={myStream.toURL()}
+            />
+        )
+    } else if (peerMedia && myStream == null ){
+        return (
+            <RTCView
+                zOrder={1}
+                style={portraitStyle.bigWindow}
+                streamURL={(new MediaStream(peerMedia[0].getTracks())).toURL()}
+            />
         )
     } else {
         return (
-            <View>
-
-            </View>
+            <View style={{flex: 1}}/>
         )
     }
 }
 
-const Footer = ({style, setView, swapCam, openChatRoom, openCamera, closeCamera}) => {
+const Footer = ({style, setView, swapCam, openChatRoom, openCamera, closeCamera, openMicro, closeMicro, init}) => {
     const footerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -244,8 +323,8 @@ const Footer = ({style, setView, swapCam, openChatRoom, openCamera, closeCamera}
         },
     })
 
-    const [microphone, setMicrophone] = useState(config_key.microphone);
-    const [camera, setCamera] = useState(config_key.camera);
+    const [microphone, setMicrophone] = useState(init.microphone);
+    const [camera, setCamera] = useState(init.camera);
     const [shareScreen, setShareScreen] = useState(false);
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [viewType, setViewType] = useState('portrait');
@@ -258,6 +337,11 @@ const Footer = ({style, setView, swapCam, openChatRoom, openCamera, closeCamera}
                     text={microphone ? '开启静音' : '解除静音'}
                     iconName={microphone ? 'mic' : 'mic-outline'}
                     pressEvent={() => {
+                        if (microphone) {
+                            closeMicro();
+                        } else {
+                            openMicro();
+                        }
                         setMicrophone(!microphone);
                     }}
                 />
@@ -407,9 +491,9 @@ const Header = ({style, roomInf, exit}) => {
                     <View style={{flex: 1,}}>
                         <TouchableOpacity style={{flex: 1}} onPress={() => {setShowInf(false)}}/>
                         <View style={infStyle.infContainer}>
-                            <Text style={infStyle.infText}>会议主题：</Text>
-                            <Text style={infStyle.infText}>会议号：</Text>
-                            <Text style={infStyle.infText}>会议时间：</Text>
+                            <Text style={infStyle.infText}>会议主题：{roomInf.topic}</Text>
+                            <Text style={infStyle.infText}>会议号：{roomInf.id}</Text>
+                            <Text style={infStyle.infText}>会议时间：{moment(roomInf.start_time).format('MM-DD HH:mm')} ~ {moment(roomInf.end_time).format('MM-DD HH:mm')}</Text>
                         </View>
                         <TouchableOpacity style={{flex: 1}} onPress={() => {setShowInf(false)}}/>
                     </View>

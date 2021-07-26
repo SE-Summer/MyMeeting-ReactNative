@@ -103,7 +103,13 @@ export default class CreateMeetingScreen extends Component{
             this.setState({
                 loading: false
             }, () => {
-                this.props.navigation.navigate('Meeting');
+                const room = response.data.room;
+                const params = {
+                    roomInf: room,
+                    cameraStatus: this.state.cameraStatus,
+                    microphoneStatus: this.state.microphoneStatus,
+                }
+                this.props.navigation.navigate('Meeting', params);
             })
         } else {
             ToastAndroid.showWithGravity(
