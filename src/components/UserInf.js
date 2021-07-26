@@ -14,7 +14,7 @@ export default class UserInf extends Component {
     render() {
         return (
             <View style={this.props.style}>
-                <ImageBackground source={require('../assets/headerBg.png')} style={styles.rowContainer}>
+                <ImageBackground source={require('../../assets/image/headerBg.png')} style={styles.rowContainer}>
                     <Avatar
                         rounded
                         size={70}

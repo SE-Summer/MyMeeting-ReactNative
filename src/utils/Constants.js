@@ -14,7 +14,7 @@ export const config = {
 }
 
 export const smallUtils = {
-    buttonOutline: [require('../assets/myButton_Outlined.png'), require('../assets/myButton_Outline_error.png')],
+    buttonOutline: [require('../../assets/image/myButton_Outlined.png'), require('../../assets/image/myButton_Outline_error.png')],
 }
 
 export const config_key = {

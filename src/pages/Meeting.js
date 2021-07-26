@@ -13,15 +13,12 @@ import {Component, useState} from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config, config_key} from "../utils/Constants";
 import {IconWithLabel} from "../components/IconWithLabel";
-import Window from "../components/Window";
 import {MediaService} from "../service/MediaService";
 import {MediaStreamFactory} from "../utils/media/MediaStreamFactory";
 import {closeMediaStream} from "../utils/media/MediaUtils";
 import {RTCView} from "react-native-webrtc";
 
 const windowWidth = Dimensions.get('window').width;
-const smallWindowWidth = windowWidth / 3;
-const smallWindowHeight = smallWindowWidth * 4 / 3;
 
 const testData = [{id: 1}, {id: 2},{id: 3},{id: 4}, {id: 5}, {id: 6}, {id: 7}, {id: 8}];
 
@@ -153,6 +150,8 @@ export default class Meeting extends Component
                     }
                 </View>
                 <Footer
+                    openCamera={this.openCamera}
+                    closeCamera={this.closeCamera}
                     openChatRoom={this.openChatRoom}
                     swapCam={this.swapCam}
                     style={screenStyle.footer}
@@ -168,7 +167,6 @@ const GridView = ({width, height}) => {
     const renderItem = ({item}) => {
         return (
             <View>
-                <Window style={{width: width / 3, height: height / 6}}/>
             </View>
         )
     }
@@ -185,36 +183,27 @@ const GridView = ({width, height}) => {
     )
 }
 
-const PortraitView = ({peerMedia, myStream}) => {
+const PortraitView = ({width, height, peerMedia, myStream}) => {
     if (peerMedia) {
         return (
-            <RTCView  style={{flex: 1}}  streamURL={(new MediaStream(peerMedia[0].getTracks())).toURL()} />
-            // <View style={{flex: 1}}>
-            //     <Window
-            //         style={{flex: 1, justifyContent:'flex-end', alignItems: 'flex-end'}}
-            //         stream={new MediaStream(peerMedia[0].getTracks())}
-            //         children={
-            //             <Window
-            //                 style={{width: smallWindowWidth, height: smallWindowHeight, margin: 10}}
-            //                 stream={myStream}
-            //             />
-            //         }
-            //     />
-            // </View>
+            <RTCView  style={{width: width, height: height}}  streamURL={(new MediaStream(peerMedia[0].getTracks())).toURL()} >
+                <RTCView style={{width: width / 3, height: height /3}} streamURL={myStream}/>
+            </RTCView>
+        )
+    } else if (myStream) {
+        return (
+            <RTCView style={{width: width, height: height}} streamURL={myStream.toURL()}/>
         )
     } else {
         return (
-            <View style={{flex: 1}}>
-                <Window
-                    style={{flex: 1 }}
-                    stream={myStream}
-                />
+            <View>
+
             </View>
         )
     }
 }
 
-const Footer = ({style, setView, swapCam, openChatRoom}) => {
+const Footer = ({style, setView, swapCam, openChatRoom, openCamera, closeCamera}) => {
     const footerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -254,7 +243,12 @@ const Footer = ({style, setView, swapCam, openChatRoom}) => {
                     text={camera ? '关闭视频' : '开启视频'}
                     iconName={camera ? 'videocam' : 'videocam-outline'}
                     pressEvent={() => {
-                        setCamera(!camera)
+                        if (camera) {
+                            closeCamera();
+                        } else {
+                            openCamera();
+                        }
+                        setCamera(!camera);
                     }}
                 />
                 <IconWithLabel

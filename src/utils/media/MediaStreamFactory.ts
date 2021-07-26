@@ -143,8 +143,8 @@ export class MediaStreamFactory
             video: {
                 deviceId: this.camFrontDeviceId,
                 frameRate: {ideal: _frameRate},
-                width: _width,
-                height: _height,
+                // width: _width,
+                // height: _height,
             },
         };
 

@@ -178,7 +178,7 @@ export default class LoginScreen extends Component {
                 <KeyboardAwareScrollView style={{backgroundColor: "white", flex: 1}}>
                     <View style={styles.topFillContainer}>
                         <View style={styles.topContainer}>
-                            <Image source={require('../assets/triAngle.png')} style={styles.triAngleImg}/>
+                            <Image source={require('../../assets/image/triAngle.png')} style={styles.triAngleImg}/>
                             <View style={{flex: 1, alignItems: "center"}}>
                                 <FlashButton pressEvent={this.flashStart}/>
                             </View>
@@ -188,7 +188,7 @@ export default class LoginScreen extends Component {
                         <MaskedMyMeeting />
                     </View>
                     <View style={styles.imgFillContainer}>
-                        <ImageBackground source={require('../assets/greyBg.png')} style={styles.imageView}>
+                        <ImageBackground source={require('../../assets/image/greyBg.png')} style={styles.imageView}>
                             <View style={styles.inputContainer}>
                                 <View style={styles.labelContainer}>
                                     <InputLabel text={this.state.EmailTip}/>
