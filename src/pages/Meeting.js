@@ -18,8 +18,9 @@ import {closeMediaStream} from "../utils/media/MediaUtils";
 import {RTCView} from "react-native-webrtc";
 import moment from "moment";
 import {UserLabel} from "../components/UserLabel";
-import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+import GestureRecognizer from 'react-native-swipe-gestures';
 import {DefaultPic} from "../components/DefaultPic";
+import {MyStreamWindow, PeerWindow} from "../components/MeetingWindows";
 
 const screenStyle = StyleSheet.create({
     header: {
@@ -306,8 +307,8 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
     const portraitStyle = StyleSheet.create({
         smallWindow: {
             position: 'absolute',
-            left: width*2/3 - 10,
-            top: height*2/3 - 10,
+            left: width * 2 / 3 - 10,
+            top: height * 2 / 3 - 10,
             width: width / 3,
             height: height / 3,
         },
@@ -320,101 +321,30 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
         },
     })
 
-    if (peerToShow && myStream) {
-        const mySource = {
-            track: myStream ,
-            id: config_key.username,
-        }, peerSource = {
-            track: peerToShow.hasVideo() ? new MediaStream(peerToShow.getTracks()) : null,
-            id: peerToShow.peerInfo.displayName,
-        };
+    const [peerBig, setPeerBig] = useState(true);
 
-        const [status, setStatus] = useState(true);
-        const [smallSource, setSmallSource] = useState(mySource);
-        const [bigSource, setBigSource] = useState(peerSource);
-
+    if (peerToShow) {
         return (
             <View style={{flex: 1}}>
-                <UserLabel text={bigSource.id}/>
                 {
-                    bigSource.track ?
-                    <RTCView
-                        zOrder={0}
-                        style={portraitStyle.bigWindow}
-                        streamURL={bigSource.track.toURL()}
-                    /> :
-                        <DefaultPic style={portraitStyle.bigWindow}/>
+                    peerBig ?
+                        <PeerWindow rtcViewStyle={portraitStyle.bigWindow} peerToShow={peerToShow} zOrder={0}/>
+                        :
+                        <MyStreamWindow rtcViewStyle={portraitStyle.bigWindow} myStream={myStream} zOrder={0} />
                 }
-                <TouchableOpacity style={portraitStyle.smallWindow} onPress={()=>{
-                    if (status) {
-                        setStatus(false);
-                        setSmallSource(peerSource);
-                        setBigSource(mySource);
-                    } else {
-                        setStatus(true);
-                        setSmallSource(mySource);
-                        setBigSource(peerSource);
+                <TouchableOpacity style={portraitStyle.smallWindow} onPress={() => {setPeerBig(!peerBig)}}>
+                    {
+                        peerBig ?
+                            <MyStreamWindow rtcViewStyle={{width: width/3, height: height/3}} myStream={myStream} zOrder={1} />
+                            :
+                            <PeerWindow rtcViewStyle={{width: width/3, height: height/3}} peerToShow={peerToShow} zOrder={1}/>
                     }
-                }}>
-                    <View style={{width: width / 3,
-                        height: height /3}}>
-                        <UserLabel text={smallSource.id}/>
-                        {
-                            smallSource.track != null ?
-                            <RTCView
-                                zOrder={1}
-                                mirror={true}
-                                style={{
-                                    width: width / 3,
-                                    height: height / 3,
-                                }}
-                                streamURL={smallSource.track.toURL()}
-                            /> :
-                                <DefaultPic style={{
-                                    width: width / 3,
-                                    height: height / 3,
-                                }}/>
-                        }
-                    </View>
                 </TouchableOpacity>
-            </View>
-
-        )
-    } else if (peerToShow == null && myStream) {
-        return (
-            <View style={{flex: 1}}>
-                <UserLabel text={config_key.username}/>
-                <RTCView
-                    zOrder={1}
-                    mirror={true}
-                    style={portraitStyle.bigWindow}
-                    streamURL={myStream.toURL()}
-                />
-            </View>
-
-        )
-    } else if (peerToShow && myStream == null ){
-        console.log('[PeerToShow]',peerToShow)
-        return (
-            <View style={{flex: 1}}>
-                <UserLabel text={peerToShow.peerInfo.displayName}/>
-                {
-                    peerToShow.hasVideo() ?
-                        <RTCView
-                            zOrder={1}
-                            style={portraitStyle.bigWindow}
-                            streamURL={(new MediaStream(peerToShow.getTracks())).toURL()}
-                        /> :
-                        <DefaultPic style={portraitStyle.bigWindow}/>
-                }
             </View>
         )
     } else {
         return (
-            <View style={{flex: 1}}>
-                <DefaultPic style={portraitStyle.bigWindow}/>
-                <UserLabel text={config_key.username}/>
-            </View>
+            <MyStreamWindow rtcViewStyle={portraitStyle.bigWindow} myStream={myStream} zOrder={0} />
         )
     }
 }
