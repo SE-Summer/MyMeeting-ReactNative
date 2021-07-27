@@ -21,6 +21,8 @@ export class MediaService
     private sendTransport: mediasoupTypes.Transport = null;
     private recvTransport: mediasoupTypes.Transport = null;
 
+    // track.id ==> MediaStreamTrack
+    private sendingTracks: Map<string, MediaStreamTrack> = null;
     // track.id ==> producer
     private producers: Map<string, mediasoupTypes.Producer> = null;
     private peerMeida: PeerMedia = null;
@@ -36,6 +38,7 @@ export class MediaService
             registerGlobals();
             this.device = new mediasoupClient.Device();
 
+            this.sendingTracks = new Map<string, MediaStreamTrack>();
             this.producers = new Map<string, mediasoupTypes.Producer>();
             this.peerMeida = new PeerMedia();
 
@@ -172,6 +175,7 @@ export class MediaService
                 this.producers.set(track.id, producer);
 
                 this.log(`[Log]  Producing ${source}`);
+                this.sendingTracks.set(track.id, track);
             }
         } catch (err) {
             this.log('[Error]  Fail to send MediaStream', err);
