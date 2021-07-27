@@ -208,6 +208,12 @@ export class MediaService
         }
     }
 
+    public sendText()
+    {
+        const produceOpt = {};
+        const dataProducer = this.sendTransport.produceData(produceOpt);
+    }
+
     public async leaveMeeting()
     {
         this.joined = false;

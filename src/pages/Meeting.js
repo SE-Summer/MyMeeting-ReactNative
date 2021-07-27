@@ -5,10 +5,11 @@ import {
     Text,
     TouchableHighlight,
     Modal,
-    FlatList, BackHandler, Alert, TouchableWithoutFeedback,
+    FlatList, BackHandler, Alert,
 } from "react-native";
 import * as React from "react";
 import {Component, useState} from "react";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config, config_key} from "../utils/Constants";
 import {IconWithLabel} from "../components/IconWithLabel";
@@ -193,7 +194,7 @@ export default class Meeting extends Component
         const {roomInf, cameraStatus, microphoneStatus} = this.props.route.params;
         const {width, height, myCameraStream, peerDetails, portraitIndex} = this.state;
         return (
-            <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
                 <View style={{flex: 1}} onLayout={this.onLayout}>
 
@@ -238,7 +239,7 @@ export default class Meeting extends Component
                     style={screenStyle.footer}
                     setView={(type) => { this.setState({ view: type, }); }}
                 />
-            </View>
+            </SafeAreaView>
         );
     }
 }
