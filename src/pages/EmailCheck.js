@@ -1,6 +1,7 @@
 import * as React from "react";
 import {Component} from "react";
 import {Text, TextInput, View, StyleSheet, Dimensions, ToastAndroid} from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {validateEmail} from "../utils/Utils";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
@@ -25,7 +26,8 @@ const emailStyles = StyleSheet.create({
     },
     input: {
         backgroundColor: 'white',
-        fontSize: 16,
+        fontSize: 18,
+        padding: 7,
     },
     titleContainer: {
         height: windowHeight / 3,
@@ -75,7 +77,7 @@ export default class EmailCheck extends Component {
 
     render() {
         return (
-            <View style={{flex: 1, alignItems: 'center'}}>
+            <SafeAreaView style={{flex: 1, alignItems: 'center'}}>
                 <View style={emailStyles.titleContainer}>
                     <Text style={emailStyles.title1}>输入您的邮箱</Text>
                 </View>
@@ -94,7 +96,7 @@ export default class EmailCheck extends Component {
                         onChangeText={this.onUserEmailChange}
                     />
                 </View>
-            </View>
+            </SafeAreaView>
         );
     }
 }

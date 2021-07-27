@@ -6,13 +6,14 @@ import {TouchableItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
 import moment from "moment";
-import {config, config_key} from "../utils/Constants";
+import {config_key} from "../utils/Constants";
 import {reserve} from "../service/MeetingService";
 import * as Progress from "react-native-progress";
 
 const style = StyleSheet.create({
     input: {
-        fontSize: 17,
+        fontSize: 18,
+        padding: 7,
     },
     divider: {
         marginLeft: 5,

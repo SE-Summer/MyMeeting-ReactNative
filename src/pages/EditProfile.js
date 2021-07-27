@@ -91,17 +91,17 @@ export default class EditProfileScreen extends Component {
 
     render() {
         return (
-            <View style={{margin: 10}}>
+            <SafeAreaView style={{margin: 10}}>
                 <Tip text={this.state.tip} warning={true}/>
                 <TextInput
                     placeholder={this.state.contentsCount === 1 ? config_key.nickname : config_key.username}
                     maxLength={15}
                     multiline={false}
                     onChangeText={this.textChange}
-                    keyboardType={"visible-password"}
-                    style={{backgroundColor: "white", borderRadius: 10, fontSize: 16}}
+                    keyboardType={"default"}
+                    style={{backgroundColor: "white", borderRadius: 10, fontSize: 18, padding: 10}}
                 />
-            </View>
+            </SafeAreaView>
         );
     }
 }

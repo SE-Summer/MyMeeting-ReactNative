@@ -5,7 +5,7 @@ import {
     Text,
     TouchableHighlight,
     Modal,
-    FlatList, BackHandler, Alert,
+    FlatList, BackHandler, Alert, SafeAreaView,
 } from "react-native";
 import * as React from "react";
 import {Component, useState} from "react";
@@ -179,7 +179,7 @@ export default class Meeting extends Component
         const {roomInf, cameraStatus, microphoneStatus} = this.props.route.params;
         const {width, height} = this.state;
         return (
-            <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
                 <View style={{flex: 1}} onLayout={this.onLayout}>
                     {
@@ -200,7 +200,7 @@ export default class Meeting extends Component
                     style={screenStyle.footer}
                     setView={(type) => { this.setState({ view: type, }); }}
                 />
-            </View>
+            </SafeAreaView>
         );
     }
 }
@@ -382,7 +382,7 @@ const Footer = ({style, setView, swapCam, openChatRoom, openCamera, closeCamera,
                     transparent={true}
                     onRequestClose={() => {setSettingsVisible(false)}}
                 >
-                    <View style={{flex: 1, justifyContent: 'flex-end'}}>
+                    <SafeAreaView style={{flex: 1, justifyContent: 'flex-end'}}>
                         <TouchableOpacity style={{flex: 1}} onPress={() => {setSettingsVisible(false);}}/>
                         <View style={menuStyle.container}>
                             <IconWithLabel
@@ -414,7 +414,7 @@ const Footer = ({style, setView, swapCam, openChatRoom, openCamera, closeCamera,
                                 setSettingsVisible(false);
                             }}/>
                         </View>
-                    </View>
+                    </SafeAreaView>
                 </Modal>
             </View>
         </View>

@@ -9,12 +9,10 @@ import {
     ToastAndroid,
     Text,
     Dimensions,
-    SafeAreaView
 } from "react-native";
 import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import {config, config_key, smallUtils} from "../utils/Constants";
 import {validateEmail} from "../utils/Utils";
 import {loginService} from "../service/UserService";

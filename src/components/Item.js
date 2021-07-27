@@ -18,8 +18,8 @@ export const TouchableItem = ({text, pressEvent, rightComponent = null}) => {
 
 export const SwitchItem = ({text, status, switchEvent}) => {
     return (
-        <View style={{flexDirection: "row", padding: 15}}>
-            <Text style={{fontSize:16, textAlign: "left", marginLeft: 10}}>{text}</Text>
+        <View style={{flexDirection: "row", padding: 10, alignItems: 'center'}}>
+            <Text style={{fontSize:17, textAlign: "left", marginLeft: 10}}>{text}</Text>
             <View style={{alignItems: "flex-end", flex: 1}}>
                 <Switch
                     trackColor={{ false: "#767577", true: "green" }}
@@ -27,7 +27,6 @@ export const SwitchItem = ({text, status, switchEvent}) => {
                     ios_backgroundColor="#3e3e3e"
                     onValueChange={switchEvent}
                     value={status}
-                    style={{ transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }] }}
                 />
             </View>
         </View>

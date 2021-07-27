@@ -11,7 +11,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const style = StyleSheet.create({
     input: {
-        fontSize: 17,
+        fontSize: 18,
+        padding: 7
     },
     divider: {
         marginLeft: 5,

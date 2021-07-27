@@ -49,7 +49,7 @@ export default function App() {
                     })}
                     />
                     <Stack.Screen name={"JoinMeeting"} component={JoinMeetingScreen} options={({navigation}) => ({
-                        cardStyleInterpolator: CardStyleInterpolators.forModalPresentationIOS,
+                        cardStyleInterpolator: CardStyleInterpolators.forFadeFromBottomAndroid,
                         headerTitleAlign: "center",
                         headerLeft: () => {
                             return (

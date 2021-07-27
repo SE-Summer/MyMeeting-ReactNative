@@ -1,6 +1,6 @@
 import * as React from "react";
 import {Component} from "react";
-import {TextInput, View, StyleSheet, ToastAndroid} from "react-native";
+import {TextInput, View, StyleSheet, ToastAndroid, SafeAreaView} from "react-native";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
 import {registerService} from "../service/UserService";
@@ -8,7 +8,9 @@ import * as Progress from "react-native-progress";
 
 const styles = StyleSheet.create({
     input: {
-        fontSize: 17,
+        fontSize: 18,
+        paddingTop: 7,
+        paddingBottom: 7,
         marginLeft: 30,
         marginRight: 30,
     },
@@ -136,7 +138,7 @@ export default class RegisterScreen extends Component {
     render() {
         const {username, password, confirmPassword, nameTip, passwordTip, confirmTip, confirmWarning} = this.state;
         return (
-            <View style={{flex: 1}}>
+            <SafeAreaView style={{flex: 1}}>
                 <Tip text={nameTip}/>
                 <View style={styles.inputContainer}>
                     <TextInput
@@ -172,7 +174,7 @@ export default class RegisterScreen extends Component {
                         onChangeText={this.confirmPasswordChange}
                     />
                 </View>
-            </View>
+            </SafeAreaView>
         );
     }
 }
