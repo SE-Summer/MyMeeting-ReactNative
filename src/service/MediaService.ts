@@ -88,7 +88,7 @@ export class MediaService
         this.deviceName = deviceName;
 
         try {
-            this.signaling = new SignalingService(this.serverURL, sockectConnectionOptions);
+            this.signaling = new SignalingService(this.serverURL, sockectConnectionOptions, this.onSignalingDisconnect.bind(this));
 
             await this.signaling.waitForConnection();
             this.registerSignalingListeners();
@@ -135,6 +135,28 @@ export class MediaService
         }
     }
 
+    public async onSignalingDisconnect()
+    {
+        if (this.joined) {
+            await this.reconnect();
+        } else {
+            await this.leaveMeeting();
+        }
+    }
+
+    public async reconnect()
+    {
+        await this.leaveMeeting();
+        await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName);
+
+        let tracks: MediaStreamTrack[] = [];
+        this.sendingTracks.forEach((track) => {
+            tracks.push(track);
+        })
+        await this.sendMediaStream(new MediaStream(tracks));
+    }
+
+
     public async sendMediaStream(stream: MediaStream)
     {
         try {
@@ -163,12 +185,14 @@ export class MediaService
 
                 producer.on('transportclose', () => {
                     this.log(`[Producer event]  ${source}_transport_close`);
+                    producer.close();
                     this.producers.delete(track.id);
                 });
 
                 producer.on('trackended', () => {
-                   this.log(`[Producer event]  ${source}_track_ended`);
+                    this.log(`[Producer event]  ${source}_track_ended`);
                     this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
+                    producer.close();
                     this.producers.delete(track.id);
                 });
 
@@ -184,24 +208,21 @@ export class MediaService
 
     public async leaveMeeting()
     {
+        this.joined = false;
+
         if (this.signaling.isConnected())
             await this.signaling.sendRequest(SignalMethod.close);
 
-        delete this.sendTransport;
-        delete this.recvTransport;
-        delete this.sendTransportOpt;
-        delete this.device;
-        delete this.producers;
-        delete this.peerMeida;
-        delete this.signaling;
-
+        this.sendTransport.close();
         this.sendTransport = null;
+
+        this.recvTransport.close();
         this.recvTransport = null;
         this.sendTransportOpt = null;
         this.device = new mediasoupClient.Device();
-        this.producers = new Map<string, mediasoupTypes.Producer>();
-        this.peerMeida = new PeerMedia();
-        this.joined = false;
+        this.sendingTracks.clear();
+        this.producers.clear();
+        this.peerMeida.clear();
         this.signaling = null;
     }
 
@@ -210,7 +231,10 @@ export class MediaService
         const producer = this.producers.get(track.id);
         console.log(producer);
         await this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
+        this.producers.get(track.id).close();
         this.producers.delete(track.id);
+        this.sendingTracks.delete(track.id);
+        track.stop();
     }
 
     private async createSendTransport()

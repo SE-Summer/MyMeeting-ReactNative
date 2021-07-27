@@ -7,7 +7,7 @@ export class SignalingService
     private readonly socket: Socket = null;
     private callbackMap: Map<SignalType ,Map<SignalMethod, object>> = null;
 
-    constructor(URL: string, opts)
+    constructor(URL: string, opts, onDisconnect: () => Promise<void>)
     {
         this.URL = URL;
         this.socket = io(URL, opts);
@@ -25,9 +25,10 @@ export class SignalingService
             this.handleSignal(SignalType.notify, method, data);
         });
 
-        this.socket.on('disconnect', () => {
+        this.socket.on('disconnect', async () => {
             console.log('[Socket]  Socket disconnected');
             this.socket.disconnect();
+            await onDisconnect();
         })
     }
 
