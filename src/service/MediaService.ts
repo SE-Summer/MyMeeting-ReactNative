@@ -30,9 +30,10 @@ export class MediaService
     private sendTransportOpt: mediasoupTypes.TransportOptions = null;
     private joined: boolean = null;
 
-    private updatePeerCallback: () => void = null;
+    private readonly updatePeerCallback: () => void = null;
+    private readonly newMessageCallback: (message: types.RecvPeerMessage) => void = null;
 
-    constructor(updatePeerCallback: () => void)
+    constructor(updatePeerCallback: () => void, newMessageCallback: (message: types.RecvPeerMessage) => void)
     {
         try {
             registerGlobals();
@@ -44,6 +45,7 @@ export class MediaService
 
             this.joined = false;
             this.updatePeerCallback = updatePeerCallback;
+            this.newMessageCallback = newMessageCallback;
 
         } catch (err) {
             printError(err);
@@ -73,7 +75,7 @@ export class MediaService
     // send request to get routerRtpCapabilities from server
     // load the routerRtpCapabilities into device
     //
-    public async joinMeeting(roomToken: string, userToken: string, displayName: string, deviceName: string)
+    public async joinMeeting(roomToken: string, userToken: string, displayName: string, deviceName: string): Promise<void>
     {
         if (this.joined) {
             this.log('[Log]  Already joined a meeting');
@@ -96,14 +98,16 @@ export class MediaService
         } catch (err) {
             this.log('[Error]  Fail to connect socket', err);
             await this.leaveMeeting();
-            return;
+            return Promise.reject('Fail to connect socket');
         }
 
         try {
             const rtpCapabilities = await this.signaling.sendRequest(SignalMethod.getRouterRtpCapabilities);
             this.log('[Log]  Router RTP Capabilities received');
 
-            await this.device.load({routerRtpCapabilities: rtpCapabilities});
+            if (!this.device.loaded) {
+                await this.device.load({routerRtpCapabilities: rtpCapabilities});
+            }
 
             await this.createSendTransport();
             await this.createRecvTransport();
@@ -111,7 +115,7 @@ export class MediaService
         } catch (err) {
             this.log('[Error]  Fail to prepare device and transports', err);
             await this.leaveMeeting();
-            return;
+            return Promise.reject('Fail to prepare device and transports');
         }
 
         try {
@@ -132,7 +136,7 @@ export class MediaService
         } catch (err) {
             this.log('[Error]  Fail to join the meeting', err);
             await this.leaveMeeting();
-            return;
+            return Promise.reject('Fail to join the meeting');
         }
     }
 
@@ -159,7 +163,7 @@ export class MediaService
     }
 
 
-    public async sendMediaStream(stream: MediaStream)
+    public async sendMediaStream(stream: MediaStream): Promise<void>
     {
         try {
             const tracks = stream.getTracks();
@@ -187,14 +191,18 @@ export class MediaService
 
                 producer.on('transportclose', () => {
                     this.log(`[Producer event]  ${source}_transport_close`);
-                    producer.close();
+                    if (!producer.closed) {
+                        producer.close();
+                    }
                     this.producers.delete(track.id);
                 });
 
                 producer.on('trackended', () => {
                     this.log(`[Producer event]  ${source}_track_ended`);
                     this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
-                    producer.close();
+                    if (!producer.closed) {
+                        producer.close();
+                    }
                     this.producers.delete(track.id);
                 });
 
@@ -205,6 +213,24 @@ export class MediaService
             }
         } catch (err) {
             this.log('[Error]  Fail to send MediaStream', err);
+            return Promise.reject('Fail to send MediaStream');
+        }
+    }
+
+    // if _toPeerId == null, it means broadcast to everyone in the meetings
+    public async sendText(_toPeerId: string, _text: string): Promise<void>
+    {
+        try {
+            const message: types.SendPeerMessage = {
+                toPeerId: _toPeerId,
+                text: _text,
+            } as types.SendPeerMessage;
+
+            await this.signaling.sendRequest(SignalMethod.sendMessage, message);
+
+        } catch (err) {
+            this.log('[Error]  Fail to send peer message');
+            return Promise.reject('Fail to send peer message');
         }
     }
 
@@ -215,10 +241,14 @@ export class MediaService
         if (this.signaling.isConnected())
             await this.signaling.sendRequest(SignalMethod.close);
 
-        this.sendTransport.close();
+        if (!this.sendTransport.closed) {
+            this.sendTransport.close();
+        }
         this.sendTransport = null;
 
-        this.recvTransport.close();
+        if (!this.recvTransport.closed) {
+            this.recvTransport.close();
+        }
         this.recvTransport = null;
         this.sendTransportOpt = null;
         this.device = new mediasoupClient.Device();
@@ -233,7 +263,9 @@ export class MediaService
         const producer = this.producers.get(track.id);
         console.log(producer);
         await this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
-        this.producers.get(track.id).close();
+        if (!this.producers.get(track.id).closed) {
+            this.producers.get(track.id).close();
+        }
         this.producers.delete(track.id);
         this.sendingTracks.delete(track.id);
     }
@@ -333,6 +365,12 @@ export class MediaService
             this.log(`[Signaling]  Delete peer id = ${peerId}`);
             this.peerMeida.deletePeer(peerId);
             this.updatePeerCallback();
+        });
+
+        this.signaling.registerListener(SignalType.notify, SignalMethod.newMessage, (message: types.RecvPeerMessage) => {
+            this.log('[Signaling]  Handling newMessage notification...');
+            this.log(`[Signaling]  Message received from peer peerId = ${message.fromPeerId}`);
+            this.newMessageCallback(message);
         })
     }
 }

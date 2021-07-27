@@ -39,7 +39,7 @@ export default class Meeting extends Component
     constructor(props) {
         super(props);
         this.mediaStreamFactory = new MediaStreamFactory();
-        this.mediaService = new MediaService(this.updatePeerDetails.bind(this));
+        this.mediaService = new MediaService(this.updatePeerDetails.bind(this), this.recvMessagae.bind(this));
         this.state = {
             view: 'portrait',
             peerDetails: null,
@@ -122,7 +122,7 @@ export default class Meeting extends Component
     }
 
     openCamera = async () => {
-        const camStream = await this.mediaStreamFactory.getCamFrontStream();
+        const camStream = await this.mediaStreamFactory.getCamFrontStream(400, 300, 30);
 
         if (camStream.getVideoTracks().length === 0) {
             return Promise.reject("Fail to get local camera media.");
@@ -152,6 +152,10 @@ export default class Meeting extends Component
             console.log('[React]  state.peerDetails of Meeting updated');
             console.log(this.state.peerDetails);
         })
+    }
+
+    recvMessagae(message) {
+
     }
 
     onLayout = event => {
