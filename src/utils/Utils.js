@@ -1,6 +1,7 @@
 import axios from "axios";
 import {ToastAndroid} from "react-native";
 import {config} from "./Constants";
+import {printError} from "./PrintError";
 
 export const validateEmail = (email) => {
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -13,6 +14,21 @@ const instance = axios.create({
 });
 
 export const postRequest = async (url, data) => {
+    // const opts = {
+    //     method: "POST",
+    //     body: JSON.stringify(data),
+    //     headers: {
+    //         'Content-Type': 'application/json'
+    //     }
+    // };
+    // try {
+    //     const response = await fetch(url, opts);
+    //     return response.json();
+    // } catch (err) {
+    //     printError(err);
+    //     return null;
+    // }
+
     try {
         return await instance.post(url, data);
     } catch (e) {

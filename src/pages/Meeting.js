@@ -231,7 +231,6 @@ export default class Meeting extends Component
 }
 
 const GridView = ({width, height, myStream, peerDetails}) => {
-    console.log(width)
     const gridStyle = StyleSheet.create({
         rtcView: {
             width: width / 3,
@@ -251,7 +250,6 @@ const GridView = ({width, height, myStream, peerDetails}) => {
 
 
     const renderItem = ({item}) => {
-        console.log(item)
         return (
             <RTCView
                 zOrder={2}
@@ -288,7 +286,7 @@ const PortraitView = ({width, height, peerDetails, myStream}) => {
             left: 0,
             top: 0,
             width: width,
-            height: height
+            height: height,
         },
     })
 
