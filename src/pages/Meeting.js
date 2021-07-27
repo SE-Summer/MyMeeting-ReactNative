@@ -120,7 +120,7 @@ export default class Meeting extends Component
     }
 
     openCamera = async () => {
-        const camStream = await this.mediaStreamFactory.getCamFrontStream();
+        const camStream = await this.mediaStreamFactory.getCamFrontStream(400, 300, 30);
 
         if (camStream.getVideoTracks().length === 0) {
             return Promise.reject("Fail to get local camera media.");
