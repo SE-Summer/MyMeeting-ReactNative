@@ -19,6 +19,7 @@ import {RTCView} from "react-native-webrtc";
 import moment from "moment";
 import {UserLabel} from "../components/UserLabel";
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+import {DefaultPic} from "../components/DefaultPic";
 
 const screenStyle = StyleSheet.create({
     header: {
@@ -88,10 +89,10 @@ export default class Meeting extends Component
 
         await this.mediaStreamFactory.waitForUpdate();
         if (cameraStatus) {
-            await this.openCamera();
+            this.openCamera();
         }
         if (microphoneStatus) {
-            await this.openMicrophone();
+            this.openMicrophone();
         }
     }
 
@@ -178,20 +179,36 @@ export default class Meeting extends Component
     }
 
     openChatRoom = () => {
-        this.props.navigation.navigate('MeetingChat');
+
     }
 
     onSwipeLeft(gestureState) {
-        console.log('left')
+        console.log('left');
+        if (this.state.peerDetails) {
+            if (this.state.portraitIndex < this.state.peerDetails.length - 1) {
+                this.setState({
+                    portraitIndex: ++this.state.portraitIndex,
+                }, () => {
+                    console.log('left', this.state.portraitIndex)})
+            }
+        }
     }
 
     onSwipeRight(gestureState) {
-        console.log('right')
+        if (this.state.peerDetails) {
+            if (this.state.portraitIndex > 0) {
+                this.setState({
+                    portraitIndex: --this.state.portraitIndex,
+                }, () => {
+                    console.log('right', this.state.portraitIndex)})
+            }
+        }
+
     }
 
     render() {
         const {roomInf, cameraStatus, microphoneStatus} = this.props.route.params;
-        const {width, height, myCameraStream, peerDetails, portraitIndex} = this.state;
+        const {width, height, myCameraStream} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
@@ -215,14 +232,14 @@ export default class Meeting extends Component
                                     width={width}
                                     height={height}
                                     myStream={myCameraStream}
-                                    peerDetails={peerDetails}
+                                    peerDetails={this.state.peerDetails}
                                 />
                                 :
                                 <PortraitView
                                     width={width}
                                     height={height}
                                     myStream={myCameraStream}
-                                    peerToShow={peerDetails ? peerDetails[portraitIndex] : null}
+                                    peerToShow={this.state.peerDetails ? this.state.peerDetails[this.state.portraitIndex] : null}
                                 />
                         }
                     </GestureRecognizer>
@@ -308,7 +325,7 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
             track: myStream ,
             id: config_key.username,
         }, peerSource = {
-            track: new MediaStream(peerToShow.getTracks()),
+            track: peerToShow.hasVideo() ? new MediaStream(peerToShow.getTracks()) : null,
             id: peerToShow.peerInfo.displayName,
         };
 
@@ -319,11 +336,15 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
         return (
             <View style={{flex: 1}}>
                 <UserLabel text={bigSource.id}/>
-                <RTCView
-                    zOrder={0}
-                    style={portraitStyle.bigWindow}
-                    streamURL={bigSource.track.toURL()}
-                />
+                {
+                    bigSource.track ?
+                    <RTCView
+                        zOrder={0}
+                        style={portraitStyle.bigWindow}
+                        streamURL={bigSource.track.toURL()}
+                    /> :
+                        <DefaultPic style={portraitStyle.bigWindow}/>
+                }
                 <TouchableOpacity style={portraitStyle.smallWindow} onPress={()=>{
                     if (status) {
                         setStatus(false);
@@ -338,15 +359,22 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
                     <View style={{width: width / 3,
                         height: height /3}}>
                         <UserLabel text={smallSource.id}/>
-                        <RTCView
-                            zOrder={1}
-                            mirror={true}
-                            style={{
-                                width: width / 3,
-                                height: height / 3,
-                            }}
-                            streamURL={smallSource.track.toURL()}
-                        />
+                        {
+                            smallSource.track != null ?
+                            <RTCView
+                                zOrder={1}
+                                mirror={true}
+                                style={{
+                                    width: width / 3,
+                                    height: height / 3,
+                                }}
+                                streamURL={smallSource.track.toURL()}
+                            /> :
+                                <DefaultPic style={{
+                                    width: width / 3,
+                                    height: height / 3,
+                                }}/>
+                        }
                     </View>
                 </TouchableOpacity>
             </View>
@@ -366,20 +394,25 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
 
         )
     } else if (peerToShow && myStream == null ){
+        console.log('[PeerToShow]',peerToShow)
         return (
             <View style={{flex: 1}}>
                 <UserLabel text={peerToShow.peerInfo.displayName}/>
-                <RTCView
-                    zOrder={1}
-                    style={portraitStyle.bigWindow}
-                    streamURL={(new MediaStream(peerToShow.getTracks())).toURL()}
-                />
+                {
+                    peerToShow.hasVideo() ?
+                        <RTCView
+                            zOrder={1}
+                            style={portraitStyle.bigWindow}
+                            streamURL={(new MediaStream(peerToShow.getTracks())).toURL()}
+                        /> :
+                        <DefaultPic style={portraitStyle.bigWindow}/>
+                }
             </View>
-
         )
     } else {
         return (
             <View style={{flex: 1}}>
+                <DefaultPic style={portraitStyle.bigWindow}/>
                 <UserLabel text={config_key.username}/>
             </View>
         )
