@@ -30,9 +30,9 @@ export class MediaService
     private sendTransportOpt: mediasoupTypes.TransportOptions = null;
     private joined: boolean = null;
 
-    private updateStreamsCallback: () => void = null;
+    private updatePeerCallback: () => void = null;
 
-    constructor(updateOutputStreams: () => void)
+    constructor(updatePeerCallback: () => void)
     {
         try {
             registerGlobals();
@@ -43,7 +43,7 @@ export class MediaService
             this.peerMeida = new PeerMedia();
 
             this.joined = false;
-            this.updateStreamsCallback = updateOutputStreams;
+            this.updatePeerCallback = updatePeerCallback;
 
         } catch (err) {
             printError(err);
@@ -125,6 +125,7 @@ export class MediaService
             for (const info of _peerInfos) {
                 this.peerMeida.addPeerInfo(info);
             }
+            this.updatePeerCallback();
 
             this.joined = true;
 
@@ -137,6 +138,7 @@ export class MediaService
 
     public async onSignalingDisconnect()
     {
+        this.log('[Socket]  Disconnected');
         if (this.joined) {
             await this.reconnect();
         } else {
@@ -146,6 +148,7 @@ export class MediaService
 
     public async reconnect()
     {
+        this.log('[Socket]  Trying to reconnect...');
         await this.leaveMeeting();
         await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName);
 
@@ -154,6 +157,7 @@ export class MediaService
             tracks.push(track);
         })
         await this.sendMediaStream(new MediaStream(tracks));
+        this.log('[Socket]  Reconnected');
     }
 
 
@@ -302,6 +306,7 @@ export class MediaService
             this.log('[Signaling]  Handling newPeer notification...');
             this.peerMeida.addPeerInfo(data);
             this.log(`[Signaling]  Add peerId = ${data.id}`);
+            this.updatePeerCallback();
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.newConsumer, async (data: types.ConsumerInfo) => {
@@ -316,21 +321,21 @@ export class MediaService
             const { track } = consumer;
             this.log(`[Signaling]  Add trackId = ${track.id} sent from peerId = ${data.producerPeerId}`);
             this.peerMeida.addConsumerAndTrack(data.producerPeerId, consumer, track);
-            this.updateStreamsCallback();
+            this.updatePeerCallback();
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.consumerClosed, ({ consumerId }) => {
             this.log('[Signaling]  Handling consumerClosed notification...');
             this.log(`[Signaling]  Delete consumer id = ${consumerId}`);
             this.peerMeida.deleteConsumerAndTrack(consumerId);
-            this.updateStreamsCallback();
+            this.updatePeerCallback();
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.peerClosed, ({ peerId }) => {
             this.log('[Signaling]  Handling peerClosed notification...');
             this.log(`[Signaling]  Delete peer id = ${peerId}`);
             this.peerMeida.deletePeer(peerId);
-            this.updateStreamsCallback();
+            this.updatePeerCallback();
         })
     }
 }
