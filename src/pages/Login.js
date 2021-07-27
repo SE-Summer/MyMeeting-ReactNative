@@ -174,12 +174,11 @@ export default class LoginScreen extends Component {
 
     render() {
         return (
-            <SafeAreaView style={{flex: 1}}>
-                <KeyboardAwareScrollView style={{backgroundColor: "white", flex: 1}}>
+            <View style={{flex: 1}}>
                     <View style={styles.topFillContainer}>
                         <View style={styles.topContainer}>
                             <Image source={require('../../assets/image/triAngle.png')} style={styles.triAngleImg}/>
-                            <View style={{flex: 1, alignItems: "center"}}>
+                            <View style={{flex: 1, alignItems: 'center', justifyContent: 'flex-end'}}>
                                 <FlashButton pressEvent={this.flashStart}/>
                             </View>
                         </View>
@@ -230,8 +229,7 @@ export default class LoginScreen extends Component {
                         <View style={{width: 30}}/>
                         <MyButton pressEvent={this.register} text={"注册"}/>
                     </View>
-                </KeyboardAwareScrollView>
-            </SafeAreaView>
+            </View>
 
 
         )
@@ -241,21 +239,20 @@ export default class LoginScreen extends Component {
 const styles = StyleSheet.create({
     topContainer: {
         flexDirection: "row",
-        alignItems: "center",
     },
     topFillContainer: {
-        height: windowHeight * 0.11,
+        height: windowHeight * 0.17,
     },
     titleContainer: {
         alignItems: "center",
         justifyContent: "center",
-        height: windowHeight * 0.31,
+        height: windowHeight * 0.27,
     },
     buttonContainer: {
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
-        height: windowHeight * 0.18,
+        height: windowHeight * 0.16,
     },
     imgFillContainer: {
         height: windowHeight * 0.4,
