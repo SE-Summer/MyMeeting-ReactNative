@@ -36,10 +36,12 @@ class PeerDetail
 
     public deleteConsumerAndTrack(consumerId: string)
     {
-        this.consumers.delete(consumerId);
+        if (this.consumers.has(consumerId)) {
+            this.consumers.get(consumerId).close();
+            this.consumers.delete(consumerId);
+        }
 
         if (this.tracks.has(consumerId)) {
-            this.tracks.get(consumerId).stop();
             this.tracks.delete(consumerId);
         }
 
@@ -77,6 +79,13 @@ class PeerDetail
     public hasAudio()
     {
         return this._hasAudio;
+    }
+
+    public closeConsumers()
+    {
+        this.consumers.forEach((consumer) => {
+            consumer.close();
+        })
     }
 
     private updateMediaStatus()
@@ -146,10 +155,15 @@ export class PeerMedia
         if (!this.peerId2Details.has(peerId))
             return;
 
-        const consumerIds = this.peerId2Details.get(peerId).getConsumerIds();
+        const peerDetail = this.peerId2Details.get(peerId);
+
+        const consumerIds = peerDetail.getConsumerIds();
         consumerIds.forEach((consumerId) => {
             this.consumerId2Details.delete(consumerId);
         });
+
+        peerDetail.closeConsumers();
+        peerDetail.closeConsumers();
         this.peerId2Details.delete(peerId);
     }
 
@@ -164,6 +178,9 @@ export class PeerMedia
 
     public clear()
     {
+        this.peerId2Details.forEach((peerDetail) => {
+            peerDetail.closeConsumers();
+        });
         this.peerId2Details.clear();
         this.consumerId2Details.clear();
     }

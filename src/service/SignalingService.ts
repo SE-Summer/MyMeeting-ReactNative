@@ -7,7 +7,7 @@ export class SignalingService
     private readonly socket: Socket = null;
     private callbackMap: Map<SignalType ,Map<SignalMethod, object>> = null;
 
-    constructor(URL: string, opts)
+    constructor(URL: string, opts, onDisconnect: () => Promise<void>)
     {
         this.URL = URL;
         this.socket = io(URL, opts);
@@ -25,14 +25,16 @@ export class SignalingService
             this.handleSignal(SignalType.notify, method, data);
         });
 
-        this.socket.on('disconnect', () => {
+        this.socket.on('disconnect', async () => {
             console.log('[Socket]  Socket disconnected');
             this.socket.disconnect();
+            await onDisconnect();
         })
     }
 
     private handleSignal(type: SignalType, method: SignalMethod, data)
     {
+        console.log(`[Socket]  Received signal (${type} , ${method})`);
         let callback = this.callbackMap.get(type).get(method) as (data) => void;
         if (callback == undefined) {
             console.log(`[Socket]  Undefined signal (${type} , ${method})`);
