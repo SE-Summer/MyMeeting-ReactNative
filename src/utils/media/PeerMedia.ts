@@ -42,7 +42,6 @@ class PeerDetail
         }
 
         if (this.tracks.has(consumerId)) {
-            this.tracks.get(consumerId).stop();
             this.tracks.delete(consumerId);
         }
 
@@ -86,13 +85,6 @@ class PeerDetail
     {
         this.consumers.forEach((consumer) => {
             consumer.close();
-        })
-    }
-
-    public stopTracks()
-    {
-        this.tracks.forEach((track) => {
-            track.stop();
         })
     }
 
@@ -188,7 +180,6 @@ export class PeerMedia
     {
         this.peerId2Details.forEach((peerDetail) => {
             peerDetail.closeConsumers();
-            peerDetail.stopTracks();
         });
         this.peerId2Details.clear();
         this.consumerId2Details.clear();

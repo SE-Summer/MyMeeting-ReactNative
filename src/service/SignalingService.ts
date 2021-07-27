@@ -34,6 +34,7 @@ export class SignalingService
 
     private handleSignal(type: SignalType, method: SignalMethod, data)
     {
+        console.log(`[Socket]  Received signal (${type} , ${method})`);
         let callback = this.callbackMap.get(type).get(method) as (data) => void;
         if (callback == undefined) {
             console.log(`[Socket]  Undefined signal (${type} , ${method})`);

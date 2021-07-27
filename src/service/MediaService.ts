@@ -141,8 +141,6 @@ export class MediaService
         this.log('[Socket]  Disconnected');
         if (this.joined) {
             await this.reconnect();
-        } else {
-            await this.leaveMeeting();
         }
     }
 
@@ -238,7 +236,6 @@ export class MediaService
         this.producers.get(track.id).close();
         this.producers.delete(track.id);
         this.sendingTracks.delete(track.id);
-        track.stop();
     }
 
     private async createSendTransport()
