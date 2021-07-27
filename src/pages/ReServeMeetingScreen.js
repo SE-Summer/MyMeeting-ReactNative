@@ -1,4 +1,4 @@
-import {View, StyleSheet, TextInput, Text, ToastAndroid, Alert} from "react-native";
+import {View, StyleSheet, TextInput, Text, Alert} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {DateTimeModal} from "../components/DateTimeModal";
@@ -105,20 +105,12 @@ export default class ReServeMeetingScreen extends Component{
                     break;
                 }
                 case 401: {
-                    ToastAndroid.showWithGravity(
-                        response.data.error,
-                        ToastAndroid.SHORT,
-                        ToastAndroid.CENTER,
-                    )
+                    toast.show(response.data.error, {type: 'danger', duration: 1300, placement: 'top'})
                     break;
                 }
             }
         } else {
-            ToastAndroid.showWithGravity(
-                '预约失败',
-                ToastAndroid.SHORT,
-                ToastAndroid.CENTER,
-            )
+            toast.show('预约失败', {type: 'danger', duration: 1300, placement: 'top'})
             this.setState({
                 loading: false,
             })

@@ -1,7 +1,7 @@
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {Component} from "react";
-import {BackHandler, ToastAndroid} from "react-native";
+import {BackHandler} from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config} from "../utils/Constants";
 import HomeScreen from "./HomeScreen";
@@ -23,11 +23,7 @@ export default class TabScreen extends Component{
         if (this.state.backTimes === 1) {
             BackHandler.exitApp();
         } else {
-            ToastAndroid.showWithGravity(
-                "再按一次退出MyMeeting",
-                ToastAndroid.SHORT,
-                ToastAndroid.CENTER,
-            )
+            toast.show('再按一次退出MyMeeting', {type: 'normal', duration: 1300, placement: 'top'});
             this.setState({
                 backTimes: 1,
             })

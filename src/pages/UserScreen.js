@@ -1,11 +1,11 @@
-import {Text, ToastAndroid, TouchableOpacity, View} from "react-native";
+import {Text, TouchableOpacity, View} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import UserInf from "../components/UserInf";
 import {StyleSheet} from "react-native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {config, config_key} from "../utils/Constants";
-import {getAvatar, logout} from "../service/UserService";
+import {getAvatar} from "../service/UserService";
 
 const Item = ({icon, text, func}) => {
     return(
@@ -32,7 +32,7 @@ export default class UserScreen extends Component{
         const {navigation} = this.props;
         const response = await getAvatar();
         if (response == null ||response.status !== 200) {
-            ToastAndroid.show('获取头像失败', 1000);
+            toast.show('获取头像失败', {type: 'warning', duration: 1300, placement: 'top'})
         } else {
             config_key.avatarUri = config.baseURL + response.data.path;
         }

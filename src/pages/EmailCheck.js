@@ -1,6 +1,6 @@
 import * as React from "react";
 import {Component} from "react";
-import {Text, TextInput, View, StyleSheet, Dimensions, ToastAndroid} from "react-native";
+import {Text, TextInput, View, StyleSheet, Dimensions} from "react-native";
 import {validateEmail} from "../utils/Utils";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
@@ -111,18 +111,10 @@ export class ValidatePage extends Component {
         const {navigation, route} = this.props;
         const response = await verifyCode(route.params.email, value);
         if (response.status === 200) {
-            ToastAndroid.showWithGravity(
-                '验证成功',
-                500,
-                ToastAndroid.CENTER
-            )
+            toast.show('验证成功', {type: 'success', duration: 1000, placement: 'top'})
             navigation.navigate('Register', {'token': response.data.token});
         } else {
-            ToastAndroid.showWithGravity(
-                '验证码错误',
-                500,
-                ToastAndroid.CENTER
-            )
+            toast.show('验证码错误', {type: 'danger', duration: 1000, placement: 'top'})
         }
     }
 

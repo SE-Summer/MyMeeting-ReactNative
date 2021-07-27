@@ -1,6 +1,6 @@
 import * as React from "react";
 import {Component} from "react";
-import {TextInput, View, StyleSheet, ToastAndroid} from "react-native";
+import {TextInput, View, StyleSheet} from "react-native";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
 import {registerService} from "../service/UserService";
@@ -76,7 +76,7 @@ export default class RegisterScreen extends Component {
                         loading: false,
                     });
                     this.props.navigation.navigate('Login');
-                    ToastAndroid.show('注册成功', ToastAndroid.SHORT);
+                    toast.show('注册成功', {type: 'success', duration: 1300, placement: 'top'});
                 } else {
                     this.setState({
                         username: null,
@@ -84,7 +84,7 @@ export default class RegisterScreen extends Component {
                         confirmPassword: null,
                         loading: false,
                     });
-                    ToastAndroid.show('出错了', ToastAndroid.SHORT);
+                    toast.show('注册失败', {type: 'danger', duration: 1300, placement: 'top'})
                 }
             })
 

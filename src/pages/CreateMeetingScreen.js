@@ -1,4 +1,4 @@
-import {View, StyleSheet, TextInput, ToastAndroid} from "react-native";
+import {View, StyleSheet, TextInput} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {SwitchItem} from "../components/Item";
@@ -56,11 +56,7 @@ export default class CreateMeetingScreen extends Component{
                             this.refs.textInput2.blur();
                             const {name, password} = this.state;
                             if (name == null || name.length === 0 || password == null || password.length !== 8) {
-                                ToastAndroid.showWithGravity(
-                                    '输入信息格式有误',
-                                    ToastAndroid.SHORT,
-                                    ToastAndroid.CENTER,
-                                )
+                                toast.show('输入信息格式有误', {type: 'warning', duration: 1300, placement: 'top'})
                                 return;
                             }
 
@@ -69,11 +65,7 @@ export default class CreateMeetingScreen extends Component{
                             }, async () => {
                                 const response = await create(this.state.name, this.state.password);
                                 if (response == null) {
-                                    ToastAndroid.showWithGravity(
-                                        '创建失败',
-                                        ToastAndroid.SHORT,
-                                        ToastAndroid.CENTER,
-                                    )
+                                    toast.show('创建失败', {type: 'danger', duration: 1300, placement: 'top'})
                                 } else {
                                     switch (response.status) {
                                         case 200: {
@@ -81,11 +73,7 @@ export default class CreateMeetingScreen extends Component{
                                             break;
                                         }
                                         case 401: {
-                                            ToastAndroid.showWithGravity(
-                                                response.data.error,
-                                                ToastAndroid.SHORT,
-                                                ToastAndroid.CENTER,
-                                            )
+                                            toast.show(response.data.error, {type: 'danger', duration: 1300, placement: 'top'});
                                         }
                                     }
                                 }
@@ -112,11 +100,7 @@ export default class CreateMeetingScreen extends Component{
                 this.props.navigation.navigate('Meeting', params);
             })
         } else {
-            ToastAndroid.showWithGravity(
-                response.data.error,
-                ToastAndroid.SHORT,
-                ToastAndroid.CENTER,
-            )
+            toast.show(response.data.error, {type: 'danger', duration: 1300, placement: 'top'});
             this.setState({
                 loading: false,
             })

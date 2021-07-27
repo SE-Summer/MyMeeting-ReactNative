@@ -1,7 +1,5 @@
 import axios from "axios";
-import {ToastAndroid} from "react-native";
 import {config} from "./Constants";
-import {printError} from "./PrintError";
 
 export const validateEmail = (email) => {
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -36,7 +34,7 @@ export const postRequest = async (url, data) => {
             return e.response;
         else {
             console.log(e)
-            ToastAndroid.show('Network Error', 1000);
+            toast.show('Network Error', {type: 'danger', duration: 1300, placement: 'top'})
             return null;
         }
     }
@@ -50,7 +48,7 @@ export const postFormData = async (url, data, config) => {
             return e.response;
         else {
             console.log(e)
-            ToastAndroid.show('Network Error', 1000);
+            toast.show('Network Error', {type: 'danger', duration: 1300, placement: 'top'});
             return null;
         }
     }
@@ -64,7 +62,7 @@ export const getRequest = async (url) => {
             return e.response;
         else {
             console.log(e)
-            ToastAndroid.show('Network Error', 1000);
+            toast.show('Network Error', {type: 'danger', duration: 1300, placement: 'top'});
             return null;
         }
     }

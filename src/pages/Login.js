@@ -6,7 +6,6 @@ import {
     ImageBackground,
     Image,
     BackHandler,
-    ToastAndroid,
     Text,
     Dimensions,
     SafeAreaView
@@ -53,11 +52,7 @@ export default class LoginScreen extends Component {
         if (this.state.backTimes === 1) {
             BackHandler.exitApp();
         } else {
-            ToastAndroid.showWithGravity(
-                "再按一次退出MyMeeting",
-                ToastAndroid.SHORT,
-                ToastAndroid.CENTER,
-            )
+            toast.show('再按一次退出MyMeeting', {type: 'normal', duration: 1300, placement: 'top'})
             this.setState({
                 backTimes: 1,
             })
