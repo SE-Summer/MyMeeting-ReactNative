@@ -131,7 +131,7 @@ export class MediaService
             } as types.JoinRequest) as { host: string, peerInfos: types.PeerInfo[] };
             // } as types.JoinRequest) as types.PeerInfo[];
 
-            // this.hostPeerId = host;
+            this.hostPeerId = host;
 
             for (const info of peerInfos) {
                 this.peerMedia.addPeerInfo(info);
