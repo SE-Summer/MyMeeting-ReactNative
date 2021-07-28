@@ -5,10 +5,8 @@ import {
     TextInput,
     ImageBackground,
     Image,
-    BackHandler,
     Text,
     Dimensions,
-    SafeAreaView
 } from "react-native";
 import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
@@ -18,6 +16,8 @@ import {config, config_key, smallUtils} from "../utils/Constants";
 import {validateEmail} from "../utils/Utils";
 import {loginService} from "../service/UserService";
 import {setInStorage} from "../utils/StorageUtils";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import RNExitApp from 'react-native-exit-app';
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
@@ -50,7 +50,7 @@ export default class LoginScreen extends Component {
 
     backAction = () => {
         if (this.state.backTimes === 1) {
-            BackHandler.exitApp();
+            RNExitApp.exitApp();
         } else {
             toast.show('再按一次退出MyMeeting', {type: 'normal', duration: 1300, placement: 'top'})
             this.setState({

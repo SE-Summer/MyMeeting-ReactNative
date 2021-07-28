@@ -5,7 +5,7 @@ import {
     Text,
     TouchableHighlight,
     Modal,
-    FlatList, BackHandler, Alert,
+    FlatList, Alert,
 } from "react-native";
 import * as React from "react";
 import {Component, useState} from "react";
