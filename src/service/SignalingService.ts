@@ -83,6 +83,7 @@ export class SignalingService
                 else
                     reject('Socket connection failed');
             }, serviceConfig.connectTimeout));
+            this.socket.connect();
             // this.socket.on('connect_error', this.timeoutCallback(() => {
             //     console.log('Socket connection failed!!!')
             //     reject();

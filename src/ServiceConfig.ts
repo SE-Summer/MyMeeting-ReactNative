@@ -60,9 +60,10 @@ export enum SignalMethod {
     connectMeeting = 'connectMeeting'
 }
 
-export const sockectConnectionOptions = {
+export const socketConnectionOptions = {
     // timeout: 3000,
-    // reconnection: true,
+    reconnection: false,
+    autoConnect: false,
     // reconnectionAttempts: Infinity,
     // reconnectionDelayMax: 2000,
     // transports: ['websocket'],

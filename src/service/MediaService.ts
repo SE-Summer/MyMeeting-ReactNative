@@ -3,7 +3,7 @@ import * as mediasoupClient from "mediasoup-client";
 import {types as mediasoupTypes} from "mediasoup-client";
 import * as types from "../utils/Types";
 import {printError} from "../utils/PrintError";
-import {serviceConfig, SignalMethod, SignalType, sockectConnectionOptions, TransportType} from "../ServiceConfig";
+import {serviceConfig, SignalMethod, SignalType, socketConnectionOptions, TransportType} from "../ServiceConfig";
 import {SignalingService} from "./SignalingService";
 import {PeerMedia} from "../utils/media/PeerMedia";
 
@@ -92,10 +92,10 @@ export class MediaService
         this.log('[Log]  Try to join meeting with roomToken = ' + roomToken);
 
         try {
-            this.signaling = new SignalingService(this.serverURL, sockectConnectionOptions, this.onSignalingDisconnect.bind(this));
+            this.signaling = new SignalingService(this.serverURL, socketConnectionOptions, this.onSignalingDisconnect.bind(this));
 
-            await this.signaling.waitForConnection();
             this.registerSignalingListeners();
+            await this.signaling.waitForConnection();
             // await this.signaling.sendRequest(SignalMethod.connectMeeting);
 
         } catch (err) {
