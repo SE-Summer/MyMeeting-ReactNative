@@ -49,6 +49,8 @@ export class MediaStreamFactory
 
     public waitForUpdate()
     {
+        if (this.updated)
+            return;
         return new Promise<void>((resolve, reject) => {
             console.log('Waiting for MediaStreamFactory to update device info...');
             this.eventEmitter.on('localDeviceUpdated', this.timeoutCallback(() => {

@@ -89,10 +89,10 @@ export default class Meeting extends Component
 
         await this.mediaStreamFactory.waitForUpdate();
         if (cameraStatus) {
-            this.openCamera();
+            await this.openCamera();
         }
         if (microphoneStatus) {
-            this.openMicrophone();
+            await this.openMicrophone();
         }
     }
 

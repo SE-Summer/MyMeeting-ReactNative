@@ -91,8 +91,8 @@ export default class LoginScreen extends Component {
             this.props.navigation.navigate('Meeting', {token: 12});
             return;
         }
-        if (userEmail != null && userEmail === 'tab') {
-            this.props.navigation.navigate('Tab');
+        if (userEmail != null && userEmail === 'chat') {
+            this.props.navigation.navigate('MeetingChat');
             return;
         }
         /*-------------------------*/
