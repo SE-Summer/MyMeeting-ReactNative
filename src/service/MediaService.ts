@@ -242,26 +242,30 @@ export class MediaService
     {
         this.joined = false;
 
-        if (!reconnect && this.signaling.isConnected())
+        if (this.signaling && this.signaling.isConnected())
             await this.signaling.sendRequest(SignalMethod.close);
 
-        this.producers.clear();
-        this.peerMedia.clear();
+        if (this.producers)
+            this.producers.clear();
+
+        if (this.peerMedia)
+            this.peerMedia.clear();
+
         this.sendTransportOpt = null;
         this.hostPeerId = null;
         this.device = new mediasoupClient.Device();
 
-        if (!this.sendTransport.closed) {
+        if (this.sendTransport && !this.sendTransport.closed) {
             this.sendTransport.close();
         }
         this.sendTransport = null;
 
-        if (!this.recvTransport.closed) {
+        if (this.recvTransport && !this.recvTransport.closed) {
             this.recvTransport.close();
         }
         this.recvTransport = null;
 
-        if (!reconnect) {
+        if (this.sendingTracks && !reconnect) {
             this.sendingTracks.clear();
         }
 

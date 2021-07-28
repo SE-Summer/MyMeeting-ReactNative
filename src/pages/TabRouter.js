@@ -34,8 +34,10 @@ export default class TabScreen extends Component{
     componentDidMount() {
         const {navigation} = this.props;
         navigation.addListener('beforeRemove', e => {
-            e.preventDefault();
-            this.backAction();
+            if (e.data.action.type === 'GO_BACK') {
+                e.preventDefault();
+                this.backAction();
+            }
         })
     }
 

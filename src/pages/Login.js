@@ -73,8 +73,10 @@ export default class LoginScreen extends Component {
             });
         })
         this.props.navigation.addListener('beforeRemove', e => {
-            e.preventDefault();
-            this.backAction();
+            if (e.data.action.type === 'GO_BACK') {
+                e.preventDefault();
+                this.backAction();
+            }
         })
     }
 

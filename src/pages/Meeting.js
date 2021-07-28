@@ -38,7 +38,7 @@ export default class Meeting extends Component
     constructor(props) {
         super(props);
         this.mediaStreamFactory = new MediaStreamFactory();
-        this.mediaService = new MediaService(this.updatePeerDetails.bind(this), this.recvMessagae.bind(this));
+        this.mediaService = new MediaService(this.updatePeerDetails.bind(this), this.recvMessage.bind(this));
         this.state = {
             view: 'portrait',
             peerDetails: null,
@@ -72,8 +72,10 @@ export default class Meeting extends Component
     handleBack = () => {
         const {navigation} = this.props;
         navigation.addListener('beforeRemove', e => {
-            e.preventDefault();
-            this.backAction();
+            if (e.data.action.type === 'GO_BACK') {
+                e.preventDefault();
+                this.backAction();
+            }
         })
     }
 
