@@ -9,8 +9,6 @@ import * as Progress from "react-native-progress";
 const styles = StyleSheet.create({
     input: {
         fontSize: 17,
-        marginLeft: 30,
-        marginRight: 30,
     },
     inputContainer: {
         backgroundColor: "white",

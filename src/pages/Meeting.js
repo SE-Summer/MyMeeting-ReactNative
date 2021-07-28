@@ -121,7 +121,7 @@ export default class Meeting extends Component
     }
 
     openCamera = async () => {
-        const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width, this.state.height * 3 / 4, 30);
+        const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width * 2, this.state.height * 3 / 2, 30);
 
         if (camStream.getVideoTracks().length === 0) {
             return Promise.reject("Fail to get local camera media.");
@@ -333,8 +333,8 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
             position: 'absolute',
             left: 0,
             top: 0,
-            width: width,
-            height: height,
+            width: width - 3,
+            height: height - 3,
         },
     })
 
@@ -352,9 +352,9 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
                 <TouchableOpacity style={portraitStyle.smallWindow} onPress={() => {setPeerBig(!peerBig)}}>
                     {
                         peerBig ?
-                            <MyStreamWindow rtcViewStyle={{width: width/3, height: height/3}} myStream={myStream} zOrder={1} />
+                            <MyStreamWindow rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}} myStream={myStream} zOrder={1} />
                             :
-                            <PeerWindow rtcViewStyle={{width: width/3, height: height/3}} peerToShow={peerToShow} zOrder={1}/>
+                            <PeerWindow rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}} peerToShow={peerToShow} zOrder={1}/>
                     }
                 </TouchableOpacity>
             </View>
