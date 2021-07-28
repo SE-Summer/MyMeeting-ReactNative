@@ -7,7 +7,7 @@ import {config_key} from "../utils/Constants";
 
 export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
     return (
-        <View style={{flex: 1}}>
+        <View style={{flex: 1, borderWidth: 1, borderColor: '#aaaaaa'}}>
             <UserLabel text={peerToShow.peerInfo.displayName}/>
             {
                 peerToShow.hasVideo() ?
@@ -24,7 +24,7 @@ export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
 
 export const MyStreamWindow = ({rtcViewStyle, myStream, zOrder}) => {
     return (
-        <View style={{flex: 1}}>
+        <View style={{flex: 1, borderWidth: 1, borderColor: '#aaaaaa'}}>
             <UserLabel text={config_key.username} />
             {
                 myStream ?
