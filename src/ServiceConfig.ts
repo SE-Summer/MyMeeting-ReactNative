@@ -54,7 +54,8 @@ export enum SignalMethod {
     peerClosed = 'peerClosed',
     close = 'close',
     sendMessage = 'sendMessage',
-    newMessage = 'newMessage'
+    newMessage = 'newMessage',
+    hostChanged = 'hostChanged'
 }
 
 export const sockectConnectionOptions = {
