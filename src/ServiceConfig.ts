@@ -56,7 +56,8 @@ export enum SignalMethod {
     close = 'close',
     sendMessage = 'sendMessage',
     newMessage = 'newMessage',
-    hostChanged = 'hostChanged'
+    hostChanged = 'hostChanged',
+    connectMeeting = 'connectMeeting'
 }
 
 export const sockectConnectionOptions = {

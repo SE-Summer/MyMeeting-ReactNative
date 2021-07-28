@@ -84,18 +84,19 @@ export class MediaService
             return;
         }
 
-        this.log('[Log]  Try to join meeting with roomToken = ' + roomToken);
         this.roomToken = roomToken;
         this.userToken = userToken;
         this.serverURL = `${serviceConfig.serverURL}?roomId=${this.roomToken}&peerId=${this.userToken}`;
         this.displayName = displayName;
         this.deviceName = deviceName;
+        this.log('[Log]  Try to join meeting with roomToken = ' + roomToken);
 
         try {
             this.signaling = new SignalingService(this.serverURL, sockectConnectionOptions, this.onSignalingDisconnect.bind(this));
 
             await this.signaling.waitForConnection();
             this.registerSignalingListeners();
+            // await this.signaling.sendRequest(SignalMethod.connectMeeting);
 
         } catch (err) {
             this.log('[Error]  Fail to connect socket', err);
@@ -122,13 +123,15 @@ export class MediaService
 
         try {
             const { host, peerInfos } = await this.signaling.sendRequest(SignalMethod.join, {
+            // const peerInfos = await this.signaling.sendRequest(SignalMethod.join, {
                 displayName: this.displayName,
                 joined: this.joined,
                 device: this.deviceName,
                 rtpCapabilities: this.device.rtpCapabilities,
             } as types.JoinRequest) as { host: string, peerInfos: types.PeerInfo[] };
+            // } as types.JoinRequest) as types.PeerInfo[];
 
-            this.hostPeerId = host;
+            // this.hostPeerId = host;
 
             for (const info of peerInfos) {
                 this.peerMedia.addPeerInfo(info);
@@ -362,6 +365,7 @@ export class MediaService
             });
             this.log('[Signaling]  Creating consumer kind = ' + data.kind);
             const { track } = consumer;
+            console.log('Received track', track);
             this.log(`[Signaling]  Add trackId = ${track.id} sent from peerId = ${data.producerPeerId}`);
             this.peerMedia.addConsumerAndTrack(data.producerPeerId, consumer, track);
             this.updatePeerCallback();
