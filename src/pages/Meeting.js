@@ -152,7 +152,7 @@ export default class Meeting extends Component
         })
     }
 
-    recvMessagae(message) {
+    recvMessage(message) {
 
     }
 
