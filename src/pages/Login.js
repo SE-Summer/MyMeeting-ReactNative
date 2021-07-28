@@ -71,10 +71,10 @@ export default class LoginScreen extends Component {
                 EmailTip: null,
                 passwordTip: null,
             });
-            BackHandler.addEventListener("hardwareBackPress", this.backAction);
         })
-        this.props.navigation.addListener('blur', () => {
-            BackHandler.removeEventListener("hardwareBackPress", this.backAction);
+        this.props.navigation.addListener('beforeRemove', e => {
+            e.preventDefault();
+            this.backAction();
         })
     }
 

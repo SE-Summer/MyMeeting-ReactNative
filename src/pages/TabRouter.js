@@ -33,11 +33,9 @@ export default class TabScreen extends Component{
 
     componentDidMount() {
         const {navigation} = this.props;
-        navigation.addListener('focus', () => {
-            BackHandler.addEventListener("hardwareBackPress", this.backAction)
-        });
-        navigation.addListener('blur', () => {
-            BackHandler.removeEventListener("hardwareBackPress", this.backAction);
+        navigation.addListener('beforeRemove', e => {
+            e.preventDefault();
+            this.backAction();
         })
     }
 

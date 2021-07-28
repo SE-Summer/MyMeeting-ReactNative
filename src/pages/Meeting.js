@@ -71,12 +71,10 @@ export default class Meeting extends Component
 
     handleBack = () => {
         const {navigation} = this.props;
-        navigation.addListener('focus', () => {
-            BackHandler.addEventListener('hardwareBackPress', this.backAction)
-        });
-        navigation.addListener('blur', () => {
-            BackHandler.removeEventListener('hardwareBackPress', this.backAction)
-        });
+        navigation.addListener('beforeRemove', e => {
+            e.preventDefault();
+            this.backAction();
+        })
     }
 
     async componentDidMount() {
@@ -183,11 +181,11 @@ export default class Meeting extends Component
     }
 
     openChatRoom = () => {
-
+        this.props.navigation.navigate('MeetingChat');
     }
 
-    onSwipeLeft(gestureState) {
-        if (this.state.peerDetails) {
+    onSwipeLeft() {
+        if (this.state.view === 'portrait' && this.state.peerDetails) {
             if (this.state.portraitIndex < this.state.peerDetails.length - 1) {
                 this.setState({
                     portraitIndex: ++this.state.portraitIndex,
@@ -196,8 +194,8 @@ export default class Meeting extends Component
         }
     }
 
-    onSwipeRight(gestureState) {
-        if (this.state.peerDetails) {
+    onSwipeRight() {
+        if (this.state.view === 'portrait' && this.state.peerDetails) {
             if (this.state.portraitIndex > 0) {
                 this.setState({
                     portraitIndex: --this.state.portraitIndex,
@@ -222,8 +220,8 @@ export default class Meeting extends Component
                 <View style={{flex: 1}} onLayout={this.onLayout}>
 
                     <GestureRecognizer
-                        onSwipeLeft={(state) => this.onSwipeLeft(state)}
-                        onSwipeRight={(state) => this.onSwipeRight(state)}
+                        onSwipeLeft={() => this.onSwipeLeft()}
+                        onSwipeRight={() => this.onSwipeRight()}
                         config={{
                             velocityThreshold: 0.3,
                             directionalOffsetThreshold: 80
@@ -278,14 +276,13 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait}) => {
     })
 
     let streamData = [];
-    let myS = false, peer = false;
+    let myS = false;
     if (myStream) {
         streamData.push(myStream);
         myS = true;
     }
     if (peerDetails) {
         streamData.push(...peerDetails);
-        peer = true
     }
 
 
