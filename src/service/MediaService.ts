@@ -151,7 +151,7 @@ export class MediaService
     public async reconnect()
     {
         this.log('[Socket]  Trying to reconnect...');
-        await this.leaveMeeting();
+        await this.leaveMeeting(true);
         await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName);
 
         let tracks: MediaStreamTrack[] = [];
@@ -234,12 +234,17 @@ export class MediaService
         }
     }
 
-    public async leaveMeeting()
+    public async leaveMeeting(reconnect: boolean = false)
     {
         this.joined = false;
 
-        if (this.signaling.isConnected())
+        if (!reconnect && this.signaling.isConnected())
             await this.signaling.sendRequest(SignalMethod.close);
+
+        this.producers.clear();
+        this.peerMeida.clear();
+        this.sendTransportOpt = null;
+        this.device = new mediasoupClient.Device();
 
         if (!this.sendTransport.closed) {
             this.sendTransport.close();
@@ -250,11 +255,11 @@ export class MediaService
             this.recvTransport.close();
         }
         this.recvTransport = null;
-        this.sendTransportOpt = null;
-        this.device = new mediasoupClient.Device();
-        this.sendingTracks.clear();
-        this.producers.clear();
-        this.peerMeida.clear();
+
+        if (!reconnect) {
+            this.sendingTracks.clear();
+        }
+
         this.signaling = null;
     }
 
