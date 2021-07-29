@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {View} from "react-native";
+import {Text, View} from "react-native";
 import {UserLabel} from "./UserLabel";
 import {RTCView} from "react-native-webrtc";
 import {DefaultPic, DefaultWithAudioPic} from "./DefaultPic";
@@ -11,22 +11,11 @@ export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
             <UserLabel text={peerToShow.peerInfo.displayName}/>
             {
                 peerToShow.hasVideo() ?
-                    (
-                        peerToShow.hasAudio() ?
-                            <View style={rtcViewStyle}>
-                                <RTCView
-                                    zOrder={3}
-                                    style={{flex: 1}}
-                                    streamURL={(new MediaStream(peerToShow.getTracks())).toURL()}
-                                />
-                            </View>
-                            :
-                            <RTCView
-                                zOrder={zOrder}
-                                style={[rtcViewStyle]}
-                                streamURL={(new MediaStream(peerToShow.getTracks())).toURL()}
-                            />
-                    )
+                    <RTCView
+                        zOrder={zOrder}
+                        style={[rtcViewStyle]}
+                        streamURL={(new MediaStream(peerToShow.getTracks())).toURL()}
+                    />
                      :
                     (
                         peerToShow.hasAudio() ?
