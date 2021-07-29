@@ -20,7 +20,7 @@ const calColorIndex = index => {
 export const ListItem = ({date, item, index, pressEvent}) => {
     const theColor = colors[calColorIndex(index)];
     let icon, iconColor, onPress, shareColor;
-    if (moment(date).isBefore(item.end_time, 'minute') && moment(date).isAfter(item.start_time, 'minute')) {
+    if (moment(date).isSameOrBefore(item.end_time, 'minute') && moment(date).isSameOrAfter(item.start_time, 'minute')) {
         icon = 'door-open';
         iconColor = theColor;
         onPress = async () => {
