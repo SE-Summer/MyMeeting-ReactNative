@@ -83,7 +83,7 @@ export class SignalingService
                 this.socket.emit(SignalType.request, { method, data },
                     timeoutCallback((err, response) => {
                         if (err) {
-                            console.log('[Socket]  sendRequest ' + method + ' error! ', this.socket);
+                            console.error('[Socket]  sendRequest ' + method + ' error!');
                             reject(err);
                         } else {
                             resolve(response);

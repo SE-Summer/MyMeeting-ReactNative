@@ -59,7 +59,8 @@ export enum SignalMethod {
     newMessage = 'newMessage',
     hostChanged = 'hostChanged',
     connectMeeting = 'connectMeeting',
-    allowed = 'allowed'
+    allowed = 'allowed',
+    mute = 'mute'
 }
 
 export const socketConnectionOptions = {
