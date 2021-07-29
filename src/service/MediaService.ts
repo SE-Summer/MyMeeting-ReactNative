@@ -6,6 +6,8 @@ import {printError} from "../utils/PrintError";
 import {serviceConfig, SignalMethod, SignalType, socketConnectionOptions, TransportType} from "../ServiceConfig";
 import {SignalingService} from "./SignalingService";
 import {PeerMedia} from "../utils/media/PeerMedia";
+import {timeoutCallback} from "../utils/media/MediaUtils";
+import * as events from "events"
 
 export class MediaService
 {
@@ -17,20 +19,23 @@ export class MediaService
 
     private signaling: SignalingService = null;
     private device: mediasoupTypes.Device = null;
+    private eventEmitter: events.EventEmitter = null;
 
     private sendTransport: mediasoupTypes.Transport = null;
     private recvTransport: mediasoupTypes.Transport = null;
 
     // track.id ==> MediaStreamTrack
-    private sendingTracks: Map<string, MediaStreamTrack> = null;
+    private readonly sendingTracks: Map<string, MediaStreamTrack> = null;
     // track.id ==> producer
-    private producers: Map<string, mediasoupTypes.Producer> = null;
-    private peerMedia: PeerMedia = null;
+    private readonly producers: Map<string, mediasoupTypes.Producer> = null;
+    private readonly peerMedia: PeerMedia = null;
 
     private hostPeerId: string = null;
 
     private sendTransportOpt: mediasoupTypes.TransportOptions = null;
     private joined: boolean = null;
+    private permissionUpdated: boolean = null;
+    private allowed: boolean = null;
 
     private readonly updatePeerCallback: () => void = null;
     private readonly newMessageCallback: (message: types.RecvPeerMessage) => void = null;
@@ -46,6 +51,8 @@ export class MediaService
             this.peerMedia = new PeerMedia();
 
             this.joined = false;
+            this.permissionUpdated = false;
+            this.allowed = false;
             this.updatePeerCallback = updatePeerCallback;
             this.newMessageCallback = newMessageCallback;
 
@@ -68,6 +75,27 @@ export class MediaService
         if (err) {
             printError(err);
         }
+    }
+
+    private waitForAllowed(): Promise<void>
+    {
+        return new Promise<void>((resolve, reject) => {
+            if (this.permissionUpdated) {
+                if (this.allowed) {
+                    this.log('[Log]  Server allowed the connection')
+                    resolve();
+                } else
+                    reject('[Error]  Server reject the connection');
+            }
+            console.log('Waiting for server to allow the connection...');
+            this.eventEmitter.on('permissionUpdated', timeoutCallback(() => {
+                if (this.allowed) {
+                    this.log('[Log]  Server allowed the connection')
+                    resolve();
+                } else
+                    reject('[Error]  Server reject the connection');
+            }, serviceConfig.mediaTimeout));
+        })
     }
 
 
@@ -96,7 +124,7 @@ export class MediaService
 
             this.registerSignalingListeners();
             await this.signaling.waitForConnection();
-            // await this.signaling.sendRequest(SignalMethod.connectMeeting);
+            await this.waitForAllowed();
 
         } catch (err) {
             this.log('[Error]  Fail to connect socket', err);
@@ -244,6 +272,8 @@ export class MediaService
     public async leaveMeeting(reconnect: boolean = false)
     {
         this.joined = false;
+        this.permissionUpdated = false;
+        this.allowed = false;
 
         if (this.signaling && this.signaling.isConnected())
             await this.signaling.sendRequest(SignalMethod.close);
@@ -348,6 +378,12 @@ export class MediaService
 
     private registerSignalingListeners()
     {
+        this.signaling.registerListener(SignalType.notify, SignalMethod.allowed, ({ allowed }) => {
+            this.permissionUpdated = true;
+            this.allowed = allowed;
+            this.eventEmitter.emit('permissionUpdated');
+        });
+
         this.signaling.registerListener(SignalType.notify, SignalMethod.newPeer, async (data: types.PeerInfo) => {
             this.log('[Signaling]  Handling newPeer notification...');
             this.peerMedia.addPeerInfo(data);

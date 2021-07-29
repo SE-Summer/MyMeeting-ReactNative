@@ -17,6 +17,7 @@ export const serviceConfig = {
     requestTimeout: 10000,
     connectTimeout: 20000,
     mediaTimeout: 10000,
+    allowTimeout: 5000,
     serverIp: config.serverIp,
     serverPort: config.serverPort,
     serverURL: _serverURL,
@@ -57,7 +58,8 @@ export enum SignalMethod {
     sendMessage = 'sendMessage',
     newMessage = 'newMessage',
     hostChanged = 'hostChanged',
-    connectMeeting = 'connectMeeting'
+    connectMeeting = 'connectMeeting',
+    allowed = 'allowed'
 }
 
 export const socketConnectionOptions = {

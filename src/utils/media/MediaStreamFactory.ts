@@ -2,6 +2,7 @@ import {printError} from "../PrintError";
 import {mediaDevices} from "react-native-webrtc";
 import {serviceConfig} from "../../ServiceConfig";
 import * as events from "events"
+import {timeoutCallback} from "./MediaUtils";
 
 
 export class MediaStreamFactory
@@ -24,36 +25,13 @@ export class MediaStreamFactory
         }
     }
 
-    private timeoutCallback(callback, timeout: number)
-    {
-        let called = false;
-
-        const interval = setTimeout(() => {
-            if (called) {
-                return;
-            }
-            called = true;
-            callback(new Error('Update device timeout.'), null);
-        }, timeout);
-
-        return (...args) => {
-            if (called) {
-                return;
-            }
-            called = true;
-            clearTimeout(interval);
-
-            callback(...args);
-        };
-    }
-
     public waitForUpdate()
     {
         if (this.updated)
             return;
         return new Promise<void>((resolve, reject) => {
             console.log('Waiting for MediaStreamFactory to update device info...');
-            this.eventEmitter.on('localDeviceUpdated', this.timeoutCallback(() => {
+            this.eventEmitter.on('localDeviceUpdated', timeoutCallback(() => {
                 if (this.updated) {
                     console.log('Device info of MediaStreamFactory updated');
                     resolve();
@@ -63,7 +41,7 @@ export class MediaStreamFactory
         });
     }
 
-    private async updateLocalDeviceInfos()
+    private async updateLocalDeviceInfos(): Promise<void>
     {
         try {
             this.camEnvDeviceId = null;
