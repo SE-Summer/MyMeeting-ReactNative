@@ -7,7 +7,6 @@ import {SignalingService} from "./SignalingService";
 import {PeerMedia} from "../utils/media/PeerMedia";
 import {timeoutCallback} from "../utils/media/MediaUtils";
 import * as events from "events"
-import {err} from "react-native-svg/lib/typescript/xml";
 
 export class MediaService
 {
@@ -82,15 +81,16 @@ export class MediaService
                     resolve();
                 } else
                     reject('[Error]  Server reject the connection');
+            } else {
+                console.log('[Log] Waiting for server to allow the connection...');
+                this.eventEmitter.on('permissionUpdated', timeoutCallback(() => {
+                    if (this.allowed) {
+                        console.log('[Log]  Server allowed the connection')
+                        resolve();
+                    } else
+                        reject('[Error]  Server reject the connection');
+                }, serviceConfig.mediaTimeout));
             }
-            console.log('[Log] Waiting for server to allow the connection...');
-            this.eventEmitter.on('permissionUpdated', timeoutCallback(() => {
-                if (this.allowed) {
-                    console.log('[Log]  Server allowed the connection')
-                    resolve();
-                } else
-                    reject('[Error]  Server reject the connection');
-            }, serviceConfig.mediaTimeout));
         })
     }
 
@@ -175,11 +175,26 @@ export class MediaService
     {
         console.warn('[Socket]  Disconnected');
         if (this.joined) {
-            await this.reconnect();
+            try {
+                await this.signaling.waitForReconnection();
+                await this.restartIce();
+            } catch (err) {
+                await this.reconnect();
+            }
         }
     }
 
-    public async reconnect()
+    private async restartIce()
+    {
+        console.log('[Socket]  Trying to restartIce...');
+        let iceParameters = await this.signaling.sendRequest(SignalMethod.restartIce, this.sendTransport.id) as mediasoupTypes.IceParameters;
+        await this.sendTransport.restartIce({ iceParameters });
+
+        iceParameters = await this.signaling.sendRequest(SignalMethod.restartIce, this.recvTransport.id) as mediasoupTypes.IceParameters;
+        await this.recvTransport.restartIce({ iceParameters });
+    }
+
+    private async reconnect()
     {
         console.log('[Socket]  Trying to reconnect...');
         await this.leaveMeeting(true);
@@ -271,7 +286,7 @@ export class MediaService
         this.permissionUpdated = false;
         this.allowed = false;
 
-        if (this.signaling && this.signaling.isConnected()) {
+        if (this.signaling && this.signaling.connected()) {
             try {
                 await this.signaling.sendRequest(SignalMethod.close);
             } catch (err) {
@@ -310,6 +325,7 @@ export class MediaService
     public async closeTrack(track: MediaStreamTrack)
     {
         const producer = this.producers.get(track.id);
+        console.log(`[Log]  Try to close track track.id = ${track.id}`);
 
         try {
             await this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
@@ -323,6 +339,8 @@ export class MediaService
         }
         this.producers.delete(track.id);
         this.sendingTracks.delete(track.id);
+
+        console.log(`[Log]  Track closed`);
     }
 
     // if peerId is not passed, (or = null), it means mute all peers in the room

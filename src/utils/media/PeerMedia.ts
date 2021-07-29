@@ -1,6 +1,12 @@
 import {types as mediasoupTypes} from "mediasoup-client";
 import * as types from "../Types";
 
+const defaultPeerInfo: types.PeerInfo = {
+    id: 'defaultUser_defaultUser',
+    displayName: 'defaultUser',
+    device: 'defaultDevice'
+}
+
 class PeerDetail
 {
     private _hasAudio: boolean = null;
@@ -61,7 +67,10 @@ class PeerDetail
 
     public getPeerInfo()
     {
-        return this.peerInfo;
+        if (this.peerInfo)
+            return this.peerInfo;
+        else
+            return defaultPeerInfo;
     }
 
     public getTracks()

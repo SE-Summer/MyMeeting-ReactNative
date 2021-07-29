@@ -16,6 +16,7 @@ const _serverURL = (config.serverUseHttps ? 'https://' : 'http://') + config.ser
 export const serviceConfig = {
     requestTimeout: 10000,
     connectTimeout: 20000,
+    reconnectTimeout: 30000,
     mediaTimeout: 10000,
     allowTimeout: 5000,
     serverIp: config.serverIp,
@@ -60,14 +61,15 @@ export enum SignalMethod {
     hostChanged = 'hostChanged',
     connectMeeting = 'connectMeeting',
     allowed = 'allowed',
-    mute = 'mute'
+    mute = 'mute',
+    restartIce = 'restartIce',
 }
 
 export const socketConnectionOptions = {
     // timeout: 3000,
-    reconnection: false,
+    reconnection: true,
     autoConnect: false,
-    // reconnectionAttempts: Infinity,
-    // reconnectionDelayMax: 2000,
-    // transports: ['websocket'],
+    reconnectionAttempts: Infinity,
+    reconnectionDelayMax: 2000,
+    transports: ['websocket'],
 }
