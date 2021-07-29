@@ -50,6 +50,8 @@ export class MediaService
             this.producers = new Map<string, mediasoupTypes.Producer>();
             this.peerMedia = new PeerMedia();
 
+            this.eventEmitter = new events.EventEmitter();
+
             this.joined = false;
             this.permissionUpdated = false;
             this.allowed = false;
@@ -87,7 +89,7 @@ export class MediaService
                 } else
                     reject('[Error]  Server reject the connection');
             }
-            console.log('Waiting for server to allow the connection...');
+            this.log('[Log]  Waiting for server to allow the connection...');
             this.eventEmitter.on('permissionUpdated', timeoutCallback(() => {
                 if (this.allowed) {
                     this.log('[Log]  Server allowed the connection')
@@ -127,9 +129,9 @@ export class MediaService
             await this.waitForAllowed();
 
         } catch (err) {
-            this.log('[Error]  Fail to connect socket', err);
-            await this.leaveMeeting();
-            return Promise.reject('Fail to connect socket');
+            this.log('[Error]  Fail to connect socket or the server rejected');
+            await this.signaling.disconnect();
+            return Promise.reject('Fail to connect socket or the server rejected');
         }
 
         try {
@@ -301,7 +303,7 @@ export class MediaService
         if (this.sendingTracks && !reconnect) {
             this.sendingTracks.clear();
         }
-
+        this.signaling.disconnect();
         this.signaling = null;
     }
 
@@ -379,6 +381,7 @@ export class MediaService
     private registerSignalingListeners()
     {
         this.signaling.registerListener(SignalType.notify, SignalMethod.allowed, ({ allowed }) => {
+            this.log(`[Signaling]  Handling allowed notification with allowed = ${allowed} ...`);
             this.permissionUpdated = true;
             this.allowed = allowed;
             this.eventEmitter.emit('permissionUpdated');
