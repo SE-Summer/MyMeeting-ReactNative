@@ -23,7 +23,7 @@ export const postRequest = async (url, data) => {
     //     const response = await fetch(url, opts);
     //     return response.json();
     // } catch (err) {
-    //     printError(err);
+    //     logger(err);
     //     return null;
     // }
 

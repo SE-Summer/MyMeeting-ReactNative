@@ -1,4 +1,4 @@
-import {printError} from "../PrintError";
+import {logger} from "../Logger";
 import {mediaDevices} from "react-native-webrtc";
 import {serviceConfig} from "../../ServiceConfig";
 import * as events from "events"
@@ -30,10 +30,10 @@ export class MediaStreamFactory
         if (this.updated)
             return;
         return new Promise<void>((resolve, reject) => {
-            console.log('Waiting for MediaStreamFactory to update device info...');
+            logger.info('Waiting for MediaStreamFactory to update device info...');
             this.eventEmitter.on('localDeviceUpdated', timeoutCallback(() => {
                 if (this.updated) {
-                    console.log('Device info of MediaStreamFactory updated');
+                    logger.info('Device info of MediaStreamFactory updated');
                     resolve();
                 } else
                     reject('Device info update failed');
@@ -73,7 +73,7 @@ export class MediaStreamFactory
             this.updated = true;
             this.eventEmitter.emit('localDeviceUpdated');
         } catch (err) {
-            printError(err);
+            logger.error(err);
         }
     }
 
@@ -113,7 +113,7 @@ export class MediaStreamFactory
         try {
             return await mediaDevices.getUserMedia(constraints)
         } catch (err) {
-            printError(err);
+            logger.error(err);
             return Promise.reject("Fail to get camera env stream.");
         }
     }
@@ -134,7 +134,7 @@ export class MediaStreamFactory
         try {
             return await mediaDevices.getUserMedia(constraints);
         } catch (err) {
-            printError(err);
+            logger.error(err);
             return Promise.reject("Fail to get camera front stream.");
         }
     }
@@ -154,7 +154,7 @@ export class MediaStreamFactory
         try {
             return await mediaDevices.getUserMedia(constraints)
         } catch (err) {
-            printError(err);
+            logger.error(err);
             return Promise.reject("Fail to get camera front stream.");
         }
     }
@@ -173,7 +173,7 @@ export class MediaStreamFactory
         try {
             return await mediaDevices.getDisplayMedia(constraints);
         } catch (err) {
-            printError(err);
+            logger.error(err);
             return Promise.reject("Fail to get display stream.");
         }
     }

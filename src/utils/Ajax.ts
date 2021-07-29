@@ -1,4 +1,4 @@
-import {printError} from "./PrintError";
+import {logger} from "./Logger";
 
 async function getRequest(url: string)
 {
@@ -6,7 +6,7 @@ async function getRequest(url: string)
         const response = await fetch(url, {method: 'GET'});
         return response.json();
     } catch (err) {
-        printError(err);
+        logger(err);
     }
 }
 
@@ -23,7 +23,7 @@ async function postRequest(url: string, json: Object)
         const response = await fetch(url, opts);
         return response.json();
     } catch (err) {
-        printError(err);
+        logger(err);
     }
 }
 
