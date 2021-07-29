@@ -7,6 +7,7 @@ import {
     Image,
     Text,
     Dimensions,
+    Animated,
 } from "react-native";
 import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
@@ -223,14 +224,15 @@ export default class LoginScreen extends Component {
                         </ImageBackground>
                     </View>
                     <View style={styles.buttonContainer}>
-                        <MyButton pressEvent={this.log} text={"登录"}/>
-                        <View style={{width: 30}}/>
-                        <MyButton pressEvent={this.register} text={"注册"}/>
+                        <Animated.View style={{position: 'absolute', left: windowWidth / 4 - 65, top: windowHeight / 20,}}>
+                            <MyButton pressEvent={this.log} text={"登录"}/>
+                        </Animated.View>
+                        <Animated.View style={{position: 'absolute', left: windowWidth * 0.75 - 65, top: windowHeight / 20,}}>
+                            <MyButton pressEvent={this.register} text={"注册"}/>
+                        </Animated.View>
                     </View>
                 </KeyboardAwareScrollView>
             </SafeAreaView>
-
-
         )
     }
 }
@@ -250,8 +252,6 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
         height: windowHeight * 0.18,
     },
     imgFillContainer: {

@@ -40,6 +40,7 @@ export const MyButton = ({text, pressEvent}) => {
     return (
         <TouchableOpacity
             onPress={pressEvent}
+            activeOpacity={0.4}
         >
             <ImageBackground source={require('../../assets/image/myButton.png')} style={buttonStyle.img}>
                 <Text style={buttonStyle.text}>{text}</Text>
