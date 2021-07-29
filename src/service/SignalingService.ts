@@ -69,6 +69,11 @@ export class SignalingService
         });
     }
 
+    public disconnect()
+    {
+        this.socket.disconnect();
+    }
+
     public sendRequest(method: SignalMethod, data = null)
     {
         return new Promise((resolve, reject) => {

@@ -2,7 +2,7 @@ import {registerGlobals} from 'react-native-webrtc'
 import * as mediasoupClient from "mediasoup-client";
 import {types as mediasoupTypes} from "mediasoup-client";
 import * as types from "../utils/Types";
-import {printError} from "../utils/PrintError";
+import {logger} from "../utils/Logger";
 import {serviceConfig, SignalMethod, SignalType, socketConnectionOptions, TransportType} from "../ServiceConfig";
 import {SignalingService} from "./SignalingService";
 import {PeerMedia} from "../utils/media/PeerMedia";
@@ -50,6 +50,8 @@ export class MediaService
             this.producers = new Map<string, mediasoupTypes.Producer>();
             this.peerMedia = new PeerMedia();
 
+            this.eventEmitter = new events.EventEmitter();
+
             this.joined = false;
             this.permissionUpdated = false;
             this.allowed = false;
@@ -57,7 +59,7 @@ export class MediaService
             this.newMessageCallback = newMessageCallback;
 
         } catch (err) {
-            printError(err);
+            logger.error(err);
         }
     }
 
@@ -66,15 +68,9 @@ export class MediaService
         return this.peerMedia.getPeerDetails();
     }
 
-    private log(info: string, err = null)
+    public getHostPeerId()
     {
-        if (!info || !this.device) {
-            console.log('[Logger error] Try to access null');
-        }
-        console.log(`${info}   with device name: ${this.deviceName}`);
-        if (err) {
-            printError(err);
-        }
+        return this.hostPeerId;
     }
 
     private waitForAllowed(): Promise<void>
@@ -82,15 +78,15 @@ export class MediaService
         return new Promise<void>((resolve, reject) => {
             if (this.permissionUpdated) {
                 if (this.allowed) {
-                    this.log('[Log]  Server allowed the connection')
+                    logger.info('Server allowed the connection')
                     resolve();
                 } else
                     reject('[Error]  Server reject the connection');
             }
-            console.log('Waiting for server to allow the connection...');
+            logger.info('Waiting for server to allow the connection...');
             this.eventEmitter.on('permissionUpdated', timeoutCallback(() => {
                 if (this.allowed) {
-                    this.log('[Log]  Server allowed the connection')
+                    logger.info('[Log]  Server allowed the connection')
                     resolve();
                 } else
                     reject('[Error]  Server reject the connection');
@@ -108,7 +104,7 @@ export class MediaService
     public async joinMeeting(roomToken: string, userToken: string, displayName: string, deviceName: string): Promise<void>
     {
         if (this.joined) {
-            this.log('[Log]  Already joined a meeting');
+            logger.warn('Already joined a meeting');
             return;
         }
 
@@ -117,7 +113,7 @@ export class MediaService
         this.serverURL = `${serviceConfig.serverURL}?roomId=${this.roomToken}&peerId=${this.userToken}`;
         this.displayName = displayName;
         this.deviceName = deviceName;
-        this.log('[Log]  Try to join meeting with roomToken = ' + roomToken);
+        logger.info('Try to join meeting with roomToken = ' + roomToken);
 
         try {
             this.signaling = new SignalingService(this.serverURL, socketConnectionOptions, this.onSignalingDisconnect.bind(this));
@@ -127,14 +123,14 @@ export class MediaService
             await this.waitForAllowed();
 
         } catch (err) {
-            this.log('[Error]  Fail to connect socket', err);
-            await this.leaveMeeting();
-            return Promise.reject('Fail to connect socket');
+            logger.error('Fail to connect socket or the server rejected', err);
+            await this.signaling.disconnect();
+            return Promise.reject('Fail to connect socket or the server rejected');
         }
 
         try {
             const rtpCapabilities = await this.signaling.sendRequest(SignalMethod.getRouterRtpCapabilities);
-            this.log('[Log]  Router RTP Capabilities received');
+            logger.info('Router RTP Capabilities received');
 
             if (!this.device.loaded) {
                 await this.device.load({routerRtpCapabilities: rtpCapabilities});
@@ -144,7 +140,7 @@ export class MediaService
             await this.createRecvTransport();
 
         } catch (err) {
-            this.log('[Error]  Fail to prepare device and transports', err);
+            logger.error('Fail to prepare device and transports', err);
             await this.leaveMeeting();
             return Promise.reject('Fail to prepare device and transports');
         }
@@ -169,7 +165,7 @@ export class MediaService
             this.joined = true;
 
         } catch (err) {
-            this.log('[Error]  Fail to join the meeting', err);
+            logger.error('Fail to join the meeting', err);
             await this.leaveMeeting();
             return Promise.reject('Fail to join the meeting');
         }
@@ -177,7 +173,7 @@ export class MediaService
 
     public async onSignalingDisconnect()
     {
-        this.log('[Socket]  Disconnected');
+        logger.warn('Socket Disconnected');
         if (this.joined) {
             await this.reconnect();
         }
@@ -185,7 +181,7 @@ export class MediaService
 
     public async reconnect()
     {
-        this.log('[Socket]  Trying to reconnect...');
+        logger.info('Socket trying to reconnect...');
         await this.leaveMeeting(true);
         await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName);
 
@@ -194,7 +190,7 @@ export class MediaService
             tracks.push(track);
         })
         await this.sendMediaStream(new MediaStream(tracks));
-        this.log('[Socket]  Reconnected');
+        logger.info('Socket reconnected');
     }
 
 
@@ -225,7 +221,7 @@ export class MediaService
                 const producer = await this.sendTransport.produce(params);
 
                 producer.on('transportclose', () => {
-                    this.log(`[Producer event]  ${source}_transport_close`);
+                    logger.info(`[Producer event]  ${source}_transport_close`);
                     if (!producer.closed) {
                         producer.close();
                     }
@@ -233,7 +229,7 @@ export class MediaService
                 });
 
                 producer.on('trackended', () => {
-                    this.log(`[Producer event]  ${source}_track_ended`);
+                    logger.info(`[Producer event]  ${source}_track_ended`);
                     this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
                     if (!producer.closed) {
                         producer.close();
@@ -243,11 +239,11 @@ export class MediaService
 
                 this.producers.set(track.id, producer);
 
-                this.log(`[Log]  Producing ${source}`);
+                logger.info(`Producing ${source}`);
                 this.sendingTracks.set(track.id, track);
             }
         } catch (err) {
-            this.log('[Error]  Fail to send MediaStream', err);
+            logger.error('Fail to send MediaStream', err);
             return Promise.reject('Fail to send MediaStream');
         }
     }
@@ -264,7 +260,7 @@ export class MediaService
             await this.signaling.sendRequest(SignalMethod.sendMessage, message);
 
         } catch (err) {
-            this.log('[Error]  Fail to send peer message');
+            logger.error('Fail to send peer message');
             return Promise.reject('Fail to send peer message');
         }
     }
@@ -301,7 +297,7 @@ export class MediaService
         if (this.sendingTracks && !reconnect) {
             this.sendingTracks.clear();
         }
-
+        this.signaling.disconnect();
         this.signaling = null;
     }
 
@@ -324,12 +320,12 @@ export class MediaService
             sctpCapabilities: this.device.sctpCapabilities,
         } as types.CreateTransportRequest) as mediasoupTypes.TransportOptions;
 
-        this.log('[Log]  sendTransportOptions received');
+        logger.info('sendTransportOptions received');
 
         this.sendTransport = this.device.createSendTransport(this.sendTransportOpt);
 
         this.sendTransport.on('connect', async ({dtlsParameters}, done) => {
-            this.log('[Transport event]  event: connect, handled by sendTransport');
+            logger.info('[Transport event]  event: connect, handled by sendTransport');
             await this.signaling.sendRequest(
                 SignalMethod.connectTransport, {
                     transportId: this.sendTransport.id,
@@ -339,7 +335,7 @@ export class MediaService
         });
 
         this.sendTransport.on('produce', async ({ kind, rtpParameters, appData }, done, errBack) => {
-            this.log('[Transport event]  event: produce, handled by sendTransport');
+            logger.info('[Transport event]  event: produce, handled by sendTransport');
             try {
                 // producerId
                 const {producerId} = await this.signaling.sendRequest(
@@ -366,7 +362,7 @@ export class MediaService
         );
 
         this.recvTransport.on('connect', async ({dtlsParameters}, done) => {
-            this.log('[Transport event]  event: connect, handled by recvTransport');
+            logger.info('[Transport event]  event: connect, handled by recvTransport');
             await this.signaling.sendRequest(
                 SignalMethod.connectTransport, {
                     transportId: this.recvTransport.id,
@@ -379,57 +375,58 @@ export class MediaService
     private registerSignalingListeners()
     {
         this.signaling.registerListener(SignalType.notify, SignalMethod.allowed, ({ allowed }) => {
+            logger.info(`[Signaling]  Handling allowed notification with allowed = ${allowed} ...`);
             this.permissionUpdated = true;
             this.allowed = allowed;
             this.eventEmitter.emit('permissionUpdated');
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.newPeer, async (data: types.PeerInfo) => {
-            this.log('[Signaling]  Handling newPeer notification...');
+            logger.info('[Signaling]  Handling newPeer notification...');
             this.peerMedia.addPeerInfo(data);
-            this.log(`[Signaling]  Add peerId = ${data.id}`);
+            logger.info(`[Signaling]  Add peerId = ${data.id}`);
             this.updatePeerCallback();
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.newConsumer, async (data: types.ConsumerInfo) => {
-            this.log('[Signaling]  Handling newConsumer notification...');
+            logger.info('[Signaling]  Handling newConsumer notification...');
             const consumer = await this.recvTransport.consume({
                 id            : data.consumerId,
                 producerId    : data.producerId,
                 kind          : data.kind,
                 rtpParameters : data.rtpParameters
             });
-            this.log('[Signaling]  Creating consumer kind = ' + data.kind);
+            logger.info('[Signaling]  Creating consumer kind = ' + data.kind);
             const { track } = consumer;
             console.log('Received track', track);
-            this.log(`[Signaling]  Add trackId = ${track.id} sent from peerId = ${data.producerPeerId}`);
+            logger.info(`[Signaling]  Add trackId = ${track.id} sent from peerId = ${data.producerPeerId}`);
             this.peerMedia.addConsumerAndTrack(data.producerPeerId, consumer, track);
             this.updatePeerCallback();
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.consumerClosed, ({ consumerId }) => {
-            this.log('[Signaling]  Handling consumerClosed notification...');
-            this.log(`[Signaling]  Delete consumer id = ${consumerId}`);
+            logger.info('[Signaling]  Handling consumerClosed notification...');
+            logger.info(`[Signaling]  Delete consumer id = ${consumerId}`);
             this.peerMedia.deleteConsumerAndTrack(consumerId);
             this.updatePeerCallback();
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.peerClosed, ({ peerId }) => {
-            this.log('[Signaling]  Handling peerClosed notification...');
-            this.log(`[Signaling]  Delete peer id = ${peerId}`);
+            logger.info('[Signaling]  Handling peerClosed notification...');
+            logger.info(`[Signaling]  Delete peer id = ${peerId}`);
             this.peerMedia.deletePeer(peerId);
             this.updatePeerCallback();
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.newMessage, (message: types.RecvPeerMessage) => {
-            this.log('[Signaling]  Handling newMessage notification...');
-            this.log(`[Signaling]  Message received from peer peerId = ${message.fromPeerId}`);
+            logger.info('[Signaling]  Handling newMessage notification...');
+            logger.info(`[Signaling]  Message received from peer peerId = ${message.fromPeerId}`);
             this.newMessageCallback(message);
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.hostChanged, ({ newHostId }) => {
-            this.log(`[Signaling]  Handling hostChanged notification...`);
-            this.log(`[Signaling]  Host of the meeting changed from ${this.hostPeerId} to ${newHostId}`);
+            logger.info(`[Signaling]  Handling hostChanged notification...`);
+            logger.info(`[Signaling]  Host of the meeting changed from ${this.hostPeerId} to ${newHostId}`);
             this.hostPeerId = newHostId;
             this.updatePeerCallback();
         });
