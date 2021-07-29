@@ -7,6 +7,7 @@ import {SignalingService} from "./SignalingService";
 import {PeerMedia} from "../utils/media/PeerMedia";
 import {timeoutCallback} from "../utils/media/MediaUtils";
 import * as events from "events"
+import {err} from "react-native-svg/lib/typescript/xml";
 
 export class MediaService
 {
@@ -104,7 +105,7 @@ export class MediaService
     {
         if (this.joined) {
             console.warn('[Warning]  Already joined a meeting');
-            return;
+            return Promise.reject('Already joined a meeting');
         }
 
         this.roomToken = roomToken;
@@ -180,7 +181,7 @@ export class MediaService
 
     public async reconnect()
     {
-        console.info('[Socket]  Trying to reconnect...');
+        console.log('[Socket]  Trying to reconnect...');
         await this.leaveMeeting(true);
         await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName);
 
@@ -248,7 +249,7 @@ export class MediaService
     }
 
     // if _toPeerId == null, it means broadcast to everyone in the meetings
-    public async sendText(_toPeerId: string, _text: string): Promise<void>
+    public async sendMessage(_toPeerId: string, _text: string): Promise<void>
     {
         try {
             const message: types.SendPeerMessage = {
@@ -270,8 +271,14 @@ export class MediaService
         this.permissionUpdated = false;
         this.allowed = false;
 
-        if (this.signaling && this.signaling.isConnected())
-            await this.signaling.sendRequest(SignalMethod.close);
+        if (this.signaling && this.signaling.isConnected()) {
+            try {
+                await this.signaling.sendRequest(SignalMethod.close);
+            } catch (err) {
+                console.error('[Error]  Fail when sending close request', err);
+                return Promise.reject('Fail when sending close request');
+            }
+        }
 
         if (this.producers)
             this.producers.clear();
@@ -303,8 +310,14 @@ export class MediaService
     public async closeTrack(track: MediaStreamTrack)
     {
         const producer = this.producers.get(track.id);
-        console.log(producer);
-        await this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
+
+        try {
+            await this.signaling.sendRequest(SignalMethod.closeProducer, {producerId: producer.id});
+        } catch (err) {
+            console.error('[Error]  Fail when sending closeProducer request', err);
+            return Promise.reject('Fail when sending closeProducer request');
+        }
+
         if (!this.producers.get(track.id).closed) {
             this.producers.get(track.id).close();
         }
@@ -312,25 +325,46 @@ export class MediaService
         this.sendingTracks.delete(track.id);
     }
 
+    // if peerId is not passed, (or = null), it means mute all peers in the room
+    // return Promise.reject('Fail to mute peer') if you are not a host or an error occurs
+    public async mutePeer(peerId: string = null)
+    {
+        try {
+            await this.signaling.sendRequest(SignalMethod.mute, { mutePeerId: peerId });
+        } catch (err) {
+            console.error('[Error]  Fail to mute peer peerId = ' + peerId, err);
+            return Promise.reject('Fail to mute peer');
+        }
+    }
+
     private async createSendTransport()
     {
-        this.sendTransportOpt = await this.signaling.sendRequest(SignalMethod.createTransport, {
-            transportType: TransportType.producer,
-            sctpCapabilities: this.device.sctpCapabilities,
-        } as types.CreateTransportRequest) as mediasoupTypes.TransportOptions;
+        try {
+            this.sendTransportOpt = await this.signaling.sendRequest(SignalMethod.createTransport, {
+                transportType: TransportType.producer,
+                sctpCapabilities: this.device.sctpCapabilities,
+            } as types.CreateTransportRequest) as mediasoupTypes.TransportOptions;
+        } catch (err) {
+            console.error('[Error]  Fail when sending createTransport (send) request', err);
+            return Promise.reject('Fail when sending createTransport (send) request');
+        }
 
         console.log('[Signaling]  sendTransportOptions received');
 
         this.sendTransport = this.device.createSendTransport(this.sendTransportOpt);
 
-        this.sendTransport.on('connect', async ({dtlsParameters}, done) => {
+        this.sendTransport.on('connect', async ({dtlsParameters}, done, errBack) => {
             console.log('[Transport event]  event: connect, handled by sendTransport');
-            await this.signaling.sendRequest(
-                SignalMethod.connectTransport, {
-                    transportId: this.sendTransport.id,
-                    dtlsParameters,
-                } as types.ConnectTransportRequest);
-            done();
+            try {
+                await this.signaling.sendRequest(
+                    SignalMethod.connectTransport, {
+                        transportId: this.sendTransport.id,
+                        dtlsParameters,
+                    } as types.ConnectTransportRequest);
+                done();
+            } catch (err) {
+                errBack(err);
+            }
         });
 
         this.sendTransport.on('produce', async ({ kind, rtpParameters, appData }, done, errBack) => {
@@ -353,21 +387,30 @@ export class MediaService
 
     private async createRecvTransport()
     {
-        this.recvTransport = this.device.createRecvTransport(
-            await this.signaling.sendRequest(SignalMethod.createTransport, {
-                transportType: TransportType.consumer,
-                sctpCapabilities: this.device.sctpCapabilities,
-            } as types.CreateTransportRequest) as mediasoupTypes.TransportOptions
-        );
+        try {
+            this.recvTransport = this.device.createRecvTransport(
+                await this.signaling.sendRequest(SignalMethod.createTransport, {
+                    transportType: TransportType.consumer,
+                    sctpCapabilities: this.device.sctpCapabilities,
+                } as types.CreateTransportRequest) as mediasoupTypes.TransportOptions
+            );
+        } catch (err) {
+            console.error('[Error]  Fail when sending createTransport (recv) request', err);
+            return Promise.reject('Fail when sending createTransport (recv) request');
+        }
 
-        this.recvTransport.on('connect', async ({dtlsParameters}, done) => {
+        this.recvTransport.on('connect', async ({dtlsParameters}, done, errBack) => {
             console.log('[Transport event]  event: connect, handled by recvTransport');
-            await this.signaling.sendRequest(
-                SignalMethod.connectTransport, {
-                    transportId: this.recvTransport.id,
-                    dtlsParameters,
-                } as types.ConnectTransportRequest);
-            done();
+            try {
+                await this.signaling.sendRequest(
+                    SignalMethod.connectTransport, {
+                        transportId: this.recvTransport.id,
+                        dtlsParameters,
+                    } as types.ConnectTransportRequest);
+                done();
+            } catch (err) {
+                errBack(err);
+            }
         });
     }
 
