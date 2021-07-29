@@ -73,7 +73,7 @@ export default function App() {
                         <Stack.Screen name={"MeetingChat"} component={MeetingChat} options={{
                             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                             headerTitleAlign: 'center',
-                            title: '聊天室',
+                            title: '聊天',
                         }} />
                         <Stack.Screen name={"MeetingSetting"} component={MeetingSettingScreen} options={{
                             title: '会议设置',

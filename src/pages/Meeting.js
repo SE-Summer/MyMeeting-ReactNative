@@ -20,6 +20,15 @@ import moment from "moment";
 import GestureRecognizer from 'react-native-swipe-gestures';
 import {MyStreamWindow, PeerWindow} from "../components/MeetingWindows";
 import {UserLabel} from "../components/UserLabel";
+import {preventDoubleClick} from "../utils/Utils";
+
+const microInf = {
+    isCalled: false,
+    timer: null,
+}, camInf = {
+    isCalled: false,
+    timer: null
+}
 
 const screenStyle = StyleSheet.create({
     header: {
@@ -48,6 +57,8 @@ export default class Meeting extends Component
             myMicrophoneStream: null,
             width: 300,
             height: 600,
+            microStat: 'off',
+            camStat: 'off',
         };
     }
 
@@ -101,6 +112,9 @@ export default class Meeting extends Component
     }
 
     openMicrophone = async () => {
+        this.setState({
+            microStat: 'loading',
+        })
         try {
             const micStream = await this.mediaStreamFactory.getMicStream();
 
@@ -110,6 +124,10 @@ export default class Meeting extends Component
 
             this.setState({
                 myMicrophoneStream: micStream,
+                microStat: 'on',
+            }, () => {
+                console.log('openMic Update');
+                this.forceUpdate();
             });
 
             await this.mediaService.sendMediaStream(micStream);
@@ -119,6 +137,9 @@ export default class Meeting extends Component
     }
 
     closeMicrophone = async () => {
+        this.setState({
+            microStat: 'loading',
+        })
         try {
             if (this.state.myMicrophoneStream.getAudioTracks().length === 0)
                 return;
@@ -126,6 +147,10 @@ export default class Meeting extends Component
             closeMediaStream(this.state.myMicrophoneStream);
             this.setState({
                 myMicrophoneStream: null,
+                microStat: 'off'
+            },() => {
+                console.log('closeMicUpdate');
+                this.forceUpdate();
             });
         } catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
@@ -133,6 +158,9 @@ export default class Meeting extends Component
     }
 
     openCamera = async () => {
+        this.setState({
+            camStat: 'loading',
+        })
         try {
             const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width * 2, this.state.height * 3 / 2, 30);
 
@@ -142,6 +170,7 @@ export default class Meeting extends Component
 
             this.setState({
                 myCameraStream: camStream,
+                camStat: 'on',
             });
 
             await this.mediaService.sendMediaStream(camStream);
@@ -151,6 +180,9 @@ export default class Meeting extends Component
     }
 
     closeCamera = async () => {
+        this.setState({
+            camStat: 'loading',
+        })
         try {
             if (this.state.myCameraStream.getVideoTracks().length === 0)
                 return;
@@ -158,6 +190,7 @@ export default class Meeting extends Component
             closeMediaStream(this.state.myCameraStream);
             this.setState({
                 myCameraStream: null,
+                camStat: 'off',
             });
         } catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
@@ -168,6 +201,7 @@ export default class Meeting extends Component
         this.setState({
             peerDetails: this.mediaService.getPeerDetails().length === 0 ? null : this.mediaService.getPeerDetails(),
         }, () => {
+            this.forceUpdate();
             console.log('[React]  state.peerDetails of Meeting updated');
             console.log(this.state.peerDetails);
         })
@@ -239,8 +273,8 @@ export default class Meeting extends Component
     }
 
     render() {
-        const {roomInf, cameraStatus, microphoneStatus} = this.props.route.params;
-        const {width, height, myCameraStream} = this.state;
+        const {roomInf} = this.props.route.params;
+        const {width, height, myCameraStream, camStat, microStat} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
@@ -284,7 +318,8 @@ export default class Meeting extends Component
                     closeMicro={this.closeMicrophone}
                     openChatRoom={this.openChatRoom}
                     swapCam={this.swapCam}
-                    init={{camera: cameraStatus, microphone: microphoneStatus}}
+                    microStat={microStat}
+                    camStat={camStat}
                     style={screenStyle.footer}
                     view={this.state.view}
                     setView={(type) => { this.setState({ view: type, }); }}
@@ -391,7 +426,7 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
     }
 }
 
-const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeCamera, openMicro, closeMicro, init}) => {
+const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeCamera, openMicro, closeMicro, camStat, microStat}) => {
     const footerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -408,10 +443,35 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeC
             flexDirection: 'row',
             justifyContent: 'space-around',
         },
+        progress: {
+            margin: 5,
+        }
     })
 
-    const [microphone, setMicrophone] = useState(init.microphone);
-    const [camera, setCamera] = useState(init.camera);
+    const microEvent = () => {
+        if (microStat === 'loading') {
+            return;
+        }
+
+        if (microStat === 'on') {
+            closeMicro();
+        } else {
+            openMicro();
+        }
+    }
+
+    const camEvent = () => {
+        if (camStat === 'loading') {
+            return;
+        }
+
+        if (camStat === 'on') {
+            closeCamera();
+        } else {
+            openCamera();
+        }
+    }
+
     const [shareScreen, setShareScreen] = useState(false);
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [beauty, setBeauty] = useState(false);
@@ -420,28 +480,14 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeC
         <View style={style}>
             <View style={[footerStyle.wholeContainer]}>
                 <IconWithLabel
-                    text={microphone ? '开启静音' : '解除静音'}
-                    iconName={microphone ? 'mic' : 'mic-outline'}
-                    pressEvent={() => {
-                        if (microphone) {
-                            closeMicro();
-                        } else {
-                            openMicro();
-                        }
-                        setMicrophone(!microphone);
-                    }}
+                    text={microStat === 'on' ? '开启静音' : '解除静音'}
+                    iconName={microStat === 'on' ? 'mic' : 'mic-outline'}
+                    pressEvent={() => {preventDoubleClick(microEvent, microInf)}}
                 />
                 <IconWithLabel
-                    text={camera ? '关闭视频' : '开启视频'}
-                    iconName={camera ? 'videocam' : 'videocam-outline'}
-                    pressEvent={() => {
-                        if (camera) {
-                            closeCamera();
-                        } else {
-                            openCamera();
-                        }
-                        setCamera(!camera);
-                    }}
+                    text={camStat === 'on' ? '关闭视频' : '开启视频'}
+                    iconName={camStat === 'on' ? 'videocam' : 'videocam-outline'}
+                    pressEvent={() => {preventDoubleClick(camEvent, camInf)}}
                 />
                 <IconWithLabel
                     text={shareScreen ? '停止共享' : '共享屏幕'}

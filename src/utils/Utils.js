@@ -6,6 +6,17 @@ export const validateEmail = (email) => {
     return re.test(String(email).toLowerCase());
 }
 
+export const preventDoubleClick = (func, inf, interval = 500) => {
+    if (!inf.isCalled) {
+        console.log('called')
+        inf.isCalled = true
+        setTimeout(() => {
+            inf.isCalled = false
+        }, interval)
+        return func();
+    }
+}
+
 const instance = axios.create({
     baseURL: config.baseURL,
     timeout: 1000,
