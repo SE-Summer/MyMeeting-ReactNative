@@ -1,4 +1,4 @@
-import {Platform, TextInput, ToastAndroid, View} from "react-native";
+import {TextInput, View} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {Divider} from "react-native-elements";
@@ -61,12 +61,7 @@ export default class JoinMeetingScreen extends Component{
     joinM = async () => {
         const response = await join(parseInt(this.state.id), this.state.password, this.navigate);
         if (response == null) {
-            if (Platform.OS === 'android')
-                ToastAndroid.showWithGravity(
-                    '错误',
-                    ToastAndroid.SHORT,
-                    ToastAndroid.CENTER,
-                )
+            toast.show('入会失败', {type: 'danger', duration: 1300, placement: 'top'})
             return;
         }
 
@@ -82,22 +77,14 @@ export default class JoinMeetingScreen extends Component{
                 return;
             }
             case 401: {
-                ToastAndroid.showWithGravity(
-                    response.data.error,
-                    ToastAndroid.SHORT,
-                    ToastAndroid.CENTER,
-                )
+                toast.show(response.data.error, {type: 'danger', duration: 1300, placement: 'top'})
                 this.setState({
                     loading: false,
                 })
                 return;
             }
             default: {
-                ToastAndroid.showWithGravity(
-                    '错误',
-                    ToastAndroid.SHORT,
-                    ToastAndroid.CENTER,
-                )
+                toast.show('入会失败', {type: 'danger', duration: 1300, placement: 'top'})
                 this.setState({
                     loading: false,
                 })

@@ -37,7 +37,9 @@ class PeerDetail
     public deleteConsumerAndTrack(consumerId: string)
     {
         if (this.consumers.has(consumerId)) {
-            this.consumers.get(consumerId).close();
+            if (!this.consumers.get(consumerId).closed) {
+                this.consumers.get(consumerId).close();
+            }
             this.consumers.delete(consumerId);
         }
 
@@ -84,7 +86,9 @@ class PeerDetail
     public closeConsumers()
     {
         this.consumers.forEach((consumer) => {
-            consumer.close();
+            if (!consumer.closed) {
+                consumer.close();
+            }
         })
     }
 

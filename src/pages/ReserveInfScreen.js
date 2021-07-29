@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Component} from "react";
-import {FlatList, RefreshControl, Text, ToastAndroid, View} from "react-native";
+import {FlatList, RefreshControl, Text, View} from "react-native";
 import {meetingsInf} from "../service/MeetingService";
 import {ListItem} from "../components/ListItem";
 import {config_key} from "../utils/Constants";
@@ -38,7 +38,7 @@ export default class ReserveInfScreen extends Component {
         const response = await meetingsInf();
 
         if (response == null || response.status !== 200) {
-            ToastAndroid.show('获取信息失败', 1000);
+            toast.show('获取预约信息失败', {type: 'warning', duration: 1300, placement: 'top'})
             return;
         }
 

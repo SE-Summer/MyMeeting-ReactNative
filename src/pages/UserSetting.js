@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Component} from "react";
-import {Image, View, StyleSheet, Text, ToastAndroid} from "react-native";
+import {Image, View, StyleSheet, Text} from "react-native";
 import {TouchableItem} from "../components/Item";
 import {config, config_key} from "../utils/Constants";
 import {Divider} from "react-native-elements/dist/divider/Divider";
@@ -52,7 +52,7 @@ export default class UserSettingScreen extends Component {
         }).then(async image => {
             const response = await uploadAvatar(image);
             if (response == null || response.status !== 200) {
-                ToastAndroid.show('上传失败', 1000);
+                toast.show('上传失败', {type: 'danger', duration: 1300, placement: 'top'});
             } else {
                 await this.refreshAvatar();
             }

@@ -1,13 +1,13 @@
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {Component} from "react";
-import {BackHandler, ToastAndroid} from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config} from "../utils/Constants";
 import HomeScreen from "./HomeScreen";
 import UserScreen from "./UserScreen";
 import * as React from "react";
 import ReserveInfScreen from "./ReserveInfScreen";
+import RNExitApp from 'react-native-exit-app';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,13 +21,9 @@ export default class TabScreen extends Component{
 
     backAction = () => {
         if (this.state.backTimes === 1) {
-            BackHandler.exitApp();
+            RNExitApp.exitApp();
         } else {
-            ToastAndroid.showWithGravity(
-                "再按一次退出MyMeeting",
-                ToastAndroid.SHORT,
-                ToastAndroid.CENTER,
-            )
+            toast.show('再按一次退出MyMeeting', {type: 'normal', duration: 1300, placement: 'top'});
             this.setState({
                 backTimes: 1,
             })
@@ -37,11 +33,11 @@ export default class TabScreen extends Component{
 
     componentDidMount() {
         const {navigation} = this.props;
-        navigation.addListener('focus', () => {
-            BackHandler.addEventListener("hardwareBackPress", this.backAction)
-        });
-        navigation.addListener('blur', () => {
-            BackHandler.removeEventListener("hardwareBackPress", this.backAction);
+        navigation.addListener('beforeRemove', e => {
+            if (e.data.action.type === 'GO_BACK') {
+                e.preventDefault();
+                this.backAction();
+            }
         })
     }
 

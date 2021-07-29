@@ -2,6 +2,7 @@ import {printError} from "../PrintError";
 import {mediaDevices} from "react-native-webrtc";
 import {serviceConfig} from "../../ServiceConfig";
 import * as events from "events"
+import {timeoutCallback} from "./MediaUtils";
 
 
 export class MediaStreamFactory
@@ -24,43 +25,23 @@ export class MediaStreamFactory
         }
     }
 
-    private timeoutCallback(callback, timeout: number)
-    {
-        let called = false;
-
-        const interval = setTimeout(() => {
-            if (called) {
-                return;
-            }
-            called = true;
-            callback(new Error('Update device timeout.'), null);
-        }, timeout);
-
-        return (...args) => {
-            if (called) {
-                return;
-            }
-            called = true;
-            clearTimeout(interval);
-
-            callback(...args);
-        };
-    }
-
     public waitForUpdate()
     {
+        if (this.updated)
+            return;
         return new Promise<void>((resolve, reject) => {
             console.log('Waiting for MediaStreamFactory to update device info...');
-            this.eventEmitter.on('localDeviceUpdated', this.timeoutCallback(() => {
-                if (this.updated)
+            this.eventEmitter.on('localDeviceUpdated', timeoutCallback(() => {
+                if (this.updated) {
+                    console.log('Device info of MediaStreamFactory updated');
                     resolve();
-                else
+                } else
                     reject('Device info update failed');
             }, serviceConfig.mediaTimeout));
         });
     }
 
-    private async updateLocalDeviceInfos()
+    private async updateLocalDeviceInfos(): Promise<void>
     {
         try {
             this.camEnvDeviceId = null;
@@ -116,11 +97,15 @@ export class MediaStreamFactory
         return this.speakerDeviceId;
     }
 
-    public async getCamEnvStream(): Promise<MediaStream>
+    public async getCamEnvStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
     {
         const constraints = {
             audio: false,
             video: {
+                width: _width,
+                height: _height,
+                frameRate: _frameRate,
+                aspectRatio: _width/_height,
                 deviceId: this.camEnvDeviceId,
             },
         };
@@ -133,11 +118,15 @@ export class MediaStreamFactory
         }
     }
 
-    public async getCamFrontStream(): Promise<MediaStream>
+    public async getCamFrontStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
     {
         const constraints = {
             audio: false,
             video: {
+                width: _width,
+                height: _height,
+                frameRate: _frameRate,
+                aspectRatio: _width/_height,
                 deviceId: this.camFrontDeviceId,
             },
         };
@@ -170,11 +159,16 @@ export class MediaStreamFactory
         }
     }
 
-    public async getDisplayStream(): Promise<MediaStream>
+    public async getDisplayStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
     {
         const constraints = {
             audio: true,
-            video: true,
+            video: {
+                width: _width,
+                height: _height,
+                frameRate: _frameRate,
+                aspectRatio: _width/_height,
+            }
         };
         try {
             return await mediaDevices.getDisplayMedia(constraints);

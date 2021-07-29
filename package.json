@@ -23,6 +23,7 @@
     "react-native": "0.64.2",
     "react-native-date-picker": "^3.3.2",
     "react-native-elements": "^3.4.2",
+    "react-native-exit-app": "^1.1.0",
     "react-native-gesture-handler": "^1.10.3",
     "react-native-image-crop-picker": "^0.36.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.4",
@@ -34,6 +35,7 @@
     "react-native-svg": "^12.1.1",
     "react-native-swipe-gestures": "^1.0.5",
     "react-native-tab-view": "^2.16.0",
+    "react-native-toast-notifications": "^3.1.0",
     "react-native-vector-icons": "^8.1.0",
     "react-native-webrtc": "^1.89.3",
     "socket.io-client": "^4.1.3"

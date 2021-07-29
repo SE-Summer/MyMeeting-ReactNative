@@ -5,8 +5,6 @@ import {
     TextInput,
     ImageBackground,
     Image,
-    BackHandler,
-    ToastAndroid,
     Text,
     Dimensions,
 } from "react-native";
@@ -17,6 +15,8 @@ import {config, config_key, smallUtils} from "../utils/Constants";
 import {validateEmail} from "../utils/Utils";
 import {loginService} from "../service/UserService";
 import {setInStorage} from "../utils/StorageUtils";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import RNExitApp from 'react-native-exit-app';
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
@@ -49,13 +49,9 @@ export default class LoginScreen extends Component {
 
     backAction = () => {
         if (this.state.backTimes === 1) {
-            BackHandler.exitApp();
+            RNExitApp.exitApp();
         } else {
-            ToastAndroid.showWithGravity(
-                "再按一次退出MyMeeting",
-                ToastAndroid.SHORT,
-                ToastAndroid.CENTER,
-            )
+            toast.show('再按一次退出MyMeeting', {type: 'normal', duration: 1300, placement: 'top'})
             this.setState({
                 backTimes: 1,
             })
@@ -74,10 +70,12 @@ export default class LoginScreen extends Component {
                 EmailTip: null,
                 passwordTip: null,
             });
-            BackHandler.addEventListener("hardwareBackPress", this.backAction);
         })
-        this.props.navigation.addListener('blur', () => {
-            BackHandler.removeEventListener("hardwareBackPress", this.backAction);
+        this.props.navigation.addListener('beforeRemove', e => {
+            if (e.data.action.type === 'GO_BACK') {
+                e.preventDefault();
+                this.backAction();
+            }
         })
     }
 
@@ -92,8 +90,8 @@ export default class LoginScreen extends Component {
             this.props.navigation.navigate('Meeting', {token: 12});
             return;
         }
-        if (userEmail != null && userEmail === 'tab') {
-            this.props.navigation.navigate('Tab');
+        if (userEmail != null && userEmail === 'chat') {
+            this.props.navigation.navigate('MeetingChat');
             return;
         }
         /*-------------------------*/

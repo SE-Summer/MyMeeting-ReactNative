@@ -1,5 +1,6 @@
 import {io, Socket} from 'socket.io-client';
 import {serviceConfig, SignalMethod, SignalType} from "../ServiceConfig";
+import {timeoutCallback} from "../utils/media/MediaUtils";
 
 export class SignalingService
 {
@@ -49,40 +50,18 @@ export class SignalingService
         this.callbackMap.get(type).set(method, callback);
     }
 
-    private timeoutCallback(callback, timeout: number)
-    {
-        let called = false;
-
-        const interval = setTimeout(() => {
-            if (called) {
-                return;
-            }
-            called = true;
-            callback(new Error('Request timeout.'), null);
-        }, timeout);
-
-        return (...args) => {
-            if (called) {
-                return;
-            }
-            called = true;
-            clearTimeout(interval);
-
-            callback(...args);
-        };
-    }
-
     public waitForConnection()
     {
         return new Promise<void>((resolve, reject) => {
             console.log('[Socket]  Waiting for connection to ' + this.URL + '...');
-            this.socket.on('connect', this.timeoutCallback(() => {
+            this.socket.on('connect', timeoutCallback(() => {
                 console.log('[Socket]  Socket connected');
                 if (this.socket && this.socket.connected)
                     resolve();
                 else
                     reject('Socket connection failed');
             }, serviceConfig.connectTimeout));
+            this.socket.connect();
             // this.socket.on('connect_error', this.timeoutCallback(() => {
             //     console.log('Socket connection failed!!!')
             //     reject();
@@ -97,9 +76,9 @@ export class SignalingService
                 reject('No socket connection.');
             } else {
                 this.socket.emit(SignalType.request, { method, data },
-                    this.timeoutCallback((err, response) => {
+                    timeoutCallback((err, response) => {
                         if (err) {
-                            console.log('[Socket]  sendRequest ' + method + ' error! socket: \n', method, this.socket);
+                            console.log('[Socket]  sendRequest ' + method + ' error! ', this.socket);
                             reject(err);
                         } else {
                             resolve(response);

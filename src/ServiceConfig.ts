@@ -1,5 +1,6 @@
 const config = {
     serverIp: 'se-summer.cn',
+    // serverIp: '192.168.0.106',
     serverPort: 4446,
     serverUseHttps: false,
 }
@@ -16,6 +17,7 @@ export const serviceConfig = {
     requestTimeout: 10000,
     connectTimeout: 20000,
     mediaTimeout: 10000,
+    allowTimeout: 5000,
     serverIp: config.serverIp,
     serverPort: config.serverPort,
     serverURL: _serverURL,
@@ -53,11 +55,17 @@ export enum SignalMethod {
     consumerClosed = 'consumerClosed',
     peerClosed = 'peerClosed',
     close = 'close',
+    sendMessage = 'sendMessage',
+    newMessage = 'newMessage',
+    hostChanged = 'hostChanged',
+    connectMeeting = 'connectMeeting',
+    allowed = 'allowed'
 }
 
-export const sockectConnectionOptions = {
+export const socketConnectionOptions = {
     // timeout: 3000,
-    // reconnection: true,
+    reconnection: false,
+    autoConnect: false,
     // reconnectionAttempts: Infinity,
     // reconnectionDelayMax: 2000,
     // transports: ['websocket'],
