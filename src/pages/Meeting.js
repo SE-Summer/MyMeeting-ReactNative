@@ -83,65 +83,85 @@ export default class Meeting extends Component
         const {cameraStatus, microphoneStatus} = this.props.route.params;
         this.handleBack();
 
-        this.userName = config_key.username;
-        await this.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token,
-            this.userName, `${this.userName}'s mobile device`);
+        try {
+            this.userName = config_key.username;
+            await this.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token,
+                this.userName, `${this.userName}'s mobile device`);
 
-        await this.mediaStreamFactory.waitForUpdate();
-        if (cameraStatus) {
-            await this.openCamera();
-        }
-        if (microphoneStatus) {
-            await this.openMicrophone();
+            await this.mediaStreamFactory.waitForUpdate();
+            if (cameraStatus) {
+                await this.openCamera();
+            }
+            if (microphoneStatus) {
+                await this.openMicrophone();
+            }
+        } catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
 
     openMicrophone = async () => {
-        const micStream = await this.mediaStreamFactory.getMicStream();
+        try {
+            const micStream = await this.mediaStreamFactory.getMicStream();
 
-        if (micStream.getAudioTracks().length === 0) {
-            return Promise.reject("Fail to get local microphone media.");
+            if (micStream.getAudioTracks().length === 0) {
+                return Promise.reject("Fail to get local microphone media.");
+            }
+
+            this.setState({
+                myMicrophoneStream: micStream,
+            });
+
+            await this.mediaService.sendMediaStream(micStream);
+        } catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
-
-        this.setState({
-            myMicrophoneStream: micStream,
-        });
-
-        await this.mediaService.sendMediaStream(micStream);
     }
 
     closeMicrophone = async () => {
-        if (this.state.myMicrophoneStream.getAudioTracks().length === 0)
-            return;
-        await this.mediaService.closeTrack(this.state.myMicrophoneStream.getAudioTracks()[0]);
-        closeMediaStream(this.state.myMicrophoneStream);
-        this.setState({
-            myMicrophoneStream: null,
-        });
+        try {
+            if (this.state.myMicrophoneStream.getAudioTracks().length === 0)
+                return;
+            await this.mediaService.closeTrack(this.state.myMicrophoneStream.getAudioTracks()[0]);
+            closeMediaStream(this.state.myMicrophoneStream);
+            this.setState({
+                myMicrophoneStream: null,
+            });
+        } catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+        }
     }
 
     openCamera = async () => {
-        const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width * 2, this.state.height * 3 / 2, 30);
+        try {
+            const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width * 2, this.state.height * 3 / 2, 30);
 
-        if (camStream.getVideoTracks().length === 0) {
-            return Promise.reject("Fail to get local camera media.");
+            if (camStream.getVideoTracks().length === 0) {
+                return Promise.reject("Fail to get local camera media.");
+            }
+
+            this.setState({
+                myCameraStream: camStream,
+            });
+
+            await this.mediaService.sendMediaStream(camStream);
+        }  catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
-
-        this.setState({
-            myCameraStream: camStream,
-        });
-
-        await this.mediaService.sendMediaStream(camStream);
     }
 
     closeCamera = async () => {
-        if (this.state.myCameraStream.getVideoTracks().length === 0)
-            return;
-        await this.mediaService.closeTrack(this.state.myCameraStream.getVideoTracks()[0]);
-        closeMediaStream(this.state.myCameraStream);
-        this.setState({
-            myCameraStream: null,
-        });
+        try {
+            if (this.state.myCameraStream.getVideoTracks().length === 0)
+                return;
+            await this.mediaService.closeTrack(this.state.myCameraStream.getVideoTracks()[0]);
+            closeMediaStream(this.state.myCameraStream);
+            this.setState({
+                myCameraStream: null,
+            });
+        } catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+        }
     }
 
     updatePeerDetails() {
@@ -166,16 +186,21 @@ export default class Meeting extends Component
     }
 
     exit = async () => {
-        if (this.state.myCameraStream) {
-            await this.closeCamera();
+        try {
+            if (this.state.myCameraStream) {
+                await this.closeCamera();
+            }
+            if (this.state.myMicrophoneStream) {
+                await this.closeMicrophone();
+            }
+            if (this.mediaService) {
+                await this.mediaService.leaveMeeting();
+            }
+            this.props.navigation.pop();
+        } catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            this.props.navigation.pop();
         }
-        if (this.state.myMicrophoneStream) {
-            await this.closeMicrophone();
-        }
-        if (this.mediaService) {
-            await this.mediaService.leaveMeeting();
-        }
-        this.props.navigation.pop();
     }
 
     swapCam = () => {

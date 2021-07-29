@@ -3,11 +3,10 @@ import {
     StyleSheet,
     TextInput,
     FlatList,
-    Image,
     Text,
     Dimensions,
     TouchableOpacity,
-    Animated,
+    Animated, Keyboard,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
@@ -15,8 +14,6 @@ import {Component} from "react";
 import {ChatBubble} from "../components/ChatBubble";
 import moment from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import Easing from "react-native/Libraries/Animated/Easing";
-
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
@@ -39,13 +36,37 @@ const testData = [
 export default class MeetingChat extends Component {
     constructor() {
         super();
+        this.sendButtonWidth = new Animated.Value(0);
+        this.addButtonWidth = new Animated.Value(50);
         this.state = {
             text: null,
             toolsBarFlex: new Animated.Value(0),
+            toolBar: false,
+        }
+    }
+
+    componentDidMount () {
+        Keyboard.addListener('keyboardDidShow', this.keyboardWillShow);
+    }
+
+    componentWillUnmount() {
+        Keyboard.removeAllListeners('keyboardDidShow');
+    }
+
+    keyboardWillShow = () => {
+        if (this.state.toolBar) {
+            this.hideToolBar();
         }
     }
 
     onChangeText = value => {
+        if (value != null && value.length !== 0) {
+            this.hideAddButton();
+            this.showSendButton();
+        } else {
+            this.showAddButton();
+            this.hideSendButton();
+        }
         this.setState({
             text: value,
             toolBar: false,
@@ -53,10 +74,13 @@ export default class MeetingChat extends Component {
     }
 
     showToolBar = () => {
+        this.setState({
+            toolBar: true,
+        })
         Animated.timing(
             this.state.toolsBarFlex,
             {
-                toValue: 0.3,
+                toValue: 0.12,
                 duration: 200,
                 useNativeDriver: false,
             }
@@ -64,8 +88,55 @@ export default class MeetingChat extends Component {
     }
 
     hideToolBar = () => {
+        this.setState({
+            toolBar: false,
+        })
         Animated.timing(
             this.state.toolsBarFlex,
+            {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: false,
+            }
+        ).start();
+    }
+
+    showSendButton = () => {
+        Animated.timing(
+            this.sendButtonWidth,
+            {
+                toValue: 75,
+                duration: 200,
+                useNativeDriver: false,
+            }
+        ).start();
+    }
+
+    hideSendButton = () => {
+        Animated.timing(
+            this.sendButtonWidth,
+            {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: false,
+            }
+        ).start();
+    }
+
+    showAddButton = () => {
+        Animated.timing(
+            this.addButtonWidth,
+            {
+                toValue: 50,
+                duration: 200,
+                useNativeDriver: false,
+            }
+        ).start();
+    }
+
+    hideAddButton = () => {
+        Animated.timing(
+            this.addButtonWidth,
             {
                 toValue: 0,
                 duration: 200,
@@ -99,8 +170,15 @@ export default class MeetingChat extends Component {
         return (
             <SafeAreaView style={{flex: 1}}>
                 <View style={{flex: 1}}>
-                    <View
+                    <TouchableOpacity
                         style={style.listContainer}
+                        activeOpacity={1}
+                        onPress={() => {
+                            if (toolBar) {
+                                this.hideToolBar();
+                            }
+                        }}
+                        disabled={!toolBar}
                     >
                         <FlatList
                             data={testData}
@@ -108,37 +186,40 @@ export default class MeetingChat extends Component {
                             keyExtractor={(item, index) => {return index}}
 
                         />
-                    </View>
+                    </TouchableOpacity>
                     <View style={style.sendBar}>
                         <TextInput
                             style={style.textInput}
+                            textAlignVertical={'center'}
                             multiline={true}
                             onChangeText={this.onChangeText}
+                            onFocus={() => {
+                                this.hideToolBar();
+                            }}
                         />
-                        {
-                            !(text != null && text.length !== 0) &&
-                            <TouchableOpacity style={style.toolButton} onPress={() => {
+                        <Animated.View style={{width: this.addButtonWidth}}>
+                            <TouchableOpacity style={[style.toolButton]} onPress={() => {
                                 if (!toolBar)
                                     this.showToolBar();
                                 else
                                     this.hideToolBar()
-                                this.setState({
-                                    toolBar: !toolBar,
-                                })
                             }}>
                                 <Ionicons name={'add-circle-outline'} size={37} color={toolBar ? '#44CE55' : '#171717'}/>
                             </TouchableOpacity>
-                        }
-                        {
-                            text != null && text.length !== 0 &&
+                        </Animated.View>
+                        <Animated.View style={{width: this.sendButtonWidth, height: 44, justifyContent: 'center'}}>
                             <TouchableOpacity style={style.sendButton}>
                                 <Text style={style.sendText}>发送</Text>
                             </TouchableOpacity>
-                        }
+                        </Animated.View>
                     </View>
                 </View>
                 <Animated.View style={{flex: toolsBarFlex}}>
-                    <View style={{position: 'absolute', top: 0, left: 0, width: windowWidth, height: 200, backgroundColor: 'black'}}/>
+                    <View style={style.toolContainer}>
+                        <TouchableOpacity style={style.iconContainer}>
+                            <Ionicons name={'folder-outline'} size={40}/>
+                        </TouchableOpacity>
+                    </View>
                 </Animated.View>
             </SafeAreaView>
         );
@@ -178,17 +259,37 @@ const style = StyleSheet.create({
     },
     sendButton: {
         backgroundColor: '#44CE55',
+        alignItems: 'center',
         paddingLeft: 12,
         paddingRight: 12,
         paddingTop: 5,
+        margin: 7,
         paddingBottom: 5,
-        margin: 8,
         borderRadius: 3,
     },
     sendText: {
         color: 'white',
     },
     toolButton: {
-        marginRight: 5,
+        alignItems: 'center',
+    },
+    iconContainer: {
+        paddingLeft: 7,
+        paddingRight: 5,
+        paddingTop: 3,
+        paddingBottom: 3,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'white',
+        borderRadius: 10,
+        margin: 10,
+    },
+    toolContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: windowWidth,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 })
