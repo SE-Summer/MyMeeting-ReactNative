@@ -57,7 +57,7 @@ export default class Meeting extends Component
             myDisplayStream: null,
             myMicrophoneStream: null,
             width: 300,
-            height: 700,
+            height: 600,
             microStat: 'off',
             camStat: 'off',
         };
@@ -236,9 +236,12 @@ export default class Meeting extends Component
                 await MeetingVariable.mediaService.leaveMeeting();
             }
             MeetingVariable.mediaService = null;
+            MeetingVariable.messages = [];
             this.props.navigation.pop();
         } catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            MeetingVariable.mediaService = null;
+            MeetingVariable.messages = [];
             this.props.navigation.pop();
         }
     }

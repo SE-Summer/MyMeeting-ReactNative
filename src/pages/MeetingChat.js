@@ -10,11 +10,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
-import {Component} from "react";
+import {Component, useState} from "react";
 import {ChatBubble} from "../components/ChatBubble";
 import moment from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {config, config_key} from "../Constants";
+import {config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
 import {Avatar} from "react-native-elements";
 import {MeetingVariable} from "../MeetingVariable";
@@ -27,6 +27,7 @@ export default class MeetingChat extends Component {
         this.message = [];
         this.sendButtonWidth = new Animated.Value(0);
         this.addButtonWidth = new Animated.Value(50);
+        this.listRef = React.createRef();
         this.state = {
             text: null,
             toolsBarFlex: new Animated.Value(0),
@@ -76,7 +77,7 @@ export default class MeetingChat extends Component {
         const message = {
             myInf: true,
             text: text,
-            timeStamp: moment(),
+            timestamp: moment(),
             broadcast: selected == null,
             toPeerId: selected,
         };
@@ -88,6 +89,7 @@ export default class MeetingChat extends Component {
             }, () => {
                 this.hideSendButton();
                 this.showAddButton();
+                this.listRef.current.scrollToEnd();
             })
         } catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
@@ -193,7 +195,7 @@ export default class MeetingChat extends Component {
                         <Text style={style.listUsername}>{peerInfo.displayName}</Text>
                     </View>
                 }
-                <ChatBubble maxWidth={windowWidth * 0.8} myInf={item.myInf} text={item.text} time={moment()} />
+                <ChatBubble maxWidth={windowWidth * 0.8} myInf={item.myInf} text={item.text} time={item.timestamp} />
                 {
                     item.myInf &&
                     <View style={style.avatarContainer}>
@@ -230,7 +232,7 @@ export default class MeetingChat extends Component {
                             data={MeetingVariable.messages}
                             renderItem={this.renderItem}
                             keyExtractor={(item, index) => {return index}}
-
+                            ref={this.listRef}
                         />
                     </TouchableOpacity>
                     <View style={style.sendBar}>
@@ -253,6 +255,7 @@ export default class MeetingChat extends Component {
                         />
                         <Animated.View style={{width: this.addButtonWidth}}>
                             <TouchableOpacity style={[style.toolButton]} onPress={() => {
+                                Keyboard.dismiss();
                                 if (!toolBar)
                                     this.showToolBar();
                                 else
@@ -294,31 +297,36 @@ export default class MeetingChat extends Component {
 }
 
 const MemberSelector = ({selected, setSelected}) => {
+    const participants = MeetingVariable.mediaService.getPeerDetails();
+    const [name, setName] = useState(null);
 
     const renderItem = ({item}) => {
-        const meSelected = selected && selected === item.id;
+        const inf = item.getPeerInfo();
+        const meSelected = selected && selected === inf.id;
         return (
             <TouchableOpacity
                 style={[selectorStyle.listItem, {backgroundColor: meSelected ? '#87e0a8' : 'white'}]}
                 onPress={() => {
                     if (meSelected) {
+                        setName(null);
                         setSelected(null);
                     } else {
-                        setSelected(item.id);
+                        setName(inf.displayName);
+                        setSelected(inf.id);
                     }
                 }}
             >
                 <View style={{marginLeft: 20}}>
                     <Avatar
                         rounded
-                        size={50}
+                        size={40}
                         source={{
-                            uri: config.unKnownUri
+                            uri: inf.avatar
                         }}
                     />
                 </View>
                 <View style={{flex: 1, alignItems: "center"}}>
-                    <Text style={{color: meSelected ? 'white' : 'black'}}>{item.id}</Text>
+                    <Text style={{color: meSelected ? 'white' : 'black', fontSize: 17}}>{inf.displayName}</Text>
                 </View>
                 <View style={{flex: 1}}/>
             </TouchableOpacity>
@@ -330,13 +338,16 @@ const MemberSelector = ({selected, setSelected}) => {
             <View style={selectorStyle.titleContainer}>
                 <Text style={selectorStyle.title}>选择私聊对象</Text>
                 <View style={selectorStyle.selectedUserContainer}>
-                    { selected &&
+                    { name &&
                     <Text style={selectorStyle.selectedUser}>
-                        用户：{selected}
+                        用户：{name}
                     </Text>
                     }
                 </View>
-                <TouchableOpacity onPress={() => {setSelected(null);}}>
+                <TouchableOpacity onPress={() => {
+                    setSelected(null);
+                    setName(null);
+                }}>
                     <Ionicons name={'close-circle-outline'} color={'#aaaaaa'} size={20}
                               style={{marginLeft: 20, marginRight: 5}}
                     />
@@ -344,10 +355,17 @@ const MemberSelector = ({selected, setSelected}) => {
 
             </View>
             <FlatList
-                data={[{id: 1}, {id: 2},{id: 3}, {id: 4},{id: 5}, {id: 6},{id: 7}, {id: 8},{id: 9}, {id: 10},{id: 11}, {id: 12}]}
+                data={participants}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => {
                     return index;
+                }}
+                ListEmptyComponent={() => {
+                    return (
+                        <View style={{flex: 1, alignItems: "center", justifyContent: "center"}}>
+                            <Text style={{color: '#aaaaaa'}}>-没有其他成员-</Text>
+                        </View>
+                    )
                 }}
                 style={selectorStyle.list}
                 extraData={selected}

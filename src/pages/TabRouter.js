@@ -47,13 +47,13 @@ export default class TabScreen extends Component{
                 <Tab.Navigator
                     screenOptions={({route}) => ({
                         tabBarIcon: ({focused}) => {
-                            if (route.name === 'Meetings') {
+                            if (route.name === '会议') {
                                 return focused ? <Ionicons name="time" color={config.qGreen} size={30}/> :
                                     <Ionicons name={"time-outline"} size={25}/>;
-                            } else if (route.name === 'User') {
+                            } else if (route.name === '用户') {
                                 return focused ? <Ionicons name="person" color={config.qGreen} size={30}/> :
                                     <Ionicons name={"person-outline"} size={25}/>;
-                            } else if (route.name === 'Home') {
+                            } else if (route.name === '主页') {
                                 return focused ? <Ionicons name="home" color={config.qGreen} size={30}/> :
                                     <Ionicons name={"home-outline"} size={25}/>;
                             }
@@ -64,9 +64,9 @@ export default class TabScreen extends Component{
                         inactiveTintColor: 'gray',
                     }}
                 >
-                    <Tab.Screen name={"Home"} component={HomeScreen}/>
-                    <Tab.Screen name={"Meetings"} component={ReserveInfScreen}/>
-                    <Tab.Screen name={"User"} component={UserScreen}/>
+                    <Tab.Screen name={"主页"} component={HomeScreen}/>
+                    <Tab.Screen name={"会议"} component={ReserveInfScreen}/>
+                    <Tab.Screen name={"用户"} component={UserScreen}/>
                 </Tab.Navigator>
             </SafeAreaView>
 
