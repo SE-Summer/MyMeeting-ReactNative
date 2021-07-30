@@ -1,5 +1,6 @@
 import {types as mediasoupTypes} from "mediasoup-client";
 import {MediaKind, TransportType} from "../ServiceConfig";
+import {Moment} from "moment";
 
 export declare type JoinRequest = {
     displayName: string,
@@ -35,10 +36,12 @@ export declare type ConsumerInfo = {
 export declare type SendPeerMessage = {
     toPeerId: string,
     text: string,
+    timestamp: Moment,
 }
 
 export declare type RecvPeerMessage = {
     fromPeerId: string,
     broadcast: boolean,
     text: string,
+    timestamp: Moment,
 }

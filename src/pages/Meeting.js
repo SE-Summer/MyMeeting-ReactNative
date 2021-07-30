@@ -100,7 +100,9 @@ export default class Meeting extends Component
             await this.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token,
                 this.userName, `${this.userName}'s mobile device`);
 
+            console.log('[Log]  Waiting for MediaStreamFactory to update device info...');
             await this.mediaStreamFactory.waitForUpdate();
+            console.log('[Log]  Device info of MediaStreamFactory updated');
             if (cameraStatus) {
                 await this.openCamera();
             }

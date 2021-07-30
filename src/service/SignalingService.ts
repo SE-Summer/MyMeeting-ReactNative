@@ -12,7 +12,7 @@ export class SignalingService
     {
         this.URL = URL;
         this.socket = io(URL, opts);
-        console.log('[Socket]  Socket start to connect');
+        console.log('[Socket]  Start to connect');
 
         this.callbackMap = new Map<SignalType ,Map<SignalMethod, (data) => void>>();
         this.callbackMap.set(SignalType.request, new Map<SignalMethod, (data) => void>());
@@ -27,8 +27,8 @@ export class SignalingService
         });
 
         this.socket.on('disconnect', async () => {
-            console.log('[Socket]  Socket disconnected');
-            this.socket.disconnect();
+            console.warn('[Socket]  Disconnected');
+            // this.socket.disconnect();
             await onDisconnect();
         })
     }
@@ -52,21 +52,41 @@ export class SignalingService
 
     public waitForConnection()
     {
+        this.socket.connect();
         return new Promise<void>((resolve, reject) => {
-            console.log('[Socket]  Waiting for connection to ' + this.URL + '...');
-            this.socket.on('connect', timeoutCallback(() => {
-                console.log('[Socket]  Socket connected');
-                if (this.socket && this.socket.connected)
+            this.socket.once('connect', timeoutCallback(() => {
+                if (this.socket && this.socket.connected) {
                     resolve();
+                }
                 else
                     reject('Socket connection failed');
             }, serviceConfig.connectTimeout));
-            this.socket.connect();
+
+            if (this.socket && this.socket.connected) {
+                resolve();
+            }
             // this.socket.on('connect_error', this.timeoutCallback(() => {
             //     console.log('Socket connection failed!!!')
             //     reject();
             //     }, serviceConfig.connectTimeout));
         });
+    }
+
+    public waitForReconnection()
+    {
+        return new Promise<void>((resolve, reject) => {
+            this.socket.once('connect', timeoutCallback(() => {
+                if (this.socket && this.socket.connected) {
+                    resolve();
+                }
+                else
+                    reject('Socket reconnection failed');
+            }, serviceConfig.reconnectTimeout));
+            //
+            // if (this.socket && this.socket.connected) {
+            //     resolve();
+            // }
+        })
     }
 
     public disconnect()
@@ -94,7 +114,7 @@ export class SignalingService
         });
     }
 
-    public isConnected()
+    public connected()
     {
         return (this.socket && this.socket.connected);
     }
