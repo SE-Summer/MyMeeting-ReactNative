@@ -8,6 +8,8 @@ import {PeerMedia} from "../utils/media/PeerMedia";
 import {timeoutCallback} from "../utils/media/MediaUtils";
 import * as events from "events"
 
+const moment = require("moment");
+
 export class MediaService
 {
     private roomToken: string = null;
@@ -75,21 +77,17 @@ export class MediaService
     private waitForAllowed(): Promise<void>
     {
         return new Promise<void>((resolve, reject) => {
-            if (this.permissionUpdated) {
+            this.eventEmitter.once('permissionUpdated', timeoutCallback(() => {
                 if (this.allowed) {
-                    console.log('[Log]  Server allowed the connection')
                     resolve();
                 } else
                     reject('[Error]  Server reject the connection');
-            } else {
-                console.log('[Log] Waiting for server to allow the connection...');
-                this.eventEmitter.on('permissionUpdated', timeoutCallback(() => {
-                    if (this.allowed) {
-                        console.log('[Log]  Server allowed the connection')
-                        resolve();
-                    } else
-                        reject('[Error]  Server reject the connection');
-                }, serviceConfig.mediaTimeout));
+            }, serviceConfig.mediaTimeout));
+            if (this.permissionUpdated) {
+                if (this.allowed) {
+                    resolve();
+                } else
+                    reject('[Error]  Server reject the connection');
             }
         })
     }
@@ -119,8 +117,14 @@ export class MediaService
             this.signaling = new SignalingService(this.serverURL, socketConnectionOptions, this.onSignalingDisconnect.bind(this));
 
             this.registerSignalingListeners();
+
+            console.log('[Socket]  Waiting for connection to ' + this.serverURL + '...');
             await this.signaling.waitForConnection();
+            console.log('[Socket]  Connected');
+
+            console.log('[Log] Waiting for server to allow the connection...');
             await this.waitForAllowed();
+            console.log('[Log]  Server allowed the connection')
 
         } catch (err) {
             console.error('[Error]  Fail to connect socket or the server rejected', err);
@@ -173,30 +177,39 @@ export class MediaService
 
     public async onSignalingDisconnect()
     {
-        console.warn('[Socket]  Disconnected');
         if (this.joined) {
             try {
+                console.log('[Socket]  Waiting for reconnection to ' + this.serverURL + '...');
                 await this.signaling.waitForReconnection();
+                console.log('[Socket]  Reconnected');
+
                 await this.restartIce();
             } catch (err) {
-                await this.reconnect();
+                await this.reenter();
             }
         }
     }
 
     private async restartIce()
     {
-        console.log('[Socket]  Trying to restartIce...');
-        let iceParameters = await this.signaling.sendRequest(SignalMethod.restartIce, this.sendTransport.id) as mediasoupTypes.IceParameters;
-        await this.sendTransport.restartIce({ iceParameters });
+        console.log('[Log]  Trying to restartIce...');
 
-        iceParameters = await this.signaling.sendRequest(SignalMethod.restartIce, this.recvTransport.id) as mediasoupTypes.IceParameters;
-        await this.recvTransport.restartIce({ iceParameters });
+        try {
+            const sendParam = await this.signaling.sendRequest(SignalMethod.restartIce, { transportId: this.sendTransport.id }) as { iceParameters: mediasoupTypes.IceParameters };
+            await this.sendTransport.restartIce({ iceParameters: sendParam.iceParameters });
+
+            const recvParam = await this.signaling.sendRequest(SignalMethod.restartIce, { transportId: this.recvTransport.id }) as { iceParameters: mediasoupTypes.IceParameters };
+            await this.recvTransport.restartIce({ iceParameters: recvParam.iceParameters });
+
+            console.log('[Log]  Ice restarted');
+        } catch (err) {
+            console.error('[Error]  Fail to restart Ice', err);
+        }
     }
 
-    private async reconnect()
+    private async reenter()
     {
-        console.log('[Socket]  Trying to reconnect...');
+        console.log('[Log]  Trying to reenter the meeting...');
         await this.leaveMeeting(true);
         await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName);
 
@@ -205,7 +218,7 @@ export class MediaService
             tracks.push(track);
         })
         await this.sendMediaStream(new MediaStream(tracks));
-        console.log('[Socket]  Reconnected');
+        console.log('[Log]  Reentered');
     }
 
 
@@ -270,6 +283,7 @@ export class MediaService
             const message: types.SendPeerMessage = {
                 toPeerId: _toPeerId,
                 text: _text,
+                timestamp: moment(),
             } as types.SendPeerMessage;
 
             await this.signaling.sendRequest(SignalMethod.sendMessage, message);
@@ -280,7 +294,7 @@ export class MediaService
         }
     }
 
-    public async leaveMeeting(reconnect: boolean = false)
+    public async leaveMeeting(reenter: boolean = false)
     {
         this.joined = false;
         this.permissionUpdated = false;
@@ -315,7 +329,7 @@ export class MediaService
         }
         this.recvTransport = null;
 
-        if (this.sendingTracks && !reconnect) {
+        if (this.sendingTracks && !reenter) {
             this.sendingTracks.clear();
         }
         this.signaling.disconnect();

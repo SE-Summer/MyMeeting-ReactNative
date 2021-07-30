@@ -88,7 +88,9 @@ export default class Meeting extends Component
             await this.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token,
                 this.userName, `${this.userName}'s mobile device`);
 
+            console.log('[Log]  Waiting for MediaStreamFactory to update device info...');
             await this.mediaStreamFactory.waitForUpdate();
+            console.log('[Log]  Device info of MediaStreamFactory updated');
             if (cameraStatus) {
                 await this.openCamera();
             }
@@ -168,8 +170,7 @@ export default class Meeting extends Component
         this.setState({
             peerDetails: this.mediaService.getPeerDetails().length === 0 ? null : this.mediaService.getPeerDetails(),
         }, () => {
-            console.log('[React]  state.peerDetails of Meeting updated');
-            console.log(this.state.peerDetails);
+            console.log('[React]  state.peerDetails of Meeting updated : ' + this.state.peerDetails);
         })
     }
 

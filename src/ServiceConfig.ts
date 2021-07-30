@@ -71,5 +71,6 @@ export const socketConnectionOptions = {
     autoConnect: false,
     reconnectionAttempts: Infinity,
     reconnectionDelayMax: 2000,
-    transports: ['websocket'],
+
+    // transports: ['websocket'],
 }

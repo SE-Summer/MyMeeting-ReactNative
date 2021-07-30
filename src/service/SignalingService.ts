@@ -12,7 +12,7 @@ export class SignalingService
     {
         this.URL = URL;
         this.socket = io(URL, opts);
-        console.log('[Socket]  Socket start to connect');
+        console.log('[Socket]  Start to connect');
 
         this.callbackMap = new Map<SignalType ,Map<SignalMethod, (data) => void>>();
         this.callbackMap.set(SignalType.request, new Map<SignalMethod, (data) => void>());
@@ -27,8 +27,8 @@ export class SignalingService
         });
 
         this.socket.on('disconnect', async () => {
-            console.log('[Socket]  Socket disconnected');
-            this.socket.disconnect();
+            console.warn('[Socket]  Disconnected');
+            // this.socket.disconnect();
             await onDisconnect();
         })
     }
@@ -54,10 +54,8 @@ export class SignalingService
     {
         this.socket.connect();
         return new Promise<void>((resolve, reject) => {
-            console.log('[Socket]  Waiting for connection to ' + this.URL + '...');
             this.socket.once('connect', timeoutCallback(() => {
                 if (this.socket && this.socket.connected) {
-                    console.log('[Socket]  Socket connected');
                     resolve();
                 }
                 else
@@ -65,7 +63,6 @@ export class SignalingService
             }, serviceConfig.connectTimeout));
 
             if (this.socket && this.socket.connected) {
-                console.log('[Socket]  Socket connected');
                 resolve();
             }
             // this.socket.on('connect_error', this.timeoutCallback(() => {
@@ -78,19 +75,17 @@ export class SignalingService
     public waitForReconnection()
     {
         return new Promise<void>((resolve, reject) => {
-            console.log('[Socket]  Waiting for reconnection to ' + this.URL + '...');
-            this.socket.once('reconnect', timeoutCallback(() => {
+            this.socket.once('connect', timeoutCallback(() => {
                 if (this.socket && this.socket.connected) {
-                    console.log('[Socket]  Socket reconnected');
                     resolve();
                 }
                 else
                     reject('Socket reconnection failed');
             }, serviceConfig.reconnectTimeout));
-
-            if (this.socket && this.socket.connected) {
-                resolve();
-            }
+            //
+            // if (this.socket && this.socket.connected) {
+            //     resolve();
+            // }
         })
     }
 
