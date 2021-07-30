@@ -21,6 +21,7 @@ export declare type ConnectTransportRequest = {
 
 export declare type PeerInfo = {
     id: string,
+    avatar: string,
     displayName: string,
     device: string,
 };

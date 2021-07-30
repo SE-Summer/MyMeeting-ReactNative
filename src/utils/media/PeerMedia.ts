@@ -1,8 +1,10 @@
 import {types as mediasoupTypes} from "mediasoup-client";
 import * as types from "../Types";
+import {config} from "../Constants.js"
 
 const defaultPeerInfo: types.PeerInfo = {
     id: 'defaultUser_defaultUser',
+    avatar: config.unKnownUri,
     displayName: 'defaultUser',
     device: 'defaultDevice'
 }
@@ -196,5 +198,10 @@ export class PeerMedia
         });
         this.peerId2Details.clear();
         this.consumerId2Details.clear();
+    }
+
+    public getPeerDetailsByPeerId(peerId: string)
+    {
+        return this.peerId2Details.get(peerId);
     }
 }

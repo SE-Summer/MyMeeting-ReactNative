@@ -17,6 +17,7 @@ export class MediaService
     private serverURL: string = null;
     private displayName: string = null;
     private deviceName: string = null;
+    private avatar: string = null;
 
     private signaling: SignalingService = null;
     private device: mediasoupTypes.Device = null;
@@ -69,6 +70,12 @@ export class MediaService
         return this.peerMedia.getPeerDetails();
     }
 
+    public getPeerDetailsByPeerId(peerId: string)
+    {
+        return this.peerMedia.getPeerDetailsByPeerId(peerId);
+    }
+
+
     public getHostPeerId()
     {
         return this.hostPeerId;
@@ -77,17 +84,29 @@ export class MediaService
     private waitForAllowed(): Promise<void>
     {
         return new Promise<void>((resolve, reject) => {
+            console.log('[Log]  Waiting for server to allow the connection...');
+            let returned: boolean = false;
             this.eventEmitter.once('permissionUpdated', timeoutCallback(() => {
+                if (returned)
+                    return;
+
+                returned = true;
                 if (this.allowed) {
+                    console.log('[Log]  Server allowed the connection')
                     resolve();
-                } else
+                } else {
                     reject('[Error]  Server reject the connection');
+                }
             }, serviceConfig.mediaTimeout));
-            if (this.permissionUpdated) {
+
+            if (!returned && this.permissionUpdated) {
+                returned = true;
                 if (this.allowed) {
+                    console.log('[Log]  Server allowed the connection')
                     resolve();
-                } else
+                } else {
                     reject('[Error]  Server reject the connection');
+                }
             }
         })
     }
@@ -99,7 +118,7 @@ export class MediaService
     // send request to get routerRtpCapabilities from server
     // load the routerRtpCapabilities into device
     //
-    public async joinMeeting(roomToken: string, userToken: string, displayName: string, deviceName: string): Promise<void>
+    public async joinMeeting(roomToken: string, userToken: string, displayName: string, deviceName: string, avatar: string): Promise<void>
     {
         if (this.joined) {
             console.warn('[Warning]  Already joined a meeting');
@@ -111,20 +130,14 @@ export class MediaService
         this.serverURL = `${serviceConfig.serverURL}?roomId=${this.roomToken}&peerId=${this.userToken}`;
         this.displayName = displayName;
         this.deviceName = deviceName;
+        this.avatar = avatar;
         console.log('[Log]  Try to join meeting with roomToken = ' + roomToken);
 
         try {
             this.signaling = new SignalingService(this.serverURL, socketConnectionOptions, this.onSignalingDisconnect.bind(this));
-
             this.registerSignalingListeners();
-
-            console.log('[Socket]  Waiting for connection to ' + this.serverURL + '...');
             await this.signaling.waitForConnection();
-            console.log('[Socket]  Connected');
-
-            console.log('[Log] Waiting for server to allow the connection...');
             await this.waitForAllowed();
-            console.log('[Log]  Server allowed the connection')
 
         } catch (err) {
             console.error('[Error]  Fail to connect socket or the server rejected', err);
@@ -153,6 +166,7 @@ export class MediaService
             const { host, peerInfos } = await this.signaling.sendRequest(SignalMethod.join, {
             // const peerInfos = await this.signaling.sendRequest(SignalMethod.join, {
                 displayName: this.displayName,
+                avatar: this.avatar,
                 joined: this.joined,
                 device: this.deviceName,
                 rtpCapabilities: this.device.rtpCapabilities,
@@ -179,10 +193,7 @@ export class MediaService
     {
         if (this.joined) {
             try {
-                console.log('[Socket]  Waiting for reconnection to ' + this.serverURL + '...');
                 await this.signaling.waitForReconnection();
-                console.log('[Socket]  Reconnected');
-
                 await this.restartIce();
             } catch (err) {
                 await this.reenter();
@@ -211,7 +222,7 @@ export class MediaService
     {
         console.log('[Log]  Trying to reenter the meeting...');
         await this.leaveMeeting(true);
-        await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName);
+        await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName, this.avatar);
 
         let tracks: MediaStreamTrack[] = [];
         this.sendingTracks.forEach((track) => {
