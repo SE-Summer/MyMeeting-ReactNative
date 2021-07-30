@@ -48,6 +48,7 @@ export default class Meeting extends Component
         super(props);
         this.mediaStreamFactory = new MediaStreamFactory();
         this.mediaService = new MediaService(this.updatePeerDetails.bind(this), this.recvMessage.bind(this));
+        this.message = [];
         this.state = {
             view: 'portrait',
             peerDetails: null,
@@ -207,8 +208,21 @@ export default class Meeting extends Component
         })
     }
 
-    recvMessage(message) {
+    openChatRoom = () => {
+        this.props.navigation.navigate('MeetingChat', {messages: this.message, sendMethod: this.sendMessage});
+    }
 
+    recvMessage(message) {
+        message.myInf = false;
+        this.message.push(message);
+    }
+
+    sendMessage = async (message) => {
+        try {
+            await this.mediaService.sendMessage(message);
+        } catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+        }
     }
 
     onLayout = event => {
@@ -239,10 +253,6 @@ export default class Meeting extends Component
 
     swapCam = () => {
 
-    }
-
-    openChatRoom = () => {
-        this.props.navigation.navigate('MeetingChat');
     }
 
     onSwipeLeft() {
@@ -357,7 +367,7 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait}) => {
                     turnPortrait(index - 1);
                 }
             }}>
-                <UserLabel text={myS && index === 0 ? config_key.username : item.peerInfo.displayName}/>
+                <UserLabel text={myS && index === 0 ? config_key.username : item.getPeerInfo().displayName}/>
                 <RTCView
                     zOrder={0}
                     mirror={myS && index === 0}

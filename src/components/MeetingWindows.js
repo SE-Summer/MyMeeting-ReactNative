@@ -8,7 +8,7 @@ import {config_key} from "../utils/Constants";
 export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
     return (
         <View style={{flex: 1, borderWidth: 1, borderColor: peerToShow.hasAudio() ? '#44CE55' : '#f1f3f5'}}>
-            <UserLabel text={peerToShow.peerInfo.displayName}/>
+            <UserLabel text={peerToShow.getPeerInfo().displayName}/>
             {
                 peerToShow.hasVideo() ?
                     <RTCView
