@@ -1,5 +1,5 @@
 import {getFromStorage, removeFromStorage, setInStorage} from "../utils/StorageUtils";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {getRequest, postFormData, postRequest} from "../utils/Utils";
 
 export const loginService = async (email, password) => {

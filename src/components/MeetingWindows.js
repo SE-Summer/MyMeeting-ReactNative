@@ -3,7 +3,7 @@ import {Text, View} from "react-native";
 import {UserLabel} from "./UserLabel";
 import {RTCView} from "react-native-webrtc";
 import {DefaultPic, DefaultWithAudioPic} from "./DefaultPic";
-import {config_key} from "../utils/Constants";
+import {config_key} from "../Constants";
 
 export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
     return (

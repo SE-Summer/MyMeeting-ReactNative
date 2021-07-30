@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {Component} from "react";
 import {TextInput, View} from "react-native";
-import {config_key} from "../utils/Constants";
+import {config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
 import {Tip} from "../components/Tip";
 import {changeNickname, changeUsername} from "../service/UserService";

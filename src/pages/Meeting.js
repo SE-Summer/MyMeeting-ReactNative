@@ -10,7 +10,7 @@ import {
 import * as React from "react";
 import {Component, useState} from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {IconWithLabel} from "../components/IconWithLabel";
 import {MediaService} from "../service/MediaService";
 import {MediaStreamFactory} from "../utils/media/MediaStreamFactory";
@@ -208,7 +208,7 @@ export default class Meeting extends Component
     }
 
     openChatRoom = () => {
-        this.props.navigation.navigate('MeetingChat', {messages: this.message, sendMethod: this.sendMessage});
+        this.props.navigation.navigate('MeetingChat');
     }
 
     recvMessage(message) {

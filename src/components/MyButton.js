@@ -1,6 +1,6 @@
 import {StyleSheet, ImageBackground, Text, TouchableOpacity, View, TouchableHighlight} from "react-native";
 import * as React from "react";
-import {config} from "../utils/Constants";
+import {config} from "../Constants";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 export const TextButton = ({text, pressEvent, containerStyle = null}) => {

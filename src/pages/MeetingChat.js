@@ -14,18 +14,16 @@ import {Component} from "react";
 import {ChatBubble} from "../components/ChatBubble";
 import moment from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
 import {Avatar} from "react-native-elements";
 
 const windowWidth = Dimensions.get('window').width;
 
 export default class MeetingChat extends Component {
-    constructor(props) {
+    constructor() {
         super();
         this.message = [];
-        // this.message = props.route.params.message;
-        // this.sendMessage = props.route.params.sendMethod;
         this.sendButtonWidth = new Animated.Value(0);
         this.addButtonWidth = new Animated.Value(50);
         this.state = {

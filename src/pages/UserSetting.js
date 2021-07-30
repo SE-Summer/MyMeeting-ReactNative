@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Component} from "react";
 import {Image, View, StyleSheet, Text} from "react-native";
 import {TouchableItem} from "../components/Item";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {Divider} from "react-native-elements/dist/divider/Divider";
 import ImagePicker from 'react-native-image-crop-picker';
 import {getAvatar, uploadAvatar} from "../service/UserService";

@@ -4,7 +4,7 @@ import {Component} from "react";
 import {SwitchItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
-import {config_key} from "../utils/Constants";
+import {config_key} from "../Constants";
 import {create, join} from "../service/MeetingService";
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';

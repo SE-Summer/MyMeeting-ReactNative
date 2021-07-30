@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {Animated, Dimensions, View,} from 'react-native';
 import {MaskedMyMeeting} from "../components/MaskedText";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {getFromStorage} from "../utils/StorageUtils";
 import {autoLogin} from "../service/UserService";
 import { SafeAreaView } from 'react-native-safe-area-context';

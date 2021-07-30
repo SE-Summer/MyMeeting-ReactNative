@@ -13,7 +13,7 @@ import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import {config, config_key, smallUtils} from "../utils/Constants";
+import {config, config_key, smallUtils} from "../Constants";
 import {validateEmail} from "../utils/Utils";
 import {loginService} from "../service/UserService";
 import {setInStorage} from "../utils/StorageUtils";

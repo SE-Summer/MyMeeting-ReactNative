@@ -1,6 +1,6 @@
 import {postRequest} from "../utils/Utils";
 import moment from "moment";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {getFromStorage} from "../utils/StorageUtils";
 
 export const create = async (roomname, password) => {

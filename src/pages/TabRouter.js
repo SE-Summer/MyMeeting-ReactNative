@@ -2,7 +2,7 @@ import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {Component} from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {config} from "../utils/Constants";
+import {config} from "../Constants";
 import HomeScreen from "./HomeScreen";
 import UserScreen from "./UserScreen";
 import * as React from "react";

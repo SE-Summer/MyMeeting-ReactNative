@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Component} from "react";
 import {View, StyleSheet} from "react-native";
 import {SwitchItem} from "../components/Item";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {setInStorage} from "../utils/StorageUtils";
 
 const styles = StyleSheet.create({

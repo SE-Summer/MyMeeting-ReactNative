@@ -6,7 +6,7 @@ import {TouchableItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
 import moment from "moment";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {reserve} from "../service/MeetingService";
 import * as Progress from "react-native-progress";
 

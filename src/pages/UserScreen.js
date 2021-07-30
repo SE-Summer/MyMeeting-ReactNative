@@ -4,7 +4,7 @@ import {Component} from "react";
 import UserInf from "../components/UserInf";
 import {StyleSheet} from "react-native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {getAvatar} from "../service/UserService";
 
 const Item = ({icon, text, func}) => {

@@ -3,7 +3,7 @@ import {Component} from "react";
 import {FlatList, RefreshControl, Text, View} from "react-native";
 import {meetingsInf} from "../service/MeetingService";
 import {ListItem} from "../components/ListItem";
-import {config_key} from "../utils/Constants";
+import {config_key} from "../Constants";
 
 const Empty = ({}) => {
     return (
