@@ -6,11 +6,11 @@ import {
     Text,
     Dimensions,
     TouchableOpacity,
-    Animated, Keyboard, Modal, Image,
+    Animated, Keyboard, Modal,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
-import {Component, useState} from "react";
+import {Component} from "react";
 import {ChatBubble} from "../components/ChatBubble";
 import moment from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -19,23 +19,6 @@ import {TextButton} from "../components/MyButton";
 import {Avatar} from "react-native-elements";
 
 const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
-
-const testData = [
-    {text: '222221', myS: false},
-    {text: '12222222', myS: false},
-    {text: '1222222222222222222', myS: true},
-    {text: '122', myS: false},
-    {text: '243432423423s', myS: false},
-    {text: '222221', myS: false},
-    {text: '12222222', myS: false},
-    {text: '12222222222222222265576576567576552', myS: true},
-    {text: '243432423423s', myS: false},
-    {text: '222221', myS: false},
-    {text: '12222222', myS: false},
-    {text: '1222222222222222222', myS: true},
-
-]
 
 export default class MeetingChat extends Component {
     constructor(props) {
@@ -51,6 +34,7 @@ export default class MeetingChat extends Component {
             toolBar: false,
             oneToOne: 0,
             visible: false,
+            selected: null,
         }
     }
 
@@ -159,10 +143,6 @@ export default class MeetingChat extends Component {
         ).start();
     }
 
-    oneToOneChat = () => {
-
-    }
-
     renderItem = ({item}) => {
         return (
             <View style={[style.listItem, {justifyContent: item.myInf ? 'flex-end' : 'flex-start'}]}>
@@ -184,7 +164,7 @@ export default class MeetingChat extends Component {
     }
 
     render() {
-        const {text, toolBar, toolsBarFlex, visible} = this.state;
+        const {toolBar, toolsBarFlex, visible, selected} = this.state;
         return (
             <SafeAreaView style={{flex: 1}}>
                 <View style={{flex: 1}}>
@@ -211,7 +191,7 @@ export default class MeetingChat extends Component {
                                 visible: true,
                             })
                         }}>
-                            <Ionicons name={'person-outline'} size={34}/>
+                            <Ionicons name={selected ? 'person' : 'person-outline'} size={34} color={selected ? '#87e0a8' : 'black'}/>
                         </TouchableOpacity>
                         <TextInput
                             style={style.textInput}
@@ -229,7 +209,7 @@ export default class MeetingChat extends Component {
                                 else
                                     this.hideToolBar()
                             }}>
-                                <Ionicons name={'add-circle-outline'} size={37} color={toolBar ? '#44CE55' : '#171717'}/>
+                                <Ionicons name={'add-circle-outline'} size={37} color={toolBar ? '#87e0a8' : '#171717'}/>
                             </TouchableOpacity>
                         </Animated.View>
                         <Animated.View style={{width: this.sendButtonWidth, height: 44, justifyContent: 'center'}}>
@@ -257,27 +237,41 @@ export default class MeetingChat extends Component {
                     }}
                 >
                     <TouchableOpacity style={{flex: 1}} onPress={() => {this.setState({ visible: false, })}}/>
-                    <MemberSelector />
+                    <MemberSelector selected={selected} setSelected={(value) => {this.setState({selected: value})}}/>
                 </Modal>
             </SafeAreaView>
         );
     }
 }
 
-const MemberSelector = ({}) => {
-    const [selected, setSelected] = useState(null);
+const MemberSelector = ({selected, setSelected}) => {
 
     const renderItem = ({item}) => {
+        const meSelected = selected && selected === item.id;
         return (
-            <TouchableOpacity style={selectorStyle.listItem}>
-                <Avatar
-                    rounded
-                    size={40}
-                    source={{
-                        uri: config.unKnownUri
-                    }}
-                />
-                <Text>{item.id}</Text>
+            <TouchableOpacity
+                style={[selectorStyle.listItem, {backgroundColor: meSelected ? '#87e0a8' : 'white'}]}
+                onPress={() => {
+                    if (meSelected) {
+                        setSelected(null);
+                    } else {
+                        setSelected(item.id);
+                    }
+                }}
+            >
+                <View style={{marginLeft: 20}}>
+                    <Avatar
+                        rounded
+                        size={50}
+                        source={{
+                            uri: config.unKnownUri
+                        }}
+                    />
+                </View>
+                <View style={{flex: 1, alignItems: "center"}}>
+                    <Text style={{color: meSelected ? 'white' : 'black'}}>{item.id}</Text>
+                </View>
+                <View style={{flex: 1}}/>
             </TouchableOpacity>
         )
     }
@@ -286,14 +280,28 @@ const MemberSelector = ({}) => {
         <View style={style.memberListContainer}>
             <View style={selectorStyle.titleContainer}>
                 <Text style={selectorStyle.title}>选择私聊对象</Text>
+                <View style={selectorStyle.selectedUserContainer}>
+                    { selected &&
+                    <Text style={selectorStyle.selectedUser}>
+                        用户：{selected}
+                    </Text>
+                    }
+                </View>
+                <TouchableOpacity onPress={() => {setSelected(null);}}>
+                    <Ionicons name={'close-circle-outline'} color={'#aaaaaa'} size={20}
+                              style={{marginLeft: 20, marginRight: 5}}
+                    />
+                </TouchableOpacity>
+
             </View>
             <FlatList
-                data={[{id: 1}, {id: 2}]}
+                data={[{id: 1}, {id: 2},{id: 3}, {id: 4},{id: 5}, {id: 6},{id: 7}, {id: 8},{id: 9}, {id: 10},{id: 11}, {id: 12}]}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => {
                     return index;
                 }}
                 style={selectorStyle.list}
+                extraData={selected}
             />
         </View>
     )
@@ -302,26 +310,31 @@ const MemberSelector = ({}) => {
 const selectorStyle = StyleSheet.create({
     titleContainer: {
         alignItems: 'center',
-        justifyContent: 'center',
         padding: 15,
+        flexDirection: 'row',
     },
     title: {
         fontWeight: 'bold',
         fontSize: 16,
     },
+    selectedUser: {
+        fontSize: 16,
+    },
+    selectedUserContainer: {
+        flex: 1,
+        alignItems: 'flex-end',
+    },
     list: {
-        backgroundColor: '#F1F3F5'
     },
     listItem: {
         backgroundColor: "white",
-        borderRadius: 10,
-        marginLeft: 10,
-        marginRight: 10,
-        marginTop: 3,
-        marginBottom: 3,
-        padding: 5,
+        padding: 8,
         elevation: 1,
-        flexDirection: 'row'
+        flexDirection: 'row',
+        alignItems:'center'
+    },
+    itemText: {
+        textAlign: 'center',
     }
 })
 

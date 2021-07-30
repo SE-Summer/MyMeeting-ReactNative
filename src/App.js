@@ -75,24 +75,24 @@ export default function App() {
                             headerTitleAlign: 'center',
                             title: '聊天',
                         }} />
-                        <Stack.Screen name={"MeetingSetting"} component={MeetingSettingScreen} options={{
+                        <Stack.Screen name={"MeetingSetting"} component={MeetingSettingScreen} options={({navigation}) => ({
                             title: '会议设置',
                             headerTitleAlign: 'center',
-                            headerBackTitle: 'User',
+                            headerLeft: () => {return (<TextButton text={'返回'} pressEvent={() => {navigation.pop();}}/>)},
                             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
-                        }}/>
-                        <Stack.Screen name={"UserSetting"} component={UserSettingScreen} options={{
+                        })}/>
+                        <Stack.Screen name={"UserSetting"} component={UserSettingScreen} options={({navigation})=>({
                             title: '个人信息',
                             headerTitleAlign: 'center',
-                            headerBackTitle: 'User',
+                            headerLeft: () => {return (<TextButton text={'返回'} pressEvent={() => {navigation.pop();}}/>)},
                             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
-                        }} />
-                        <Stack.Screen name={"NormalSetting"} component={NormalSettings} options={{
+                        })} />
+                        <Stack.Screen name={"NormalSetting"} component={NormalSettings} options={({navigation})=>({
                             title: '通用',
                             headerTitleAlign: 'center',
-                            headerBackTitle: 'User',
+                            headerLeft: () => {return (<TextButton text={'返回'} pressEvent={() => {navigation.pop();}}/>)},
                             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
-                        }} />
+                        })} />
                         <Stack.Screen name={"EditProfile"} component={EditProfileScreen} options={{
                             headerTitleAlign: 'center',
                             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
