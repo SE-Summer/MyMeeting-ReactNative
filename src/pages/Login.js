@@ -38,6 +38,7 @@ const InputLabel = ({text}) => {
 export default class LoginScreen extends Component {
     constructor(props) {
         super(props);
+        this.registerPos = new Animated.Value(windowWidth * 0.75 - 65);
         this.state = {
             userEmail: config_key.email,
             password: null,
@@ -224,12 +225,12 @@ export default class LoginScreen extends Component {
                         </ImageBackground>
                     </View>
                     <View style={styles.buttonContainer}>
-                        <Animated.View style={{position: 'absolute', left: windowWidth / 4 - 65, top: windowHeight / 20,}}>
+                        <View style={{position: 'absolute', left: windowWidth / 4 - 65, top: windowHeight / 20,}}>
                             <MyButton pressEvent={this.log} text={"登录"}/>
-                        </Animated.View>
-                        <Animated.View style={{position: 'absolute', left: windowWidth * 0.75 - 65, top: windowHeight / 20,}}>
+                        </View>
+                        <View style={{position: 'absolute', left: windowWidth * 0.75 - 65, top: windowHeight / 20,}}>
                             <MyButton pressEvent={this.register} text={"注册"}/>
-                        </Animated.View>
+                        </View>
                     </View>
                 </KeyboardAwareScrollView>
             </SafeAreaView>

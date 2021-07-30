@@ -30,9 +30,9 @@ export default class ReServeMeetingScreen extends Component{
             nameText: null,
             secretText: null,
             showTimeStart: false,
-            startTime: moment().add(1, 'h'),
+            startTime: moment().add(1, 'h').toDate(),
             showTimeEnd: false,
-            endTime: moment().add(2, 'h'),
+            endTime: moment().add(2, 'h').toDate(),
             loading: false,
         }
     }

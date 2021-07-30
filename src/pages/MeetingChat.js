@@ -6,14 +6,18 @@ import {
     Text,
     Dimensions,
     TouchableOpacity,
-    Animated, Keyboard,
+    Animated, Keyboard, Modal, Image,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
-import {Component} from "react";
+import {Component, useState} from "react";
 import {ChatBubble} from "../components/ChatBubble";
 import moment from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import {config, config_key} from "../utils/Constants";
+import {TextButton} from "../components/MyButton";
+import {Avatar} from "react-native-elements";
+
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
@@ -34,18 +38,27 @@ const testData = [
 ]
 
 export default class MeetingChat extends Component {
-    constructor() {
+    constructor(props) {
         super();
+        this.message = [];
+        // this.message = props.route.params.message;
+        // this.sendMessage = props.route.params.sendMethod;
         this.sendButtonWidth = new Animated.Value(0);
         this.addButtonWidth = new Animated.Value(50);
         this.state = {
             text: null,
             toolsBarFlex: new Animated.Value(0),
             toolBar: false,
+            oneToOne: 0,
+            visible: false,
         }
     }
 
     componentDidMount () {
+        const {navigation} = this.props;
+        navigation.setOptions({
+            headerLeft: () => {return (<TextButton text={'返回'} pressEvent={() => {navigation.pop();}}/>)},
+        })
         Keyboard.addListener('keyboardDidShow', this.keyboardWillShow);
     }
 
@@ -67,6 +80,7 @@ export default class MeetingChat extends Component {
             this.showAddButton();
             this.hideSendButton();
         }
+
         this.setState({
             text: value,
             toolBar: false,
@@ -145,20 +159,24 @@ export default class MeetingChat extends Component {
         ).start();
     }
 
+    oneToOneChat = () => {
+
+    }
+
     renderItem = ({item}) => {
         return (
-            <View style={[style.listItem, {justifyContent: item.myS ? 'flex-end' : 'flex-start'}]}>
+            <View style={[style.listItem, {justifyContent: item.myInf ? 'flex-end' : 'flex-start'}]}>
                 {
-                    !item.myS &&
+                    !item.myInf &&
                     <View style={style.avatarContainer}>
-                        <Text>User</Text>
+                        <Text>{item.fromPeerId}</Text>
                     </View>
                 }
-                <ChatBubble maxWidth={windowWidth * 0.8} myInf={item.myS} text={item.text} time={moment()} />
+                <ChatBubble maxWidth={windowWidth * 0.8} myInf={item.myInf} text={item.text} time={moment()} />
                 {
-                    item.myS &&
+                    item.myInf &&
                     <View style={style.avatarContainer}>
-                        <Text>User</Text>
+                        <Text>{config_key.userId}</Text>
                     </View>
                 }
             </View>
@@ -166,7 +184,7 @@ export default class MeetingChat extends Component {
     }
 
     render() {
-        const {text, toolBar, toolsBarFlex} = this.state;
+        const {text, toolBar, toolsBarFlex, visible} = this.state;
         return (
             <SafeAreaView style={{flex: 1}}>
                 <View style={{flex: 1}}>
@@ -181,13 +199,20 @@ export default class MeetingChat extends Component {
                         disabled={!toolBar}
                     >
                         <FlatList
-                            data={testData}
+                            data={this.message}
                             renderItem={this.renderItem}
                             keyExtractor={(item, index) => {return index}}
 
                         />
                     </TouchableOpacity>
                     <View style={style.sendBar}>
+                        <TouchableOpacity style={{marginLeft: 5}} onPress={() => {
+                            this.setState({
+                                visible: true,
+                            })
+                        }}>
+                            <Ionicons name={'person-outline'} size={34}/>
+                        </TouchableOpacity>
                         <TextInput
                             style={style.textInput}
                             textAlignVertical={'center'}
@@ -208,7 +233,7 @@ export default class MeetingChat extends Component {
                             </TouchableOpacity>
                         </Animated.View>
                         <Animated.View style={{width: this.sendButtonWidth, height: 44, justifyContent: 'center'}}>
-                            <TouchableOpacity style={style.sendButton}>
+                            <TouchableOpacity style={style.sendButton} onPress={this.sendMessage}>
                                 <Text style={style.sendText}>发送</Text>
                             </TouchableOpacity>
                         </Animated.View>
@@ -221,10 +246,84 @@ export default class MeetingChat extends Component {
                         </TouchableOpacity>
                     </View>
                 </Animated.View>
+                <Modal
+                    animationType="slide"
+                    visible={visible}
+                    transparent={true}
+                    onRequestClose={() => {
+                        this.setState({
+                            visible: false,
+                        })
+                    }}
+                >
+                    <TouchableOpacity style={{flex: 1}} onPress={() => {this.setState({ visible: false, })}}/>
+                    <MemberSelector />
+                </Modal>
             </SafeAreaView>
         );
     }
 }
+
+const MemberSelector = ({}) => {
+    const [selected, setSelected] = useState(null);
+
+    const renderItem = ({item}) => {
+        return (
+            <TouchableOpacity style={selectorStyle.listItem}>
+                <Avatar
+                    rounded
+                    size={40}
+                    source={{
+                        uri: config.unKnownUri
+                    }}
+                />
+                <Text>{item.id}</Text>
+            </TouchableOpacity>
+        )
+    }
+
+    return (
+        <View style={style.memberListContainer}>
+            <View style={selectorStyle.titleContainer}>
+                <Text style={selectorStyle.title}>选择私聊对象</Text>
+            </View>
+            <FlatList
+                data={[{id: 1}, {id: 2}]}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => {
+                    return index;
+                }}
+                style={selectorStyle.list}
+            />
+        </View>
+    )
+}
+
+const selectorStyle = StyleSheet.create({
+    titleContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 15,
+    },
+    title: {
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    list: {
+        backgroundColor: '#F1F3F5'
+    },
+    listItem: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        marginLeft: 10,
+        marginRight: 10,
+        marginTop: 3,
+        marginBottom: 3,
+        padding: 5,
+        elevation: 1,
+        flexDirection: 'row'
+    }
+})
 
 const style = StyleSheet.create({
     sendBar: {
@@ -292,4 +391,9 @@ const style = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    memberListContainer: {
+        flex: 2,
+        backgroundColor: 'white',
+        elevation: 5,
+    }
 })
