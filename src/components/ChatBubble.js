@@ -5,7 +5,7 @@ import moment from "moment";
 const bubbleStyle = StyleSheet.create({
     myBubble: {
         backgroundColor: '#24b23b',
-        alignSelf: 'flex-start',
+        alignSelf: 'flex-end',
         padding: 10,
         borderRadius: 20,
     },

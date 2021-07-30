@@ -298,9 +298,9 @@ export class MediaService
             } as types.SendPeerMessage;
 
             await this.signaling.sendRequest(SignalMethod.sendMessage, message);
-
+            console.log('[Log]  Message sent');
         } catch (err) {
-            console.error('[Error]  Fail to send peer message');
+            console.error('[Error]  Fail to send peer message', err);
             return Promise.reject('Fail to send peer message');
         }
     }

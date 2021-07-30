@@ -21,6 +21,7 @@ import GestureRecognizer from 'react-native-swipe-gestures';
 import {MyStreamWindow, PeerWindow} from "../components/MeetingWindows";
 import {UserLabel} from "../components/UserLabel";
 import {preventDoubleClick} from "../utils/Utils";
+import {MeetingVariable} from "../MeetingVariable";
 
 const microInf = {
     isCalled: false,
@@ -47,8 +48,7 @@ export default class Meeting extends Component
     constructor(props) {
         super(props);
         this.mediaStreamFactory = new MediaStreamFactory();
-        this.mediaService = new MediaService(this.updatePeerDetails.bind(this), this.recvMessage.bind(this));
-        this.message = [];
+        MeetingVariable.mediaService = new MediaService(this.updatePeerDetails.bind(this), this.recvMessage.bind(this));
         this.state = {
             view: 'portrait',
             peerDetails: null,
@@ -57,7 +57,7 @@ export default class Meeting extends Component
             myDisplayStream: null,
             myMicrophoneStream: null,
             width: 300,
-            height: 600,
+            height: 700,
             microStat: 'off',
             camStat: 'off',
         };
@@ -97,7 +97,7 @@ export default class Meeting extends Component
 
         try {
             this.userName = config_key.username;
-            await this.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token,
+            await MeetingVariable.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token,
                 this.userName, `${this.userName}'s mobile device`, config_key.avatarUri);
 
             await this.mediaStreamFactory.waitForUpdate();
@@ -131,7 +131,7 @@ export default class Meeting extends Component
                 this.forceUpdate();
             });
 
-            await this.mediaService.sendMediaStream(micStream);
+            await MeetingVariable.mediaService.sendMediaStream(micStream);
         } catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
@@ -144,7 +144,7 @@ export default class Meeting extends Component
         try {
             if (this.state.myMicrophoneStream.getAudioTracks().length === 0)
                 return;
-            await this.mediaService.closeTrack(this.state.myMicrophoneStream.getAudioTracks()[0]);
+            await MeetingVariable.mediaService.closeTrack(this.state.myMicrophoneStream.getAudioTracks()[0]);
             closeMediaStream(this.state.myMicrophoneStream);
             this.setState({
                 myMicrophoneStream: null,
@@ -174,7 +174,7 @@ export default class Meeting extends Component
                 camStat: 'on',
             });
 
-            await this.mediaService.sendMediaStream(camStream);
+            await MeetingVariable.mediaService.sendMediaStream(camStream);
         }  catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
@@ -187,7 +187,7 @@ export default class Meeting extends Component
         try {
             if (this.state.myCameraStream.getVideoTracks().length === 0)
                 return;
-            await this.mediaService.closeTrack(this.state.myCameraStream.getVideoTracks()[0]);
+            await MeetingVariable.mediaService.closeTrack(this.state.myCameraStream.getVideoTracks()[0]);
             closeMediaStream(this.state.myCameraStream);
             this.setState({
                 myCameraStream: null,
@@ -200,7 +200,7 @@ export default class Meeting extends Component
 
     updatePeerDetails() {
         this.setState({
-            peerDetails: this.mediaService.getPeerDetails().length === 0 ? null : this.mediaService.getPeerDetails(),
+            peerDetails: MeetingVariable.mediaService.getPeerDetails().length === 0 ? null : MeetingVariable.mediaService.getPeerDetails(),
         }, () => {
             this.forceUpdate();
             console.log('[React]  state.peerDetails of Meeting updated : ' + this.state.peerDetails);
@@ -213,15 +213,7 @@ export default class Meeting extends Component
 
     recvMessage(message) {
         message.myInf = false;
-        this.message.push(message);
-    }
-
-    sendMessage = async (message) => {
-        try {
-            await this.mediaService.sendMessage(message);
-        } catch (e) {
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
-        }
+        MeetingVariable.messages.push(message);
     }
 
     onLayout = event => {
@@ -240,9 +232,10 @@ export default class Meeting extends Component
             if (this.state.myMicrophoneStream) {
                 await this.closeMicrophone();
             }
-            if (this.mediaService) {
-                await this.mediaService.leaveMeeting();
+            if (MeetingVariable.mediaService) {
+                await MeetingVariable.mediaService.leaveMeeting();
             }
+            MeetingVariable.mediaService = null;
             this.props.navigation.pop();
         } catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});

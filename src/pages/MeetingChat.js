@@ -17,6 +17,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import {config, config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
 import {Avatar} from "react-native-elements";
+import {MeetingVariable} from "../MeetingVariable";
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -67,6 +68,30 @@ export default class MeetingChat extends Component {
             text: value,
             toolBar: false,
         })
+    }
+
+    sendMessage = () => {
+        const {selected, text} = this.state;
+        const peerId = selected ? selected : null;
+        const message = {
+            myInf: true,
+            text: text,
+            timeStamp: moment(),
+            broadcast: selected == null,
+            toPeerId: selected,
+        };
+        try {
+            MeetingVariable.mediaService.sendMessage(peerId, text);
+            MeetingVariable.messages.push(message);
+            this.setState({
+                text: null,
+            }, () => {
+                this.hideSendButton();
+                this.showAddButton();
+            })
+        } catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+        }
     }
 
     showToolBar = () => {
@@ -151,19 +176,35 @@ export default class MeetingChat extends Component {
     }
 
     renderItem = ({item}) => {
+        const peerInfo = item.myInf ? null : MeetingVariable.mediaService.getPeerDetailsByPeerId(item.fromPeerId).getPeerInfo();
+
         return (
             <View style={[style.listItem, {justifyContent: item.myInf ? 'flex-end' : 'flex-start'}]}>
                 {
                     !item.myInf &&
                     <View style={style.avatarContainer}>
-                        <Text>{item.fromPeerId}</Text>
+                        <Avatar
+                            rounded
+                            size={40}
+                            source={{
+                                uri: peerInfo.avatar
+                            }}
+                        />
+                        <Text style={style.listUsername}>{peerInfo.displayName}</Text>
                     </View>
                 }
                 <ChatBubble maxWidth={windowWidth * 0.8} myInf={item.myInf} text={item.text} time={moment()} />
                 {
                     item.myInf &&
                     <View style={style.avatarContainer}>
-                        <Text>{config_key.userId}</Text>
+                        <Avatar
+                            rounded
+                            size={40}
+                            source={{
+                                uri: config_key.avatarUri
+                            }}
+                        />
+                        <Text style={style.listUsername}>{config_key.username}</Text>
                     </View>
                 }
             </View>
@@ -171,7 +212,7 @@ export default class MeetingChat extends Component {
     }
 
     render() {
-        const {toolBar, toolsBarFlex, visible, selected} = this.state;
+        const {text, toolBar, toolsBarFlex, visible, selected} = this.state;
         return (
             <SafeAreaView style={{flex: 1}}>
                 <View style={{flex: 1}}>
@@ -186,7 +227,7 @@ export default class MeetingChat extends Component {
                         disabled={!toolBar}
                     >
                         <FlatList
-                            data={this.message}
+                            data={MeetingVariable.messages}
                             renderItem={this.renderItem}
                             keyExtractor={(item, index) => {return index}}
 
@@ -201,6 +242,7 @@ export default class MeetingChat extends Component {
                             <Ionicons name={selected ? 'person' : 'person-outline'} size={34} color={selected ? '#87e0a8' : 'black'}/>
                         </TouchableOpacity>
                         <TextInput
+                            value={text}
                             style={style.textInput}
                             textAlignVertical={'center'}
                             multiline={true}
@@ -367,14 +409,20 @@ const style = StyleSheet.create({
         flexDirection: 'row',
         marginTop: 3,
     },
+    listUsername: {
+        position:'absolute',
+        bottom: 0,
+        fontSize: 10,
+        color: '#555555'
+    },
     avatarContainer: {
-        backgroundColor: 'skyblue',
+        flexDirection: 'column',
         width: 40,
-        height: 40,
-        borderRadius: 20,
+        height: 60,
+        alignItems: 'center',
+        justifyContent: 'flex-start',
         marginLeft: 5,
         marginRight: 5,
-        marginBottom: 5
     },
     sendButton: {
         backgroundColor: '#44CE55',
