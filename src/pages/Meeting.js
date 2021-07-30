@@ -98,7 +98,7 @@ export default class Meeting extends Component
         try {
             this.userName = config_key.username;
             await this.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token,
-                this.userName, `${this.userName}'s mobile device`, config_key);
+                this.userName, `${this.userName}'s mobile device`, config_key.avatarUri);
 
             await this.mediaStreamFactory.waitForUpdate();
             if (cameraStatus) {
