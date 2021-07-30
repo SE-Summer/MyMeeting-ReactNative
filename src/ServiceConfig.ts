@@ -63,6 +63,7 @@ export enum SignalMethod {
     allowed = 'allowed',
     mute = 'mute',
     restartIce = 'restartIce',
+    roomClosed = 'roomClosed',
 }
 
 export const socketConnectionOptions = {

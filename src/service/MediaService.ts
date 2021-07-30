@@ -515,5 +515,13 @@ export class MediaService
             this.hostPeerId = newHostId;
             this.updatePeerCallback();
         });
+
+        this.signaling.registerListener(SignalType.notify, SignalMethod.roomClosed, async () => {
+            console.log('[Signaling]  Handling roomClosed notification...');
+            this.signaling.stopListeners();
+            this.signaling.disconnect();
+            await this.leaveMeeting();
+            console.warn('[Signaling]  Room closed');
+        });
     }
 }

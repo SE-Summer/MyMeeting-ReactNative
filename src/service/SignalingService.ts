@@ -50,6 +50,11 @@ export class SignalingService
         this.callbackMap.get(type).set(method, callback);
     }
 
+    public stopListeners()
+    {
+        this.socket.offAny();
+    }
+
     public waitForConnection()
     {
         this.socket.connect();
@@ -118,12 +123,12 @@ export class SignalingService
     {
         return new Promise((resolve, reject) => {
             if (!this.socket || !this.socket.connected) {
-                reject('No socket connection.');
+                reject('No socket connection.');3
             } else {
                 this.socket.emit(SignalType.request, { method, data },
                     timeoutCallback((err, response) => {
                         if (err) {
-                            console.error('[Socket]  sendRequest ' + method + ' error!');
+                            console.error('[Socket]  sendRequest ' + method + ' error!', err);
                             reject(err);
                         } else {
                             resolve(response);

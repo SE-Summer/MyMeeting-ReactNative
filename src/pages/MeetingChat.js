@@ -6,7 +6,7 @@ import {
     Text,
     Dimensions,
     TouchableOpacity,
-    Animated, Keyboard, Modal,
+    Animated, Keyboard, Modal, Platform,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
@@ -141,6 +141,15 @@ export default class MeetingChat extends Component {
         ).start();
     }
 
+    uploadFile = () => {
+        if (this.state.selected) {
+            return;
+        }
+        if (Platform.OS === 'android') {
+
+        }
+    }
+
     renderItem = ({item}) => {
         return (
             <View style={[style.listItem, {justifyContent: item.myInf ? 'flex-end' : 'flex-start'}]}>
@@ -219,7 +228,7 @@ export default class MeetingChat extends Component {
                 </View>
                 <Animated.View style={{flex: toolsBarFlex}}>
                     <View style={style.toolContainer}>
-                        <TouchableOpacity style={style.iconContainer}>
+                        <TouchableOpacity style={style.iconContainer} onPress={this.uploadFile}>
                             <Ionicons name={'folder-outline'} size={40}/>
                         </TouchableOpacity>
                     </View>
