@@ -54,15 +54,25 @@ export class SignalingService
     {
         this.socket.connect();
         return new Promise<void>((resolve, reject) => {
+            console.log('[Socket]  Waiting for connection to ' + this.URL + '...');
+            let returned: boolean = false;
             this.socket.once('connect', timeoutCallback(() => {
+                if (returned)
+                    return;
+
+                returned = true;
                 if (this.socket && this.socket.connected) {
+                    console.log('[Socket]  Connected');
                     resolve();
                 }
-                else
+                else {
                     reject('Socket connection failed');
+                }
             }, serviceConfig.connectTimeout));
 
-            if (this.socket && this.socket.connected) {
+            if (!returned && this.socket && this.socket.connected) {
+                returned = true;
+                console.log('[Socket]  Connected');
                 resolve();
             }
             // this.socket.on('connect_error', this.timeoutCallback(() => {
@@ -75,15 +85,25 @@ export class SignalingService
     public waitForReconnection()
     {
         return new Promise<void>((resolve, reject) => {
+            console.log('[Socket]  Waiting for reconnection to ' + this.URL + '...');
+            let returned: boolean = false;
             this.socket.once('connect', timeoutCallback(() => {
+                if (returned)
+                    return;
+
+                returned = true;
                 if (this.socket && this.socket.connected) {
+                    console.log('[Socket]  Reconnected');
                     resolve();
                 }
-                else
+                else {
                     reject('Socket reconnection failed');
+                }
             }, serviceConfig.reconnectTimeout));
 
-            if (this.socket && this.socket.connected) {
+            if (!returned && this.socket && this.socket.connected) {
+                returned = true;
+                console.log('[Socket]  Reconnected');
                 resolve();
             }
         })

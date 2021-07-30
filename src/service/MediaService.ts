@@ -84,17 +84,29 @@ export class MediaService
     private waitForAllowed(): Promise<void>
     {
         return new Promise<void>((resolve, reject) => {
+            console.log('[Log]  Waiting for server to allow the connection...');
+            let returned: boolean = false;
             this.eventEmitter.once('permissionUpdated', timeoutCallback(() => {
+                if (returned)
+                    return;
+
+                returned = true;
                 if (this.allowed) {
+                    console.log('[Log]  Server allowed the connection')
                     resolve();
-                } else
+                } else {
                     reject('[Error]  Server reject the connection');
+                }
             }, serviceConfig.mediaTimeout));
-            if (this.permissionUpdated) {
+
+            if (!returned && this.permissionUpdated) {
+                returned = true;
                 if (this.allowed) {
+                    console.log('[Log]  Server allowed the connection')
                     resolve();
-                } else
+                } else {
                     reject('[Error]  Server reject the connection');
+                }
             }
         })
     }
@@ -123,16 +135,9 @@ export class MediaService
 
         try {
             this.signaling = new SignalingService(this.serverURL, socketConnectionOptions, this.onSignalingDisconnect.bind(this));
-
             this.registerSignalingListeners();
-
-            console.log('[Socket]  Waiting for connection to ' + this.serverURL + '...');
             await this.signaling.waitForConnection();
-            console.log('[Socket]  Connected');
-
-            console.log('[Log] Waiting for server to allow the connection...');
             await this.waitForAllowed();
-            console.log('[Log]  Server allowed the connection')
 
         } catch (err) {
             console.error('[Error]  Fail to connect socket or the server rejected', err);
@@ -188,10 +193,7 @@ export class MediaService
     {
         if (this.joined) {
             try {
-                console.log('[Socket]  Waiting for reconnection to ' + this.serverURL + '...');
                 await this.signaling.waitForReconnection();
-                console.log('[Socket]  Reconnected');
-
                 await this.restartIce();
             } catch (err) {
                 await this.reenter();

@@ -1,10 +1,10 @@
 import {types as mediasoupTypes} from "mediasoup-client";
 import * as types from "../Types";
-import {config_key} from "../Constants.js"
+import {config} from "../Constants.js"
 
 const defaultPeerInfo: types.PeerInfo = {
     id: 'defaultUser_defaultUser',
-    avatar: config_key.avatarUri,
+    avatar: config.unKnownUri,
     displayName: 'defaultUser',
     device: 'defaultDevice'
 }

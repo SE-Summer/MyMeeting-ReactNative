@@ -14,7 +14,7 @@ export const timeoutCallback = (callback, timeout: number) => {
             return;
         }
         called = true;
-        callback(new Error('Callback timeout.'), null);
+        callback(new Error('Waiting timeout'), null);
     }, timeout);
 
     return (...args) => {
