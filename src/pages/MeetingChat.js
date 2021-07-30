@@ -18,8 +18,10 @@ import {config, config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
 import {Avatar} from "react-native-elements";
 import {MeetingVariable} from "../MeetingVariable";
+import DocumentPicker from "react-native-document-picker";
 
 const windowWidth = Dimensions.get('window').width;
+const RNFS = require('react-native-fs');
 
 export default class MeetingChat extends Component {
     constructor() {
@@ -166,12 +168,28 @@ export default class MeetingChat extends Component {
         ).start();
     }
 
-    uploadFile = () => {
+    uploadFile = async () => {
         if (this.state.selected) {
             return;
         }
-        if (Platform.OS === 'android') {
+        try {
+            const file = await DocumentPicker.pick({
+                type: [DocumentPicker.types.allFiles],
+            });
+            console.log(`[Log]  File picked: URI: ${file.uri}, Type: ${file.type}, Name: ${file.name}, Size: ${file.size}`);
 
+            if (Platform.OS === 'android') {
+                const result = await RNFS.readDir(RNFS.DocumentDirectoryPath)
+                console.log(result);
+            }
+
+        } catch (err) {
+            if (DocumentPicker.isCancel(err)) {
+                console.warn('[File]  User cancelled file picker');
+            } else {
+                console.error('[Error]  Fail to upload file');
+                return Promise.reject('Fail to upload file');
+            }
         }
     }
 

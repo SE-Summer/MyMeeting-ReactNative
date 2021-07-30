@@ -25,6 +25,7 @@
     "react-native-document-picker": "^5.2.0",
     "react-native-elements": "^3.4.2",
     "react-native-exit-app": "^1.1.0",
+    "react-native-fs": "^2.18.0",
     "react-native-gesture-handler": "^1.10.3",
     "react-native-image-crop-picker": "^0.36.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.4",
