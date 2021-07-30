@@ -82,10 +82,10 @@ export class SignalingService
                 else
                     reject('Socket reconnection failed');
             }, serviceConfig.reconnectTimeout));
-            //
-            // if (this.socket && this.socket.connected) {
-            //     resolve();
-            // }
+
+            if (this.socket && this.socket.connected) {
+                resolve();
+            }
         })
     }
 

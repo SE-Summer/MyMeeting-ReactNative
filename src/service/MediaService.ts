@@ -17,6 +17,7 @@ export class MediaService
     private serverURL: string = null;
     private displayName: string = null;
     private deviceName: string = null;
+    private avatar: string = null;
 
     private signaling: SignalingService = null;
     private device: mediasoupTypes.Device = null;
@@ -69,6 +70,12 @@ export class MediaService
         return this.peerMedia.getPeerDetails();
     }
 
+    public getPeerDetailsByPeerId(peerId: string)
+    {
+        return this.peerMedia.getPeerDetailsByPeerId(peerId);
+    }
+
+
     public getHostPeerId()
     {
         return this.hostPeerId;
@@ -99,7 +106,7 @@ export class MediaService
     // send request to get routerRtpCapabilities from server
     // load the routerRtpCapabilities into device
     //
-    public async joinMeeting(roomToken: string, userToken: string, displayName: string, deviceName: string): Promise<void>
+    public async joinMeeting(roomToken: string, userToken: string, displayName: string, deviceName: string, avatar: string): Promise<void>
     {
         if (this.joined) {
             console.warn('[Warning]  Already joined a meeting');
@@ -111,6 +118,7 @@ export class MediaService
         this.serverURL = `${serviceConfig.serverURL}?roomId=${this.roomToken}&peerId=${this.userToken}`;
         this.displayName = displayName;
         this.deviceName = deviceName;
+        this.avatar = avatar;
         console.log('[Log]  Try to join meeting with roomToken = ' + roomToken);
 
         try {
@@ -153,6 +161,7 @@ export class MediaService
             const { host, peerInfos } = await this.signaling.sendRequest(SignalMethod.join, {
             // const peerInfos = await this.signaling.sendRequest(SignalMethod.join, {
                 displayName: this.displayName,
+                avatar: this.avatar,
                 joined: this.joined,
                 device: this.deviceName,
                 rtpCapabilities: this.device.rtpCapabilities,
@@ -211,7 +220,7 @@ export class MediaService
     {
         console.log('[Log]  Trying to reenter the meeting...');
         await this.leaveMeeting(true);
-        await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName);
+        await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName, this.avatar);
 
         let tracks: MediaStreamTrack[] = [];
         this.sendingTracks.forEach((track) => {
