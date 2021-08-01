@@ -19,6 +19,8 @@ import {TextButton} from "../components/MyButton";
 import {Avatar} from "react-native-elements";
 import {MeetingVariable} from "../MeetingVariable";
 import DocumentPicker from "react-native-document-picker";
+import {serviceConfig} from "../ServiceConfig";
+import {FileJobStatus} from "../utils/Types";
 
 const windowWidth = Dimensions.get('window').width;
 const RNFS = require('react-native-fs');
@@ -29,6 +31,7 @@ export default class MeetingChat extends Component {
         this.message = [];
         this.sendButtonWidth = new Animated.Value(0);
         this.addButtonWidth = new Animated.Value(50);
+        this.uploadFileJobs = new Map();
         this.state = {
             text: null,
             toolsBarFlex: new Animated.Value(0),
@@ -178,10 +181,46 @@ export default class MeetingChat extends Component {
             });
             console.log(`[Log]  File picked: URI: ${file.uri}, Type: ${file.type}, Name: ${file.name}, Size: ${file.size}`);
 
-            if (Platform.OS === 'android') {
-                const result = await RNFS.readDir(RNFS.DocumentDirectoryPath)
-                console.log(result);
+            const uploadFileItem = {
+                name: file.name,       // Name of the file, if not defined then filename is used
+                filename: file.name,   // Name of file
+                filepath: file.uri,   // Path to file
+                filetype: file.type,   // The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
+            };
+
+            const uploadFileOptions = {
+                toUrl: serviceConfig.serverURL,         // URL to upload file to
+                // binaryStreamOnly?: boolean           // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
+                files: [uploadFileItem],  // An array of objects with the file information to be uploaded.
+                // headers?: Headers;        // An object of headers to be passed to the server
+                // fields?: Fields;          // An object of fields to be passed to the server
+                // method?: string;          // Default is 'POST', supports 'POST' and 'PUT'
+                // begin?: (res: UploadBeginCallbackResult) => void;
+                // progress?: (res: UploadProgressCallbackResult) => void;
+                progress: (res) => {
+                    if (this.uploadFileJobs.has(res.jobId)) {
+                        let job = this.uploadFileJobs.get(res.jobId);
+                        job.totalBytesExpectedToSend = res.totalBytesExpectedToSend;
+                        job.totalBytesSent = res.totalBytesSent;
+                    }
+                },
+            };
+
+            const { jobId, promise } = RNFS.uploadFiles(uploadFileOptions);
+            this.uploadFileJobs.set(jobId, {
+                status: FileJobStatus.progressing,
+                totalBytesExpectedToSend: file.size,
+                totalBytesSent: 0,
+            });
+            const result = await promise;
+            if (result.statusCode === 200) {
+                this.uploadFileJobs.get(jobId).status = FileJobStatus.completed;
+            } else {
+                this.uploadFileJobs.get(jobId).status = FileJobStatus.failed;
+                console.error('[Error]  Server rejected the upload');
+                return Promise.reject('Fail to upload file');
             }
+
 
         } catch (err) {
             if (DocumentPicker.isCancel(err)) {

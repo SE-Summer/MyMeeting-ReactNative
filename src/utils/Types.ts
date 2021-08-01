@@ -46,3 +46,9 @@ export declare type RecvPeerMessage = {
     text: string,
     timestamp: Moment,
 }
+
+export enum FileJobStatus {
+    progressing,
+    completed,
+    failed,
+}
