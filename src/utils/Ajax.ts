@@ -1,12 +1,10 @@
-import {logger} from "./Logger";
-
 async function getRequest(url: string)
 {
     try {
         const response = await fetch(url, {method: 'GET'});
         return response.json();
     } catch (err) {
-        logger(err);
+        console.error(err);
     }
 }
 
@@ -23,7 +21,7 @@ async function postRequest(url: string, json: Object)
         const response = await fetch(url, opts);
         return response.json();
     } catch (err) {
-        logger(err);
+        console.error(err);
     }
 }
 

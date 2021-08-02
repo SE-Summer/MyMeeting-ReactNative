@@ -1,6 +1,6 @@
 const config = {
-    // serverIp: 'se-summer.cn',
-    serverIp: '192.168.0.106',
+    serverIp: 'se-summer.cn',
+    // serverIp: '192.168.0.106',
     serverPort: 4446,
     serverUseHttps: false,
 }
@@ -12,6 +12,14 @@ export const SIMULCASTENCODING: RTCRtpEncodingParameters[] = [
 ];
 
 const _serverURL = (config.serverUseHttps ? 'https://' : 'http://') + config.serverIp + ':' + config.serverPort + '/room';
+
+export const fileUploadURL = (userToken: string) => {
+    return `${_serverURL}/file?token=${userToken}`;
+}
+
+export const meetingURL = (roomToken: string, userToken: string) => {
+    return `${serviceConfig.serverURL}?roomId=${roomToken}&peerId=${userToken}`;
+}
 
 export const serviceConfig = {
     requestTimeout: 10000,

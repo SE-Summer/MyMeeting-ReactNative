@@ -6,7 +6,7 @@ import {
     Text,
     Dimensions,
     TouchableOpacity,
-    Animated, Keyboard, Modal, Platform,
+    Animated, Keyboard, Modal,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
@@ -19,7 +19,7 @@ import {TextButton} from "../components/MyButton";
 import {Avatar} from "react-native-elements";
 import {MeetingVariable} from "../MeetingVariable";
 import DocumentPicker from "react-native-document-picker";
-import {serviceConfig} from "../ServiceConfig";
+import {fileUploadURL, serviceConfig} from "../ServiceConfig";
 import {FileJobStatus} from "../utils/Types";
 
 const windowWidth = Dimensions.get('window').width;
@@ -31,7 +31,10 @@ export default class MeetingChat extends Component {
         this.message = [];
         this.sendButtonWidth = new Animated.Value(0);
         this.addButtonWidth = new Animated.Value(50);
+
+        // jobid ==>
         this.uploadFileJobs = new Map();
+        this.downloadFileJobs = new Map();
         this.state = {
             text: null,
             toolsBarFlex: new Animated.Value(0),
@@ -182,19 +185,19 @@ export default class MeetingChat extends Component {
             console.log(`[Log]  File picked: URI: ${file.uri}, Type: ${file.type}, Name: ${file.name}, Size: ${file.size}`);
 
             const uploadFileItem = {
-                name: file.name,       // Name of the file, if not defined then filename is used
-                filename: file.name,   // Name of file
-                filepath: file.uri,   // Path to file
+                name: file.name,            // Name of the file, if not defined then filename is used
+                filename: file.name,        // Name of file
+                filepath: file.uri,         // Path to file
                 filetype: file.type,   // The mimetype of the file to be uploaded, if not defined it will get mimetype from `filepath` extension
             };
 
             const uploadFileOptions = {
-                toUrl: serviceConfig.serverURL,         // URL to upload file to
+                toUrl: fileUploadURL(config_key.token), // URL to upload file to
                 // binaryStreamOnly?: boolean           // Allow for binary data stream for file to be uploaded without extra headers, Default is 'false'
-                files: [uploadFileItem],  // An array of objects with the file information to be uploaded.
-                // headers?: Headers;        // An object of headers to be passed to the server
-                // fields?: Fields;          // An object of fields to be passed to the server
-                // method?: string;          // Default is 'POST', supports 'POST' and 'PUT'
+                files: [uploadFileItem],                // An array of objects with the file information to be uploaded.
+                // headers?: Headers;                   // An object of headers to be passed to the server
+                // fields?: Fields;                     // An object of fields to be passed to the server
+                method: 'POST',                         // Default is 'POST', supports 'POST' and 'PUT'
                 // begin?: (res: UploadBeginCallbackResult) => void;
                 // progress?: (res: UploadProgressCallbackResult) => void;
                 progress: (res) => {
@@ -212,7 +215,10 @@ export default class MeetingChat extends Component {
                 totalBytesExpectedToSend: file.size,
                 totalBytesSent: 0,
             });
+
             const result = await promise;
+
+            console.log(result);
             if (result.statusCode === 200) {
                 this.uploadFileJobs.get(jobId).status = FileJobStatus.completed;
             } else {
@@ -226,10 +232,14 @@ export default class MeetingChat extends Component {
             if (DocumentPicker.isCancel(err)) {
                 console.warn('[File]  User cancelled file picker');
             } else {
-                console.error('[Error]  Fail to upload file');
+                console.error('[Error]  Fail to upload file', err);
                 return Promise.reject('Fail to upload file');
             }
         }
+    }
+
+    downloadFile = async (fileURL) => {
+
     }
 
     renderItem = ({item}) => {
