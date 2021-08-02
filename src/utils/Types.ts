@@ -47,8 +47,29 @@ export declare type RecvPeerMessage = {
     timestamp: Moment,
 }
 
+export enum MessageType {
+    file,
+    text,
+}
+
+export enum FileJobType {
+    upload,
+    download,
+}
+
 export enum FileJobStatus {
     progressing,
     completed,
     failed,
+}
+
+export declare type Message = {
+    type: MessageType,
+    timestamp: Moment,
+    fromMyself: boolean,
+    fromPeerId?: string,
+    broadcast?: boolean,
+    text?: string,
+    fileJobType?: FileJobType,
+    jobId?: number,
 }
