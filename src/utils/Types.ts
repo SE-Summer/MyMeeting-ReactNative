@@ -34,16 +34,27 @@ export declare type ConsumerInfo = {
     rtpParameters : mediasoupTypes.RtpParameters
 }
 
-export declare type SendPeerMessage = {
+export declare type SendText = {
     toPeerId: string,
     text: string,
     timestamp: Moment,
 }
 
-export declare type RecvPeerMessage = {
+export declare type RecvText = {
     fromPeerId: string,
     broadcast: boolean,
     text: string,
+    timestamp: Moment,
+}
+
+export declare type SendFile = {
+    fileURL: string,
+    timestamp: Moment,
+}
+
+export declare type RecvFile = {
+    fromPeerId: string,
+    fileURL: string,
     timestamp: Moment,
 }
 

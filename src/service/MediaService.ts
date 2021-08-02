@@ -39,10 +39,10 @@ export class MediaService
     private permissionUpdated: boolean = null;
     private allowed: boolean = null;
 
-    private readonly updatePeerCallback: () => void = null;
-    private readonly newMessageCallback: (message: types.RecvPeerMessage) => void = null;
+    private updatePeerCallbacks: (() => void)[] = null;
+    private newMessageCallbacks: ((message: types.Message) => void)[] = null;
 
-    constructor(updatePeerCallback: () => void, newMessageCallback: (message: types.RecvPeerMessage) => void)
+    constructor()
     {
         try {
             registerGlobals();
@@ -57,12 +57,23 @@ export class MediaService
             this.joined = false;
             this.permissionUpdated = false;
             this.allowed = false;
-            this.updatePeerCallback = updatePeerCallback;
-            this.newMessageCallback = newMessageCallback;
+
+            this.updatePeerCallbacks = [];
+            this.newMessageCallbacks = [];
 
         } catch (err) {
-            console.error('[Error] ', err);
+            console.error('[Error]  Fail to construct MediaService instance', err);
         }
+    }
+
+    registerPeerUpdateListener(updatePeerCallback: () => void)
+    {
+        this.updatePeerCallbacks.push(updatePeerCallback);
+    }
+
+    registerNewMessageListener(newMessageCallback: (message: types.Message) => void)
+    {
+        this.newMessageCallbacks.push(newMessageCallback);
     }
 
     public getPeerDetails()
@@ -178,7 +189,10 @@ export class MediaService
             for (const info of peerInfos) {
                 this.peerMedia.addPeerInfo(info);
             }
-            this.updatePeerCallback();
+
+            this.updatePeerCallbacks.forEach((callback) => {
+                callback();
+            });
 
             this.joined = true;
 
@@ -288,20 +302,36 @@ export class MediaService
     }
 
     // if _toPeerId == null, it means broadcast to everyone in the meetings
-    public async sendMessage(_toPeerId: string, _text: string): Promise<void>
+    public async sendText(_toPeerId: string, _text: string): Promise<void>
     {
         try {
-            const message: types.SendPeerMessage = {
+            const sendText: types.SendText = {
                 toPeerId: _toPeerId,
                 text: _text,
                 timestamp: moment(),
-            } as types.SendPeerMessage;
+            };
 
-            await this.signaling.sendRequest(SignalMethod.sendMessage, message);
-            console.log('[Log]  Message sent');
+            await this.signaling.sendRequest(SignalMethod.sendText, sendText);
+            console.log('[Log]  Text sent');
         } catch (err) {
-            console.error('[Error]  Fail to send peer message', err);
-            return Promise.reject('Fail to send peer message');
+            console.error('[Error]  Fail to send text', err);
+            return Promise.reject('Fail to send text');
+        }
+    }
+
+    public async sendFile(_fileURL: string)
+    {
+        try {
+            const sendFile: types.SendFile = {
+                fileURL: _fileURL,
+                timestamp: moment,
+            };
+
+            await this.signaling.sendRequest(SignalMethod.sendFile, sendFile);
+            console.log('[Log]  New file notice sent');
+        } catch (err) {
+            console.error('[Error]  Fail to send new file notice', err);
+            return Promise.reject('Fail to send new file notice');
         }
     }
 
@@ -470,7 +500,10 @@ export class MediaService
             console.log('[Signaling]  Handling newPeer notification...');
             this.peerMedia.addPeerInfo(data);
             console.log(`[Signaling]  Add peerId = ${data.id}`);
-            this.updatePeerCallback();
+
+            this.updatePeerCallbacks.forEach((callback) => {
+                callback();
+            });
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.newConsumer, async (data: types.ConsumerInfo) => {
@@ -486,34 +519,74 @@ export class MediaService
             console.log('[Consumer]  Received track', track);
             console.log(`[Signaling]  Add trackId = ${track.id} sent from peerId = ${data.producerPeerId}`);
             this.peerMedia.addConsumerAndTrack(data.producerPeerId, consumer, track);
-            this.updatePeerCallback();
+
+            this.updatePeerCallbacks.forEach((callback) => {
+                callback();
+            });
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.consumerClosed, ({ consumerId }) => {
             console.log('[Signaling]  Handling consumerClosed notification...');
             console.log(`[Signaling]  Delete consumer id = ${consumerId}`);
             this.peerMedia.deleteConsumerAndTrack(consumerId);
-            this.updatePeerCallback();
+
+            this.updatePeerCallbacks.forEach((callback) => {
+                callback();
+            });
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.peerClosed, ({ peerId }) => {
             console.log('[Signaling]  Handling peerClosed notification...');
             console.log(`[Signaling]  Delete peer id = ${peerId}`);
             this.peerMedia.deletePeer(peerId);
-            this.updatePeerCallback();
+
+            this.updatePeerCallbacks.forEach((callback) => {
+                callback();
+            });
         });
 
-        this.signaling.registerListener(SignalType.notify, SignalMethod.newMessage, (message: types.RecvPeerMessage) => {
-            console.log('[Signaling]  Handling newMessage notification...');
-            console.log(`[Signaling]  Message received from peer peerId = ${message.fromPeerId}`);
-            this.newMessageCallback(message);
+        this.signaling.registerListener(SignalType.notify, SignalMethod.newText, (recvText: types.RecvText) => {
+            console.log('[Signaling]  Handling newText notification...');
+            console.log(`[Signaling]  Text (${recvText.text}) received from peer (peerId: ${recvText.fromPeerId})`);
+            const message: types.Message = {
+                type: types.MessageType.text,
+                broadcast: recvText.broadcast,
+                fromMyself: false,
+                fromPeerId: recvText.fromPeerId,
+                text: recvText.text,
+                timestamp: recvText.timestamp,
+            }
+
+            this.newMessageCallbacks.forEach((callback) => {
+                callback(message);
+            });
+        });
+
+        this.signaling.registerListener(SignalType.notify, SignalMethod.newFile, (recvFile: types.RecvFile) => {
+            console.log('[Signaling]  Handling newFile notification...');
+            console.log(`[Signaling]  New File notification (URL: ${recvFile.fileURL}) received from peer (peerId: ${recvFile.fromPeerId})`);
+            const message: types.Message = {
+                type: types.MessageType.file,
+                broadcast: true,
+                fileJobType: types.FileJobType.download,
+                fromMyself: false,
+                fromPeerId: recvFile.fromPeerId,
+                timestamp: recvFile.timestamp,
+            }
+
+            this.newMessageCallbacks.forEach((callback) => {
+                callback(message);
+            });
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.hostChanged, ({ newHostId }) => {
             console.log(`[Signaling]  Handling hostChanged notification...`);
             console.log(`[Signaling]  Host of the meeting changed from ${this.hostPeerId} to ${newHostId}`);
             this.hostPeerId = newHostId;
-            this.updatePeerCallback();
+
+            this.updatePeerCallbacks.forEach((callback) => {
+                callback();
+            });
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.roomClosed, async () => {
