@@ -91,6 +91,7 @@ export default class RegisterScreen extends Component {
 
     checkResult = async () => {
         const token = this.props.route.params.token;
+        //后端的用户名称作nickname
         const userInf = {
             nickname: this.state.username,
             password: this.state.password,

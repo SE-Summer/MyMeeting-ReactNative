@@ -1,9 +1,9 @@
 import * as React from 'react';
-import {Text, View} from "react-native";
+import {View} from "react-native";
 import {UserLabel} from "./UserLabel";
 import {RTCView} from "react-native-webrtc";
 import {DefaultPic, DefaultWithAudioPic} from "./DefaultPic";
-import {config_key} from "../Constants";
+import {MeetingVariable} from "../MeetingVariable";
 
 export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
     return (
@@ -28,10 +28,10 @@ export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
     )
 }
 
-export const MyStreamWindow = ({rtcViewStyle, myStream, zOrder}) => {
+export const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, microStat}) => {
     return (
-        <View style={{flex: 1, borderWidth: 1, borderColor: '#f1f3f5'}}>
-            <UserLabel text={config_key.username} />
+        <View style={{flex: 1, borderWidth: 1, borderColor: microStat === 'on' ? '#44CE55' : '#f1f3f5'}}>
+            <UserLabel text={MeetingVariable.myName} />
             {
                 myStream ?
                     <RTCView
@@ -40,7 +40,13 @@ export const MyStreamWindow = ({rtcViewStyle, myStream, zOrder}) => {
                         style={rtcViewStyle}
                         streamURL={myStream.toURL()}
                     /> :
-                    <DefaultPic style={rtcViewStyle}/>
+                    (
+                        microStat === 'on' ?
+                            <DefaultWithAudioPic style={rtcViewStyle}/>
+                            :
+                            <DefaultPic style={rtcViewStyle}/>
+                    )
+
             }
         </View>
     )

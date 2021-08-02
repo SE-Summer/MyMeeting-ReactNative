@@ -1,4 +1,4 @@
-import {TextInput, View} from "react-native";
+import {Text, TextInput, View} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {Divider} from "react-native-elements";
@@ -7,16 +7,21 @@ import {TextButton} from "../components/MyButton";
 import {config_key} from "../Constants";
 import {join} from "../service/MeetingService";
 import * as Progress from 'react-native-progress';
+import {MeetingVariable} from "../MeetingVariable";
 
 export default class JoinMeetingScreen extends Component{
     constructor(props) {
         super(props);
+        this.meetingIdTextInput = React.createRef();
+        this.meetingPasswordInput = React.createRef();
+        this.joinNameInput = React.createRef();
         this.state = {
             id: null,
             password: null,
             cameraStatus: config_key.camera,
             microphoneStatus: config_key.microphone,
             loading: false,
+            joinName: config_key.username,
         }
     }
 
@@ -39,8 +44,9 @@ export default class JoinMeetingScreen extends Component{
                 return (
                     <TextButton text={"加入"} pressEvent={
                         () => {
-                            this.refs.textInput1.blur();
-                            this.refs.textInput2.blur();
+                            this.meetingIdTextInput.current.blur();
+                            this.meetingPasswordInput.current.blur();
+                            this.joinNameInput.current.blur();
                             const {id, password} = this.state;
                             if (id == null || id.length === 0 || password == null || password.length === 0)
                                 return;
@@ -58,7 +64,7 @@ export default class JoinMeetingScreen extends Component{
     }
 
     joinM = async () => {
-        const response = await join(parseInt(this.state.id), this.state.password, this.navigate);
+        const response = await join(parseInt(this.state.id), this.state.password);
         if (response == null) {
             toast.show('入会失败', {type: 'danger', duration: 1300, placement: 'top'})
             return;
@@ -72,6 +78,7 @@ export default class JoinMeetingScreen extends Component{
                     cameraStatus: this.state.cameraStatus,
                     microphoneStatus: this.state.microphoneStatus,
                 }
+                MeetingVariable.myName = this.state.joinName;
                 this.props.navigation.navigate('Meeting', params);
                 return;
             }
@@ -115,12 +122,18 @@ export default class JoinMeetingScreen extends Component{
         })
     }
 
+    joinNameChange = (value) => {
+        this.setState({
+            joinName: value,
+        })
+    }
+
     render() {
         return (
             <View style={{ flex: 1}}>
                 <View style={{borderRadius: 10, marginTop: 20, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
                     <TextInput
-                        ref={'textInput1'}
+                        ref={this.meetingIdTextInput}
                         value={this.state.id}
                         style={{fontSize:17}}
                         placeholder={"会议号"}
@@ -132,7 +145,7 @@ export default class JoinMeetingScreen extends Component{
                     />
                     <Divider />
                     <TextInput
-                        ref={'textInput2'}
+                        ref={this.meetingPasswordInput}
                         value={this.state.password}
                         style={{fontSize: 17}}
                         placeholder={"会议密码(8位数字)"}
@@ -144,9 +157,20 @@ export default class JoinMeetingScreen extends Component{
                         onChangeText={this.passwordChange}
                     />
                 </View>
-                <View style={{marginTop: 60, marginLeft: 10, marginRight: 10, borderRadius: 10, backgroundColor: "white"}}>
+                <View style={{marginTop: 60, marginRight: 10, marginLeft: 10, }}>
+                    <Text style={{fontSize: 13, color: '#999999', marginLeft: 10}}>入会名称</Text>
+                    <TextInput
+                        ref={this.joinNameInput}
+                        value={this.state.joinName}
+                        style={{borderRadius: 10, backgroundColor: "white", fontSize: 17}}
+                        textAlign={'center'}
+                        numberOfLines={1}
+                        onChangeText={this.joinNameChange}
+                    />
+                </View>
+                <View style={{marginTop: 40, marginLeft: 10, marginRight: 10, borderRadius: 10, backgroundColor: "white"}}>
                     <SwitchItem text={"摄像头"} status={this.state.cameraStatus} switchEvent={this.cameraSwitch}/>
-                    <Divider/>
+                    <Divider style={{marginLeft: 20, marginRight: 20,}}/>
                     <SwitchItem text={"麦克风"} status={this.state.microphoneStatus} switchEvent={this.microphoneSwitch}/>
                 </View>
             </View>

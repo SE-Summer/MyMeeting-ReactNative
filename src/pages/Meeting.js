@@ -48,7 +48,9 @@ export default class Meeting extends Component
     constructor(props) {
         super(props);
         this.mediaStreamFactory = new MediaStreamFactory();
-        MeetingVariable.mediaService = new MediaService(this.updatePeerDetails.bind(this), this.recvMessage.bind(this));
+        MeetingVariable.mediaService = new MediaService();
+        MeetingVariable.mediaService.registerPeerUpdateListener(this.updatePeerDetails.bind(this));
+        MeetingVariable.mediaService.registerNewMessageListener(this.recvMessage.bind(this));
         this.state = {
             view: 'portrait',
             peerDetails: null,
@@ -60,6 +62,7 @@ export default class Meeting extends Component
             height: 600,
             microStat: 'off',
             camStat: 'off',
+            newMessage: false,
         };
     }
 
@@ -96,9 +99,8 @@ export default class Meeting extends Component
         this.handleBack();
 
         try {
-            this.userName = config_key.username;
             await MeetingVariable.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token,
-                this.userName, `${this.userName}'s mobile device`, config_key.avatarUri);
+                MeetingVariable.myName, `${MeetingVariable.myName}'s mobile device`, config_key.avatarUri);
 
             await this.mediaStreamFactory.waitForUpdate();
             if (cameraStatus) {
@@ -212,8 +214,9 @@ export default class Meeting extends Component
     }
 
     recvMessage(message) {
-        message.myInf = false;
-        MeetingVariable.messages.push(message);
+        this.setState({
+            newMessage: true,
+        })
     }
 
     onLayout = event => {
@@ -284,7 +287,6 @@ export default class Meeting extends Component
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
                 <View style={{flex: 1}} onLayout={this.onLayout}>
-
                     <GestureRecognizer
                         onSwipeLeft={() => this.onSwipeLeft()}
                         onSwipeRight={() => this.onSwipeRight()}
@@ -311,6 +313,7 @@ export default class Meeting extends Component
                                     width={width}
                                     height={height}
                                     myStream={myCameraStream}
+                                    microStat={microStat}
                                     peerToShow={this.state.peerDetails ? this.state.peerDetails[this.state.portraitIndex] : null}
                                 />
                         }
@@ -362,7 +365,7 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait}) => {
                     turnPortrait(index - 1);
                 }
             }}>
-                <UserLabel text={myS && index === 0 ? config_key.username : item.getPeerInfo().displayName}/>
+                <UserLabel text={myS && index === 0 ? MeetingVariable.myName : item.getPeerInfo().displayName}/>
                 <RTCView
                     zOrder={0}
                     mirror={myS && index === 0}
@@ -385,7 +388,7 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait}) => {
     )
 }
 
-const PortraitView = ({width, height, peerToShow, myStream}) => {
+const PortraitView = ({width, height, peerToShow, myStream, microStat}) => {
     const portraitStyle = StyleSheet.create({
         smallWindow: {
             position: 'absolute',
@@ -412,12 +415,12 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
                     peerBig ?
                         <PeerWindow rtcViewStyle={portraitStyle.bigWindow} peerToShow={peerToShow} zOrder={0}/>
                         :
-                        <MyStreamWindow rtcViewStyle={portraitStyle.bigWindow} myStream={myStream} zOrder={0} />
+                        <MyStreamWindow rtcViewStyle={portraitStyle.bigWindow} myStream={myStream} zOrder={0} microStat={microStat}/>
                 }
                 <TouchableOpacity style={portraitStyle.smallWindow} onPress={() => {setPeerBig(!peerBig)}}>
                     {
                         peerBig ?
-                            <MyStreamWindow rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}} myStream={myStream} zOrder={1} />
+                            <MyStreamWindow rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}} myStream={myStream} zOrder={1} microStat={microStat} />
                             :
                             <PeerWindow rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}} peerToShow={peerToShow} zOrder={1}/>
                     }
@@ -426,7 +429,7 @@ const PortraitView = ({width, height, peerToShow, myStream}) => {
         )
     } else {
         return (
-            <MyStreamWindow rtcViewStyle={portraitStyle.bigWindow} myStream={myStream} zOrder={0} />
+            <MyStreamWindow rtcViewStyle={portraitStyle.bigWindow} myStream={myStream} zOrder={0} microStat={microStat} />
         )
     }
 }
@@ -479,7 +482,6 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeC
 
     const [shareScreen, setShareScreen] = useState(false);
     const [settingsVisible, setSettingsVisible] = useState(false);
-    const [beauty, setBeauty] = useState(false);
 
     return (
         <View style={style}>
@@ -529,14 +531,6 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeC
                                     else if (view === 'portrait') {
                                         setView('grid');
                                     }
-                                }}
-                            />
-                            <IconWithLabel
-                                iconName={beauty ? 'color-wand' : 'color-wand-outline'}
-                                color={'black'}
-                                text={beauty ? '关闭美颜' : '开启美颜'}
-                                pressEvent={() => {
-                                    setBeauty(!beauty);
                                 }}
                             />
                             <IconWithLabel iconName={'image'} color={'black'} text={'虚拟背景'} />

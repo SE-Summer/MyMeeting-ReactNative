@@ -35,6 +35,10 @@ export default class UserScreen extends Component{
             toast.show('获取头像失败', {type: 'warning', duration: 1300, placement: 'top'})
         } else {
             config_key.avatarUri = config.baseURL + response.data.path;
+            this.setState({
+                avatarUri: config_key.avatarUri,
+                username: config_key.username,
+            })
         }
         navigation.addListener('focus', () => {
             this.setState({

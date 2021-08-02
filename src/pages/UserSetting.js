@@ -16,8 +16,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     divider: {
-        marginLeft: 5,
-        marginRight: 5,
+        marginLeft: 20,
+        marginRight: 20,
     }
 })
 
@@ -27,7 +27,6 @@ export default class UserSettingScreen extends Component {
         this.state = {
             avatarUri: config_key.avatarUri,
             username: null,
-            nickname: null,
         }
     }
 
@@ -36,7 +35,6 @@ export default class UserSettingScreen extends Component {
         navigation.addListener('focus', () => {
             this.setState({
                 username: config_key.username,
-                nickname: config_key.nickname,
                 avatarUri: config_key.avatarUri,
             })
         })
@@ -89,12 +87,6 @@ export default class UserSettingScreen extends Component {
                         <Text>{this.state.username}</Text>
                     }/>
                     <Divider style={styles.divider}/>
-                    <TouchableItem text={'入会名称'} pressEvent={() => {this.usernameSettings('nickname')}} rightComponent={
-                        <Text>{this.state.nickname}</Text>
-                    }/>
-                </View>
-                <View style={{height: 30}}/>
-                <View style={styles.itemContainer}>
                     <TouchableItem text={'修改密码'} pressEvent={() => {}} />
                 </View>
             </View>

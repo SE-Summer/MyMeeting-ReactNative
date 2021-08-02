@@ -32,7 +32,14 @@ export const ChatBubble = ({text, myInf = false, time, maxWidth}) => {
             </View>
             <Text style={[bubbleStyle.timeFont, myInf ? {alignSelf: 'flex-end'} : null]}>{moment(time).format('HH:mm:ss')}</Text>
         </View>
+    )
+}
 
+export const FileBubble = ({file, myInf = false, time}) => {
+    return (
+        <View>
+
+        </View>
     )
 }
 

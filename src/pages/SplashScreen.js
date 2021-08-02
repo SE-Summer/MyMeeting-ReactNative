@@ -31,9 +31,6 @@ class Splash extends Component {
 
         config_key.userId = await getFromStorage(config.userIdIndex);
 
-        config_key.nickname = await getFromStorage(config.nicknameIndex);
-
-
         const camera = await getFromStorage(config.cameraIndex);
         config_key.camera = camera === 'true';
 
@@ -66,7 +63,7 @@ class Splash extends Component {
                 <Animated.View style={{height: windowHeight * 0.31, justifyContent: "center", alignItems: "center" ,opacity: this.state.fadeAnim}}>
                     <MaskedMyMeeting />
                 </Animated.View>
-                <View style={{height: windowHeight * 0.58}}/>
+                <View style={{height: windowHeight * 0.52}}/>
             </View>
         );
     }

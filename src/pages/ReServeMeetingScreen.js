@@ -6,7 +6,7 @@ import {TouchableItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
 import moment from "moment";
-import {config, config_key} from "../Constants";
+import {config_key} from "../Constants";
 import {reserve} from "../service/MeetingService";
 import * as Progress from "react-native-progress";
 
@@ -15,8 +15,8 @@ const style = StyleSheet.create({
         fontSize: 17,
     },
     divider: {
-        marginLeft: 5,
-        marginRight: 5,
+        marginLeft: 20,
+        marginRight: 20,
     },
     itemText: {
         fontSize: 16,
@@ -26,6 +26,8 @@ const style = StyleSheet.create({
 export default class ReServeMeetingScreen extends Component{
     constructor() {
         super();
+        this.meetingTopicInput = React.createRef();
+        this.meetingPasswordInput = React.createRef();
         this.state={
             nameText: null,
             secretText: null,
@@ -49,11 +51,12 @@ export default class ReServeMeetingScreen extends Component{
 
                 return (
                     <TextButton text={"完成"} pressEvent={() => {
-                        this.refs.textInput1.blur();
-                        this.refs.textInput2.blur();
+                        this.meetingTopicInput.current.blur();
+                        this.meetingPasswordInput.current.blur();
                         const {nameText, secretText} = this.state;
 
                         if (nameText == null || nameText.length === 0 || secretText == null || secretText.length !== 8) {
+                            toast.show('输入信息格式有误',{type: 'warning', duration: 800, placement: 'top'})
                             return;
                         }
 
@@ -122,7 +125,7 @@ export default class ReServeMeetingScreen extends Component{
             <View style={{backgroundColor: "#EDEDED", flex: 1}}>
                 <View style={{borderRadius: 10, marginTop: 20, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
                     <TextInput
-                        ref={'textInput1'}
+                        ref={this.meetingTopicInput}
                         value={this.state.nameText}
                         style={style.input}
                         placeholder={"会议标题"}
@@ -136,7 +139,7 @@ export default class ReServeMeetingScreen extends Component{
                     />
                     <Divider />
                     <TextInput
-                        ref={'textInput2'}
+                        ref={this.meetingPasswordInput}
                         value={this.state.secretText}
                         style={style.input}
                         placeholder={"会议密码(8位数字)"}

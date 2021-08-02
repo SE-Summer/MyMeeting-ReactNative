@@ -7,13 +7,12 @@ import {
     Image,
     Text,
     Dimensions,
-    Animated,
 } from "react-native";
 import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import {config, config_key, smallUtils} from "../Constants";
+import {config, config_key} from "../Constants";
 import {validateEmail} from "../utils/Utils";
 import {loginService} from "../service/UserService";
 import {setInStorage} from "../utils/StorageUtils";
@@ -22,6 +21,10 @@ import RNExitApp from 'react-native-exit-app';
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
+
+const smallUtils = {
+    buttonOutline: [require('../../assets/image/myButton_Outlined.png'), require('../../assets/image/myButton_Outline_error.png')],
+}
 
 const InputLabel = ({text}) => {
     if (text == null) {
@@ -38,7 +41,6 @@ const InputLabel = ({text}) => {
 export default class LoginScreen extends Component {
     constructor(props) {
         super(props);
-        this.registerPos = new Animated.Value(windowWidth * 0.75 - 65);
         this.state = {
             userEmail: config_key.email,
             password: null,
@@ -225,12 +227,8 @@ export default class LoginScreen extends Component {
                         </ImageBackground>
                     </View>
                     <View style={styles.buttonContainer}>
-                        <View style={{position: 'absolute', left: windowWidth / 4 - 65, top: windowHeight / 20,}}>
-                            <MyButton pressEvent={this.log} text={"登录"}/>
-                        </View>
-                        <View style={{position: 'absolute', left: windowWidth * 0.75 - 65, top: windowHeight / 20,}}>
-                            <MyButton pressEvent={this.register} text={"注册"}/>
-                        </View>
+                        <MyButton pressEvent={this.log} text={"登录"}/>
+                        <MyButton pressEvent={this.register} text={"注册"}/>
                     </View>
                 </KeyboardAwareScrollView>
             </SafeAreaView>
@@ -253,11 +251,13 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         flexDirection: "row",
-        height: windowHeight * 0.18,
+        justifyContent: "space-around",
+        alignItems: "flex-end",
+        height: windowHeight * 0.16,
     },
     imgFillContainer: {
-        height: windowHeight * 0.4,
-        justifyContent: 'center'
+        height: windowHeight * 0.36,
+        justifyContent: 'center',
     },
     imageView: {
         width: windowWidth,
