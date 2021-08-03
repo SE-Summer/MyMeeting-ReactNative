@@ -181,26 +181,39 @@ export default class MeetingChat extends Component {
     }
 
     uploadFile = async () => {
-
         if (this.state.selected) {
             return;
         }
-        try {
-            const file = await fileService.pickFile();
 
-            let message = {
-                type: MessageType.file,
-                timestamp: moment(),
-                fromMyself: true,
-                fileJobType: FileJobType.upload,
-                fileURL: null,
-                filename: file.name,
-                fileType: file.type,
-                fileJobStatus: FileJobStatus.progressing,
-                totalBytes: file.size,
-                bytesSent: 0,
-                filePath: file.path,
+        let file = null;
+
+        try {
+            file = await fileService.pickFile();
+        } catch (err) {
+            if (DocumentPicker.isCancel(err)) {
+                console.warn('[File]  User cancelled file picker');
+                return;
+            } else {
+                console.error('[Error]  Fail to upload file', err);
+                return;
             }
+        }
+
+        let message = {
+            type: MessageType.file,
+            timestamp: moment(),
+            fromMyself: true,
+            fileJobType: FileJobType.upload,
+            fileURL: null,
+            filename: file.name,
+            fileType: file.type,
+            fileJobStatus: FileJobStatus.progressing,
+            totalBytes: file.size,
+            bytesSent: 0,
+            filePath: file.path,
+        }
+
+        try {
             MeetingVariable.messages.push(message);
             this.setState({
                 messages: MeetingVariable.messages
@@ -217,15 +230,15 @@ export default class MeetingChat extends Component {
             message.fileJobStatus = FileJobStatus.completed;
             await MeetingVariable.mediaService.sendFile(fileURL, message.timestamp, message.filename, message.fileType);
         } catch (err) {
-            if (DocumentPicker.isCancel(err)) {
-                console.warn('[File]  User cancelled file picker');
-            } else {
-                message.fileJobStatus = FileJobStatus.
-                console.error('[Error]  Fail to upload file', err);
-            }
+            message.fileJobStatus = FileJobStatus.failed;
+            this.setState({
+                messages: MeetingVariable.messages,
+            });
+            console.error('[Error]  Fail to upload file', err);
         }
     }
 
+    // @Param message: reference of a message in MeetingVariable.messages
     downloadFile = async (message) => {
         try {
             await fileService.download(message.fileURL, `${this.fileService.getDefaultDownloadPath()}/${message.filename}`,
@@ -243,6 +256,10 @@ export default class MeetingChat extends Component {
                     });
                 });
         } catch (err) {
+            message.fileJobStatus = FileJobStatus.failed;
+            this.setState({
+                messages: MeetingVariable.messages,
+            });
             console.error('[Error]  Fail to download file', JSON.stringify(err));
         }
     }

@@ -63,7 +63,7 @@ export class FileService
 
     public async download(fromURL: string, savePath: string,
                           _onDownloadProgress: (bytesSent: number, totalBytes: number) => void,
-                          setFileJobStatus: (fileJobStatus: FileJobStatus) => void)
+                          setFileJobStatus: (fileJobStatus: FileJobStatus) => void): Promise<void>
     {
         try {
             const downloadOpts = {
