@@ -12,11 +12,11 @@ const styles = StyleSheet.create({
     }
 })
 
-export const IconWithLabel = ({text, iconName, pressEvent, color = 'white', iconStyle = {}}) => {
+export const IconWithLabel = ({text, iconName, pressEvent, color = 'white'}) => {
     return(
         <TouchableOpacity onPress={pressEvent}>
             <View style={styles.container}>
-                <Ionicons name={iconName} color={color} size={25} style={iconStyle}/>
+                <Ionicons name={iconName} color={color} size={25}/>
                 <Text style={[styles.fontStyle, {color: color}]}>{text}</Text>
             </View>
         </TouchableOpacity>

@@ -28,9 +28,10 @@ export const ListItem = ({date, item, index, pressEvent}) => {
     const overlayWidth = useRef(new Animated.Value(0)).current;
 
     const theColor = colors[calColorIndex(index)];
-    let icon, iconColor, onPress;
+    let icon, iconColor, onPress, accessible;
     if (moment(date).isSameOrBefore(item.end_time, 'minute') && moment(date).isSameOrAfter(item.start_time, 'minute')) {
         icon = 'door-open';
+        accessible = true;
         iconColor = theColor;
         onPress = async () => {
             const response = await join(item.id, item.password);
@@ -39,6 +40,7 @@ export const ListItem = ({date, item, index, pressEvent}) => {
             }
         };
     } else {
+        accessible = false;
         icon = 'door-closed';
         iconColor = '#aaaaaaaa';
         onPress = () => {};
@@ -90,24 +92,27 @@ export const ListItem = ({date, item, index, pressEvent}) => {
     }
 
     const slideRight = () => {
-        Animated.parallel([
-            Animated.timing(overlayWidth, {
-                toValue: containerWidth,
-                duration: 500,
-                useNativeDriver: false,
-            }),
-            Animated.timing(radius, {
-                toValue: 10,
-                duration: 500,
-                useNativeDriver: false,
-            })
-        ]).start(() => {
-            onPress();
-            setTimeout(() => {
-                overlayWidth.setValue(labelWidth);
-                radius.setValue(0);
-            }, 500);
-        });
+        if (sharable) {
+            Animated.parallel([
+                Animated.timing(overlayWidth, {
+                    toValue: containerWidth,
+                    duration: 500,
+                    useNativeDriver: false,
+                }),
+                Animated.timing(radius, {
+                    toValue: 10,
+                    duration: 500,
+                    useNativeDriver: false,
+                })
+            ]).start(() => {
+                onPress();
+                setTimeout(() => {
+                    overlayWidth.setValue(labelWidth);
+                    radius.setValue(0);
+                }, 500);
+            });
+        }
+
     }
 
     return (

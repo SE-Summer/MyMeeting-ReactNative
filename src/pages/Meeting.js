@@ -29,6 +29,9 @@ const microInf = {
 }, camInf = {
     isCalled: false,
     timer: null
+}, shareScreenInf = {
+    isCalled: false,
+    timer: null,
 }
 
 const screenStyle = StyleSheet.create({
@@ -61,6 +64,7 @@ export default class Meeting extends Component
             width: 300,
             height: 600,
             frontCam: true,
+            shareScreen: false,
             microStat: 'off',
             camStat: 'off',
             newMessage: false,
@@ -160,6 +164,13 @@ export default class Meeting extends Component
     }
 
     openCamera = async () => {
+        if (this.state.shareScreen) {
+            await this.closeScreenShare();
+            this.setState({
+                shareScreen: false,
+            })
+        }
+
         if (this.state.frontCam) {
             await this.openFrontCamera();
         } else {
@@ -244,6 +255,46 @@ export default class Meeting extends Component
         }
     }
 
+    openScreenShare = async () => {
+        if (this.state.camStat === 'on') {
+            await this.closeCamera();
+            this.setState({
+                camStat: 'off',
+            })
+        }
+        try {
+            const screenStream = await this.mediaStreamFactory.getDisplayStream(this.state.width * 2, this.state.height * 2, 30);
+
+            if (screenStream.getVideoTracks().length === 0) {
+                return Promise.reject("Fail to get local camera media.");
+            }
+
+            this.setState({
+                myDisplayStream: screenStream,
+                shareScreen: true,
+            });
+
+            await MeetingVariable.mediaService.sendMediaStream(screenStream);
+        }  catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+        }
+    }
+
+    closeScreenShare = async () => {
+        try {
+            if (this.state.myDisplayStream.getVideoTracks().length === 0)
+                return;
+            await MeetingVariable.mediaService.closeTrack(this.state.myDisplayStream.getVideoTracks()[0]);
+            closeMediaStream(this.state.myDisplayStream);
+            this.setState({
+                myDisplayStream: null,
+                shareScreen: false,
+            });
+        } catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+        }
+    }
+
     updatePeerDetails() {
         this.setState({
             peerDetails: MeetingVariable.mediaService.getPeerDetails().length === 0 ? null : MeetingVariable.mediaService.getPeerDetails(),
@@ -263,9 +314,11 @@ export default class Meeting extends Component
     recvMessage(message) {
         message.fromMyself = false;
         MeetingVariable.messages.push(message);
-        this.setState({
-            newMessage: true,
-        })
+        if (this.props.route.name === 'Meeting') {
+            this.setState({
+                newMessage: true,
+            })
+        }
     }
 
     onLayout = event => {
@@ -327,7 +380,7 @@ export default class Meeting extends Component
 
     render() {
         const {roomInf} = this.props.route.params;
-        const {width, height, myCameraStream, camStat, microStat, newMessage, frontCam} = this.state;
+        const {width, height, myCameraStream, myDisplayStream, camStat, microStat, newMessage, frontCam, shareScreen} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
@@ -349,7 +402,7 @@ export default class Meeting extends Component
                                 <GridView
                                     width={width}
                                     height={height}
-                                    myStream={myCameraStream}
+                                    myStream={shareScreen ? myDisplayStream : myCameraStream}
                                     myFrontCam={frontCam}
                                     peerDetails={this.state.peerDetails}
                                     turnPortrait={this.turnGridToPortrait}
@@ -358,7 +411,7 @@ export default class Meeting extends Component
                                 <PortraitView
                                     width={width}
                                     height={height}
-                                    myStream={myCameraStream}
+                                    myStream={shareScreen ? myDisplayStream : myCameraStream}
                                     myFrontCam={frontCam}
                                     microStat={microStat}
                                     peerToShow={this.state.peerDetails ? this.state.peerDetails[this.state.portraitIndex] : null}
@@ -371,8 +424,11 @@ export default class Meeting extends Component
                     closeCamera={this.closeCamera}
                     openMicro={this.openMicrophone}
                     closeMicro={this.closeMicrophone}
+                    openScreenShare={this.openScreenShare}
+                    closeScreenShare={this.closeScreenShare}
                     openChatRoom={this.openChatRoom}
                     frontCam={frontCam}
+                    shareScreen={shareScreen}
                     swapCam={this.swapCam}
                     microStat={microStat}
                     camStat={camStat}
@@ -509,7 +565,9 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
     }
 }
 
-const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeCamera, openMicro, closeMicro, frontCam, camStat, microStat, newMessage}) => {
+const Footer = ({style, view, setView, swapCam, openChatRoom, shareScreen,
+                    openCamera, closeCamera, openMicro, closeMicro, frontCam,
+                    camStat, microStat, newMessage, openScreenShare , closeScreenShare}) => {
     const footerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -555,7 +613,14 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeC
         }
     }
 
-    const [shareScreen, setShareScreen] = useState(false);
+    const shareScreenEvent = () => {
+        if (shareScreen) {
+            closeScreenShare();
+        } else {
+            openScreenShare();
+        }
+    }
+
     const [settingsVisible, setSettingsVisible] = useState(false);
 
     return (
@@ -574,9 +639,7 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeC
                 <IconWithLabel
                     text={shareScreen ? '停止共享' : '共享屏幕'}
                     iconName={shareScreen ? 'tv' : 'tv-outline'}
-                    pressEvent={() => {
-                        setShareScreen(!shareScreen)
-                    }}
+                    pressEvent={() => {preventDoubleClick(shareScreenEvent, shareScreenInf)}}
                 />
                 <IconWithLabel text={'会议聊天'} iconName={newMessage ? 'chatbubbles' : 'chatbubbles-outline'} pressEvent={openChatRoom} color={newMessage ? '#44CE55': 'white'}/>
                 <IconWithLabel
