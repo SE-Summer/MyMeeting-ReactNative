@@ -19,6 +19,7 @@ import NormalSettings from "./pages/NormalSettings";
 import MeetingChat from "./pages/MeetingChat";
 import { ToastProvider } from 'react-native-toast-notifications'
 import Toast from "react-native-toast-notifications";
+import VIForegroundService from "@voximplant/react-native-foreground-service";
 
 const forFade = ({ current }) => ({
     cardStyle: {
@@ -26,9 +27,16 @@ const forFade = ({ current }) => ({
     },
 });
 
+const channelConfig = {
+    id: 'defaultChannel',
+    name: 'Meeting',
+    description: '会议通知',
+};
+
 const Stack = createStackNavigator();
 
 export default function App() {
+    VIForegroundService.createNotificationChannel(channelConfig).then();
     return (
         <SafeAreaProvider>
             <ToastProvider>

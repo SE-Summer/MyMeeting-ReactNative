@@ -28,14 +28,14 @@ export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
     )
 }
 
-export const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, microStat, frontCam}) => {
+export const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, microStat, frontCam, shareScreen}) => {
     return (
         <View style={{flex: 1, borderWidth: 1, borderColor: microStat === 'on' ? '#44CE55' : '#f1f3f5'}}>
             <UserLabel text={MeetingVariable.myName} />
             {
                 myStream ?
                     <RTCView
-                        mirror={frontCam}
+                        mirror={frontCam && !shareScreen}
                         zOrder={zOrder}
                         style={rtcViewStyle}
                         streamURL={myStream.toURL()}
