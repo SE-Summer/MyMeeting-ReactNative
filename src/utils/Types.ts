@@ -74,6 +74,12 @@ export enum FileJobStatus {
     failed,
 }
 
+export declare type FileJob = {
+    status: FileJobStatus,
+    totalBytes: number,
+    bytesSent: number,
+}
+
 export declare type Message = {
     type: MessageType,
     timestamp: Moment,
@@ -83,4 +89,6 @@ export declare type Message = {
     text?: string,
     fileJobType?: FileJobType,
     jobId?: number,
+    filename?: string,
+    fileType?: string,
 }

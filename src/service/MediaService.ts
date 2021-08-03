@@ -14,6 +14,7 @@ import {SignalingService} from "./SignalingService";
 import {PeerMedia} from "../utils/media/PeerMedia";
 import {timeoutCallback} from "../utils/media/MediaUtils";
 import * as events from "events"
+import {Moment} from "moment";
 
 const moment = require("moment");
 
@@ -48,6 +49,7 @@ export class MediaService
 
     private updatePeerCallbacks: (() => void)[] = null;
     private newMessageCallbacks: ((message: types.Message) => void)[] = null;
+    private meetingEndCallbacks: (() => void)[] = null;
 
     constructor()
     {
@@ -81,6 +83,11 @@ export class MediaService
     registerNewMessageListener(newMessageCallback: (message: types.Message) => void)
     {
         this.newMessageCallbacks.push(newMessageCallback);
+    }
+
+    registerMeetingEndListener(meetingEndCallback: () => void)
+    {
+        // this.
     }
 
     public getPeerDetails()
@@ -326,12 +333,12 @@ export class MediaService
         }
     }
 
-    public async sendFile(_fileURL: string)
+    public async sendFile(_fileURL: string, _timestamp: Moment)
     {
         try {
             const sendFile: types.SendFile = {
                 fileURL: _fileURL,
-                timestamp: moment,
+                timestamp: _timestamp,
             };
 
             await this.signaling.sendRequest(SignalMethod.sendFile, sendFile);
