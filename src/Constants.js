@@ -5,7 +5,6 @@ export const config = {
     qGreen: '#44CE55',
     usernameIndex: 'user_name',
     userIdIndex: 'user_id',
-    nicknameIndex: 'nick_name',
     cameraIndex: 'camera',
     microphoneIndex: 'microphone',
     emailIndex: 'email',
@@ -14,17 +13,12 @@ export const config = {
     mediaWidth: 600,
 }
 
-export const smallUtils = {
-    buttonOutline: [require('../assets/image/myButton_Outlined.png'), require('../assets/image/myButton_Outline_error.png')],
-}
-
 export const config_key = {
     avatarUri: config.unKnownUri,
     token: null,
     email: null,
     username: null,
     userId: 0,
-    nickname: null,
     camera: true,
     microphone: false,
 }

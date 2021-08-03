@@ -22,45 +22,37 @@ export default class HomeScreen extends Component{
                 <LinearGradient
                     start={{x: 0, y: 0}}
                     end={{x: 0, y: 1}}
-                    colors={['#bce9d5', '#047957']}
+                    colors={['#bcf9d5', '#047a58']}
                     style={{flex: 1, justifyContent: "flex-end"}}
                 >
                     <View style={styles.titleContainer}>
-                        <View
+                        <Text
                             style={{
-                                backgroundColor: 'transparent',
-                                flex: 1,
-                                justifyContent: 'center',
-                                alignItems: 'center'
+                                fontSize: 72,
+                                color: 'white',
+                                fontWeight: 'bold'
                             }}
                         >
-                            <Text
-                                style={{
-                                    fontSize: 72,
-                                    color: 'white',
-                                    fontWeight: 'bold'
-                                }}
-                            >
-                                Start
-                            </Text>
-                            <Text
-                                style={{
-                                    fontSize: 60,
-                                    color: 'white',
-                                    fontWeight: 'bold'
-                                }}
-                            >
-                                Meeting
-                            </Text>
-                        </View>
+                            Start
+                        </Text>
+                        <Text
+                            style={{
+                                fontSize: 60,
+                                color: 'white',
+                                fontWeight: 'bold',
+                            }}
+                        >
+                            Meeting
+                        </Text>
                     </View>
                     <View style={{height: 100}}/>
                     <View style={styles.buttonContainer}>
                         <RoundButton
-                            iconText={"add-outline"}
-                            iconSize={35}
+                            iconText={"add"}
+                            iconSize={76}
                             pressEvent={this.navigateToCreateMeeting}
                             theStyle={{backgroundColor: "#069b49"}}
+                            iconStyle={{paddingLeft: 5}}
                             title={"创建"}
                         />
                         <RoundButton

@@ -14,12 +14,12 @@ export const loginService = async (email, password) => {
 
     if (response.status === 200) {
         const user = response.data.user;
+        //后端用户名保存叫nickname
         await setInStorage(config.usernameIndex, user.nickname);
         await setInStorage(config.emailIndex, user.email);
         await setInStorage(config.userIdIndex, JSON.stringify(user.id));
         await setInStorage(config.tokenIndex, user.token);
         config_key.username = user.nickname;
-        config_key.nickname = user.nickname;
         config_key.userId = user.id;
         config_key.email = user.email;
         config_key.token = user.token;
@@ -84,11 +84,6 @@ export const getAvatar = async () => {
 export const changeUsername = async (value) => {
     await setInStorage(config.usernameIndex, value);
     config_key.username = value;
-}
-
-export const changeNickname = async (value) => {
-    await setInStorage(config.nicknameIndex, value);
-    config_key.nickname = value;
 }
 
 

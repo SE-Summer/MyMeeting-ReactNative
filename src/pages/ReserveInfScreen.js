@@ -4,6 +4,7 @@ import {FlatList, RefreshControl, Text, View} from "react-native";
 import {meetingsInf} from "../service/MeetingService";
 import {ListItem} from "../components/ListItem";
 import {config_key} from "../Constants";
+import {MeetingVariable} from "../MeetingVariable";
 
 const Empty = ({}) => {
     return (
@@ -54,6 +55,7 @@ export default class ReserveInfScreen extends Component {
             cameraStatus: config_key.camera,
             microphoneStatus: config_key.microphone,
         };
+        MeetingVariable.myName = config_key.username;
         this.props.navigation.navigate('Meeting', params);
     }
 

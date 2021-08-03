@@ -23,21 +23,6 @@ const instance = axios.create({
 });
 
 export const postRequest = async (url, data) => {
-    // const opts = {
-    //     method: "POST",
-    //     body: JSON.stringify(data),
-    //     headers: {
-    //         'Content-Type': 'application/json'
-    //     }
-    // };
-    // try {
-    //     const response = await fetch(url, opts);
-    //     return response.json();
-    // } catch (err) {
-    //     logger(err);
-    //     return null;
-    // }
-
     try {
         return await instance.post(url, data);
     } catch (e) {

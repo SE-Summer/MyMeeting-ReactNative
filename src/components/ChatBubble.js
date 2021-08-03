@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {StyleSheet, Text, View} from "react-native";
+import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import moment from "moment";
 
 const bubbleStyle = StyleSheet.create({
@@ -32,7 +32,19 @@ export const ChatBubble = ({text, myInf = false, time, maxWidth}) => {
             </View>
             <Text style={[bubbleStyle.timeFont, myInf ? {alignSelf: 'flex-end'} : null]}>{moment(time).format('HH:mm:ss')}</Text>
         </View>
+    )
+}
 
+export const FileBubble = ({file, myInf = false, time, maxWidth }) => {
+
+    return (
+        <View style={{alignSelf: 'flex-start', maxWidth: maxWidth}}>
+            <View style={myInf ? bubbleStyle.myBubble : bubbleStyle.otherBubble}>
+                <TouchableOpacity>
+                </TouchableOpacity>
+            </View>
+            <Text style={[bubbleStyle.timeFont, myInf ? {alignSelf: 'flex-end'} : null]}>{moment(time).format('HH:mm:ss')}</Text>
+        </View>
     )
 }
 

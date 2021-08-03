@@ -14,7 +14,7 @@ import {Component} from "react";
 import {ChatBubble} from "../components/ChatBubble";
 import moment from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {config, config_key} from "../Constants";
+import {config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
 import {Avatar} from "react-native-elements";
 import {MeetingVariable} from "../MeetingVariable";
@@ -25,11 +25,13 @@ const windowWidth = Dimensions.get('window').width;
 
 
 export default class MeetingChat extends Component {
-    constructor() {
-        super();
-        this.message = [];
+    constructor(props) {
+        super(props);
+        MeetingVariable.mediaService.registerNewMessageListener(this.recvNewMessage);
         this.sendButtonWidth = new Animated.Value(0);
         this.addButtonWidth = new Animated.Value(50);
+        this.listRef = React.createRef();
+        this.uploadFileJobs = new Map();
         this.fileService = new FileService(fileUploadURL(config_key.token));
         this.state = {
             text: null,
@@ -38,6 +40,8 @@ export default class MeetingChat extends Component {
             oneToOne: 0,
             visible: false,
             selected: null,
+            selectedName: null,
+            messages: MeetingVariable.messages,
         }
     }
 
@@ -78,24 +82,33 @@ export default class MeetingChat extends Component {
         const {selected, text} = this.state;
         const peerId = selected ? selected : null;
         const message = {
-            myInf: true,
+            type: MessageType.text,
+            fromMyself: true,
             text: text,
-            timeStamp: moment(),
+            timestamp: moment(),
             broadcast: selected == null,
             toPeerId: selected,
         };
         try {
-            MeetingVariable.mediaService.sendMessage(peerId, text);
+            MeetingVariable.mediaService.sendText(peerId, text);
             MeetingVariable.messages.push(message);
             this.setState({
                 text: null,
+                messages: MeetingVariable.messages,
             }, () => {
                 this.hideSendButton();
                 this.showAddButton();
+                this.listRef.current.scrollToEnd();
             })
         } catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
+    }
+
+    recvNewMessage = (message) => {
+        this.setState({
+            messages: MeetingVariable.messages,
+        })
     }
 
     showToolBar = () => {
@@ -179,7 +192,7 @@ export default class MeetingChat extends Component {
             let _timestamp = null;
             const fileURL = await this.fileService.pickAndUpload((jobId, filename, fileType) => {
                 _timestamp = moment();
-                this.message.push({
+                MeetingVariable.messages.push({
                     type: MessageType.file,
                     timestamp: _timestamp,
                     fromMyself: true,
@@ -192,9 +205,13 @@ export default class MeetingChat extends Component {
             if (_timestamp == null) {
                 _timestamp = moment();
             }
+
+            this.setState({
+                messages: MeetingVariable.messages
+            })
             await MeetingVariable.mediaService.sendFile(fileURL, _timestamp);
         } catch (err) {
-
+            console.warn(err)
         }
     }
 
@@ -204,13 +221,20 @@ export default class MeetingChat extends Component {
         });
     }
 
-    renderItem = ({item}) => {
-        const peerInfo = item.myInf ? null : MeetingVariable.mediaService.getPeerDetailsByPeerId(item.fromPeerId).getPeerInfo();
+    renderTextItem = ({item}) => {
+        const peerInfo = item.fromMyself ? null : MeetingVariable.mediaService.getPeerDetailsByPeerId(item.fromPeerId).getPeerInfo();
+        const toPeerInfo = item.fromMyself && !item.broadcast ? MeetingVariable.mediaService.getPeerDetailsByPeerId(item.toPeerId).getPeerInfo() : null;
 
         return (
-            <View style={[style.listItem, {justifyContent: item.myInf ? 'flex-end' : 'flex-start'}]}>
+            <View style={[style.listItem, {justifyContent: item.fromMyself ? 'flex-end' : 'flex-start'}]}>
                 {
-                    !item.myInf &&
+                    item.fromMyself && !item.broadcast &&
+                    <View style={{marginTop: 10,}}>
+                        <Text style={{color: '#aaaaaa'}}>此消息仅{toPeerInfo.displayName}可见</Text>
+                    </View>
+                }
+                {
+                    !item.fromMyself &&
                     <View style={style.avatarContainer}>
                         <Avatar
                             rounded
@@ -222,9 +246,9 @@ export default class MeetingChat extends Component {
                         <Text style={style.listUsername}>{peerInfo.displayName}</Text>
                     </View>
                 }
-                <ChatBubble maxWidth={windowWidth * 0.8} myInf={item.myInf} text={item.text} time={moment()} />
+                <ChatBubble maxWidth={windowWidth * 0.8} myInf={item.fromMyself} text={item.text} time={item.timestamp}/>
                 {
-                    item.myInf &&
+                    item.fromMyself &&
                     <View style={style.avatarContainer}>
                         <Avatar
                             rounded
@@ -233,15 +257,33 @@ export default class MeetingChat extends Component {
                                 uri: config_key.avatarUri
                             }}
                         />
-                        <Text style={style.listUsername}>{config_key.username}</Text>
+                        <Text style={style.listUsername}>{MeetingVariable.myName}</Text>
+                    </View>
+                }
+                {
+                    !item.fromMyself && !item.broadcast &&
+                    <View style={{marginTop: 10,}}>
+                        <Text style={{color: '#aaaaaa'}}>此消息仅您可见</Text>
                     </View>
                 }
             </View>
         )
     }
 
+    renderFileItem = ({item}) => {
+
+    }
+
+    renderItem = ({item}) => {
+        if (item.type === MessageType.text) {
+            return this.renderTextItem({item});
+        } else {
+            return this.renderFileItem({item});
+        }
+    }
+
     render() {
-        const {text, toolBar, toolsBarFlex, visible, selected} = this.state;
+        const {text, toolBar, toolsBarFlex, visible, selected, selectedName, messages} = this.state;
         return (
             <SafeAreaView style={{flex: 1}}>
                 <View style={{flex: 1}}>
@@ -256,10 +298,10 @@ export default class MeetingChat extends Component {
                         disabled={!toolBar}
                     >
                         <FlatList
-                            data={MeetingVariable.messages}
+                            data={messages}
                             renderItem={this.renderItem}
                             keyExtractor={(item, index) => {return index}}
-
+                            ref={this.listRef}
                         />
                     </TouchableOpacity>
                     <View style={style.sendBar}>
@@ -282,6 +324,7 @@ export default class MeetingChat extends Component {
                         />
                         <Animated.View style={{width: this.addButtonWidth}}>
                             <TouchableOpacity style={[style.toolButton]} onPress={() => {
+                                Keyboard.dismiss();
                                 if (!toolBar)
                                     this.showToolBar();
                                 else
@@ -315,39 +358,49 @@ export default class MeetingChat extends Component {
                     }}
                 >
                     <TouchableOpacity style={{flex: 1}} onPress={() => {this.setState({ visible: false, })}}/>
-                    <MemberSelector selected={selected} setSelected={(value) => {this.setState({selected: value})}}/>
+                    <MemberSelector
+                        selected={selected}
+                        setSelected={(value) => {this.setState({selected: value})}}
+                        name = {selectedName}
+                        setName = {(value) => {this.setState({selectedName: value})}}
+                        closeModal = {() => {this.setState({visible: false,})}}
+                    />
                 </Modal>
             </SafeAreaView>
         );
     }
 }
 
-const MemberSelector = ({selected, setSelected}) => {
+const MemberSelector = ({selected, setSelected, name, setName, closeModal}) => {
+    const participants = MeetingVariable.mediaService.getPeerDetails();
 
     const renderItem = ({item}) => {
-        const meSelected = selected && selected === item.id;
+        const inf = item.getPeerInfo();
+        const meSelected = selected && selected === inf.id;
         return (
             <TouchableOpacity
                 style={[selectorStyle.listItem, {backgroundColor: meSelected ? '#87e0a8' : 'white'}]}
                 onPress={() => {
                     if (meSelected) {
+                        setName(null);
                         setSelected(null);
                     } else {
-                        setSelected(item.id);
+                        setName(inf.displayName);
+                        setSelected(inf.id);
                     }
                 }}
             >
                 <View style={{marginLeft: 20}}>
                     <Avatar
                         rounded
-                        size={50}
+                        size={40}
                         source={{
-                            uri: config.unKnownUri
+                            uri: inf.avatar
                         }}
                     />
                 </View>
                 <View style={{flex: 1, alignItems: "center"}}>
-                    <Text style={{color: meSelected ? 'white' : 'black'}}>{item.id}</Text>
+                    <Text style={{color: meSelected ? 'white' : 'black', fontSize: 17}}>{inf.displayName}</Text>
                 </View>
                 <View style={{flex: 1}}/>
             </TouchableOpacity>
@@ -359,13 +412,20 @@ const MemberSelector = ({selected, setSelected}) => {
             <View style={selectorStyle.titleContainer}>
                 <Text style={selectorStyle.title}>选择私聊对象</Text>
                 <View style={selectorStyle.selectedUserContainer}>
-                    { selected &&
+                    { name &&
                     <Text style={selectorStyle.selectedUser}>
-                        用户：{selected}
+                        用户：{name}
                     </Text>
                     }
                 </View>
-                <TouchableOpacity onPress={() => {setSelected(null);}}>
+                <TouchableOpacity onPress={() => {
+                    if (selected) {
+                        setSelected(null);
+                        setName(null);
+                    } else {
+                        closeModal();
+                    }
+                }}>
                     <Ionicons name={'close-circle-outline'} color={'#aaaaaa'} size={20}
                               style={{marginLeft: 20, marginRight: 5}}
                     />
@@ -373,10 +433,17 @@ const MemberSelector = ({selected, setSelected}) => {
 
             </View>
             <FlatList
-                data={[{id: 1}, {id: 2},{id: 3}, {id: 4},{id: 5}, {id: 6},{id: 7}, {id: 8},{id: 9}, {id: 10},{id: 11}, {id: 12}]}
+                data={participants}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => {
                     return index;
+                }}
+                ListEmptyComponent={() => {
+                    return (
+                        <View style={{flex: 1, alignItems: "center", justifyContent: "center"}}>
+                            <Text style={{color: '#aaaaaa'}}>-没有其他成员-</Text>
+                        </View>
+                    )
                 }}
                 style={selectorStyle.list}
                 extraData={selected}

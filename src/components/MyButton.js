@@ -16,7 +16,7 @@ export const TextButton = ({text, pressEvent, containerStyle = null}) => {
     )
 }
 
-export const RoundButton = ({title = null,iconText, pressEvent, theStyle = {backgroundColor: config.qGreen}, iconSize = 30}) => {
+export const RoundButton = ({title = null,iconText, pressEvent, theStyle = {backgroundColor: config.qGreen}, iconSize = 56, iconStyle = {}}) => {
     return (
         <View>
             <TouchableOpacity
@@ -29,7 +29,7 @@ export const RoundButton = ({title = null,iconText, pressEvent, theStyle = {back
                     alignItems: "center",
                 }, theStyle)}
             >
-                <Ionicons name={iconText} size={iconSize} color={"white"} style={{transform: [{ scaleX: 2 }, { scaleY: 2 }]}}/>
+                <Ionicons name={iconText} size={iconSize} color={"white"} style={iconStyle}/>
             </TouchableOpacity>
             <Text style={{textAlign: "center", fontSize: 15, marginTop: 5, color: "#777777"}}>{title}</Text>
         </View>
