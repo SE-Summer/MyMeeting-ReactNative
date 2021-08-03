@@ -26,7 +26,7 @@ const windowWidth = Dimensions.get('window').width;
 export default class MeetingChat extends Component {
     constructor(props) {
         super(props);
-        MeetingVariable.mediaService.registerNewMessageListener(this.recvNewMessage);
+        MeetingVariable.mediaService.registerNewMessageListener('messagesInMeetingChatPage', this.recvNewMessage);
         this.sendButtonWidth = new Animated.Value(0);
         this.addButtonWidth = new Animated.Value(50);
         this.listRef = React.createRef();

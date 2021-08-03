@@ -53,8 +53,8 @@ export default class Meeting extends Component
         super(props);
         this.mediaStreamFactory = new MediaStreamFactory();
         MeetingVariable.mediaService = new MediaService();
-        MeetingVariable.mediaService.registerPeerUpdateListener(this.updatePeerDetails.bind(this));
-        MeetingVariable.mediaService.registerNewMessageListener(this.recvMessage.bind(this));
+        MeetingVariable.mediaService.registerPeerUpdateListener('peer', this.updatePeerDetails.bind(this));
+        MeetingVariable.mediaService.registerNewMessageListener('messagesInMeetingPage', this.recvMessage.bind(this));
         this.state = {
             view: 'portrait',
             peerDetails: null,
@@ -165,7 +165,6 @@ export default class Meeting extends Component
     }
 
     openCamera = async () => {
-        await this.startForegroundService('camera');
         if (this.state.shareScreen) {
             await this.closeScreenShare();
             this.setState({
@@ -173,55 +172,50 @@ export default class Meeting extends Component
             })
         }
 
-        if (this.state.frontCam) {
-            await this.openFrontCamera();
-        } else {
-            await this.openEnvCamera();
+        this.setState({
+            camStat: 'loading',
+        })
+        try {
+            await this.startForegroundService('camera');
+            if (this.state.frontCam) {
+                await this.openFrontCamera();
+            } else {
+                await this.openEnvCamera();
+            }
+        } catch (e) {
+            await VIForegroundService.stopService();
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
 
     openFrontCamera = async () => {
-        this.setState({
-            camStat: 'loading',
-        })
-        try {
-            const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width * 2, this.state.height * 3 / 2, 30);
+        const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width * 2, this.state.height * 3 / 2, 30);
 
-            if (camStream.getVideoTracks().length === 0) {
-                return Promise.reject("Fail to get local camera media.");
-            }
-
-            this.setState({
-                myCameraStream: camStream,
-                camStat: 'on',
-            });
-
-            await MeetingVariable.mediaService.sendMediaStream(camStream);
-        }  catch (e) {
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+        if (camStream.getVideoTracks().length === 0) {
+            return Promise.reject("Fail to get local camera media.");
         }
+
+        this.setState({
+            myCameraStream: camStream,
+            camStat: 'on',
+        });
+
+        await MeetingVariable.mediaService.sendMediaStream(camStream);
     }
 
     openEnvCamera = async () => {
-        this.setState({
-            camStat: 'loading',
-        })
-        try {
-            const camStream = await this.mediaStreamFactory.getCamEnvStream(this.state.width * 2, this.state.height * 3 / 2, 30);
+        const camStream = await this.mediaStreamFactory.getCamEnvStream(this.state.width * 2, this.state.height * 3 / 2, 30);
 
-            if (camStream.getVideoTracks().length === 0) {
-                return Promise.reject("Fail to get local camera media.");
-            }
-
-            this.setState({
-                myCameraStream: camStream,
-                camStat: 'on',
-            });
-
-            await MeetingVariable.mediaService.sendMediaStream(camStream);
-        }  catch (e) {
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+        if (camStream.getVideoTracks().length === 0) {
+            return Promise.reject("Fail to get local camera media.");
         }
+
+        this.setState({
+            myCameraStream: camStream,
+            camStat: 'on',
+        });
+
+        await MeetingVariable.mediaService.sendMediaStream(camStream);
     }
 
     closeCamera = async () => {
@@ -280,6 +274,7 @@ export default class Meeting extends Component
 
             await MeetingVariable.mediaService.sendMediaStream(screenStream);
         }  catch (e) {
+            await VIForegroundService.stopService();
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
