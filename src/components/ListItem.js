@@ -28,7 +28,7 @@ export const ListItem = ({date, item, index, pressEvent}) => {
     const overlayWidth = useRef(new Animated.Value(0)).current;
 
     const theColor = colors[calColorIndex(index)];
-    let icon, iconColor, onPress, shareColor;
+    let icon, iconColor, onPress;
     if (moment(date).isSameOrBefore(item.end_time, 'minute') && moment(date).isSameOrAfter(item.start_time, 'minute')) {
         icon = 'door-open';
         iconColor = theColor;
@@ -44,10 +44,13 @@ export const ListItem = ({date, item, index, pressEvent}) => {
         onPress = () => {};
     }
 
+    let sharable, shareColor;
     if (moment(date).isBefore(item.end_time, 'minute')) {
         shareColor = theColor;
+        sharable = true;
     } else {
         shareColor = '#aaaaaaaa';
+        sharable = false;
     }
 
     const shareMeeting = () => {
@@ -141,11 +144,14 @@ export const ListItem = ({date, item, index, pressEvent}) => {
                 <TouchableOpacity onPress={slideRight}>
                     <FontAwesome5 name={icon} size={20} color={iconColor} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => {
-                    shareMeeting();
-                }}>
-                    <FontAwesome5 name={'share-alt'} size={20} color={shareColor} />
-                </TouchableOpacity>
+                {
+                    sharable &&
+                    <TouchableOpacity onPress={() => {
+                        shareMeeting();
+                    }}>
+                        <FontAwesome5 name={'share-alt'} size={20} color={shareColor}/>
+                    </TouchableOpacity>
+                }
             </View>
         </View>
     )

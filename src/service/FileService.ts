@@ -47,7 +47,8 @@ export class FileService
             const URL = this.uploadURL;
             const config = {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    'Transfer-Encoding': 'chunked',
                 },
                 onUploadProgress: (progressEvent) => {
                     this.fileJobs[jobId].totalBytes = progressEvent.total;

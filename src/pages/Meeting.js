@@ -60,6 +60,7 @@ export default class Meeting extends Component
             myMicrophoneStream: null,
             width: 300,
             height: 600,
+            frontCam: true,
             microStat: 'off',
             camStat: 'off',
             newMessage: false,
@@ -104,7 +105,7 @@ export default class Meeting extends Component
 
             await this.mediaStreamFactory.waitForUpdate();
             if (cameraStatus) {
-                await this.openCamera();
+                await this.openFrontCamera();
             }
             if (microphoneStatus) {
                 await this.openMicrophone();
@@ -129,7 +130,6 @@ export default class Meeting extends Component
                 myMicrophoneStream: micStream,
                 microStat: 'on',
             }, () => {
-                console.log('openMic Update');
                 this.forceUpdate();
             });
 
@@ -152,7 +152,6 @@ export default class Meeting extends Component
                 myMicrophoneStream: null,
                 microStat: 'off'
             },() => {
-                console.log('closeMicUpdate');
                 this.forceUpdate();
             });
         } catch (e) {
@@ -161,11 +160,41 @@ export default class Meeting extends Component
     }
 
     openCamera = async () => {
+        if (this.state.frontCam) {
+            await this.openFrontCamera();
+        } else {
+            await this.openEnvCamera();
+        }
+    }
+
+    openFrontCamera = async () => {
         this.setState({
             camStat: 'loading',
         })
         try {
             const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width * 2, this.state.height * 3 / 2, 30);
+
+            if (camStream.getVideoTracks().length === 0) {
+                return Promise.reject("Fail to get local camera media.");
+            }
+
+            this.setState({
+                myCameraStream: camStream,
+                camStat: 'on',
+            });
+
+            await MeetingVariable.mediaService.sendMediaStream(camStream);
+        }  catch (e) {
+            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+        }
+    }
+
+    openEnvCamera = async () => {
+        this.setState({
+            camStat: 'loading',
+        })
+        try {
+            const camStream = await this.mediaStreamFactory.getCamEnvStream(this.state.width * 2, this.state.height * 3 / 2, 30);
 
             if (camStream.getVideoTracks().length === 0) {
                 return Promise.reject("Fail to get local camera media.");
@@ -200,6 +229,21 @@ export default class Meeting extends Component
         }
     }
 
+    swapCam = async () => {
+        if (this.state.camStat === 'on') {
+            await this.closeCamera();
+            this.setState({
+                frontCam: !this.state.frontCam,
+            },() => {
+                this.openCamera();
+            })
+        } else {
+            this.setState({
+                frontCam: !this.state.frontCam,
+            })
+        }
+    }
+
     updatePeerDetails() {
         this.setState({
             peerDetails: MeetingVariable.mediaService.getPeerDetails().length === 0 ? null : MeetingVariable.mediaService.getPeerDetails(),
@@ -210,10 +254,15 @@ export default class Meeting extends Component
     }
 
     openChatRoom = () => {
+        this.setState({
+            newMessage: false,
+        })
         this.props.navigation.navigate('MeetingChat');
     }
 
     recvMessage(message) {
+        message.fromMyself = false;
+        MeetingVariable.messages.push(message);
         this.setState({
             newMessage: true,
         })
@@ -240,17 +289,13 @@ export default class Meeting extends Component
             }
             MeetingVariable.mediaService = null;
             MeetingVariable.messages = [];
-            this.props.navigation.pop();
+            this.props.navigation.navigate('Tab');
         } catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
             MeetingVariable.mediaService = null;
             MeetingVariable.messages = [];
-            this.props.navigation.pop();
+            this.props.navigation.navigate('Tab');
         }
-    }
-
-    swapCam = () => {
-
     }
 
     onSwipeLeft() {
@@ -282,7 +327,7 @@ export default class Meeting extends Component
 
     render() {
         const {roomInf} = this.props.route.params;
-        const {width, height, myCameraStream, camStat, microStat} = this.state;
+        const {width, height, myCameraStream, camStat, microStat, newMessage, frontCam} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
@@ -305,6 +350,7 @@ export default class Meeting extends Component
                                     width={width}
                                     height={height}
                                     myStream={myCameraStream}
+                                    myFrontCam={frontCam}
                                     peerDetails={this.state.peerDetails}
                                     turnPortrait={this.turnGridToPortrait}
                                 />
@@ -313,6 +359,7 @@ export default class Meeting extends Component
                                     width={width}
                                     height={height}
                                     myStream={myCameraStream}
+                                    myFrontCam={frontCam}
                                     microStat={microStat}
                                     peerToShow={this.state.peerDetails ? this.state.peerDetails[this.state.portraitIndex] : null}
                                 />
@@ -325,11 +372,13 @@ export default class Meeting extends Component
                     openMicro={this.openMicrophone}
                     closeMicro={this.closeMicrophone}
                     openChatRoom={this.openChatRoom}
+                    frontCam={frontCam}
                     swapCam={this.swapCam}
                     microStat={microStat}
                     camStat={camStat}
                     style={screenStyle.footer}
                     view={this.state.view}
+                    newMessage={newMessage}
                     setView={(type) => { this.setState({ view: type, }); }}
                 />
             </View>
@@ -337,7 +386,7 @@ export default class Meeting extends Component
     }
 }
 
-const GridView = ({width, height, myStream, peerDetails, turnPortrait}) => {
+const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCam}) => {
     const gridStyle = StyleSheet.create({
         rtcView: {
             width: width / 3,
@@ -368,7 +417,7 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait}) => {
                 <UserLabel text={myS && index === 0 ? MeetingVariable.myName : item.getPeerInfo().displayName}/>
                 <RTCView
                     zOrder={0}
-                    mirror={myS && index === 0}
+                    mirror={myS && index === 0 && myFrontCam}
                     style={gridStyle.rtcView}
                     streamURL={myS && index === 0 ? item.toURL() : (new MediaStream(item.getTracks())).toURL()}
                 />
@@ -388,7 +437,7 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait}) => {
     )
 }
 
-const PortraitView = ({width, height, peerToShow, myStream, microStat}) => {
+const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCam}) => {
     const portraitStyle = StyleSheet.create({
         smallWindow: {
             position: 'absolute',
@@ -413,28 +462,54 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat}) => {
             <View style={{flex: 1}}>
                 {
                     peerBig ?
-                        <PeerWindow rtcViewStyle={portraitStyle.bigWindow} peerToShow={peerToShow} zOrder={0}/>
+                        <PeerWindow
+                            rtcViewStyle={portraitStyle.bigWindow}
+                            peerToShow={peerToShow}
+                            zOrder={0}
+                        />
                         :
-                        <MyStreamWindow rtcViewStyle={portraitStyle.bigWindow} myStream={myStream} zOrder={0} microStat={microStat}/>
+                        <MyStreamWindow
+                            rtcViewStyle={portraitStyle.bigWindow}
+                            myStream={myStream}
+                            zOrder={0}
+                            microStat={microStat}
+                            frontCam={myFrontCam}
+                        />
                 }
                 <TouchableOpacity style={portraitStyle.smallWindow} onPress={() => {setPeerBig(!peerBig)}}>
                     {
                         peerBig ?
-                            <MyStreamWindow rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}} myStream={myStream} zOrder={1} microStat={microStat} />
+                            <MyStreamWindow
+                                rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}}
+                                myStream={myStream}
+                                zOrder={1}
+                                microStat={microStat}
+                                frontCam={myFrontCam}
+                            />
                             :
-                            <PeerWindow rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}} peerToShow={peerToShow} zOrder={1}/>
+                            <PeerWindow
+                                rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}}
+                                peerToShow={peerToShow}
+                                zOrder={1}
+                            />
                     }
                 </TouchableOpacity>
             </View>
         )
     } else {
         return (
-            <MyStreamWindow rtcViewStyle={portraitStyle.bigWindow} myStream={myStream} zOrder={0} microStat={microStat} />
+            <MyStreamWindow
+                rtcViewStyle={portraitStyle.bigWindow}
+                myStream={myStream}
+                zOrder={0}
+                microStat={microStat}
+                frontCam={myFrontCam}
+            />
         )
     }
 }
 
-const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeCamera, openMicro, closeMicro, camStat, microStat}) => {
+const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeCamera, openMicro, closeMicro, frontCam, camStat, microStat, newMessage}) => {
     const footerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -503,7 +578,7 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeC
                         setShareScreen(!shareScreen)
                     }}
                 />
-                <IconWithLabel text={'会议聊天'} iconName={'chatbubbles-outline'} pressEvent={openChatRoom}/>
+                <IconWithLabel text={'会议聊天'} iconName={newMessage ? 'chatbubbles' : 'chatbubbles-outline'} pressEvent={openChatRoom} color={newMessage ? '#44CE55': 'white'}/>
                 <IconWithLabel
                     text={'通用设置'}
                     iconName={settingsVisible ? 'settings':'settings-outline'}
@@ -534,7 +609,7 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, openCamera, closeC
                                 }}
                             />
                             <IconWithLabel iconName={'image'} color={'black'} text={'虚拟背景'} />
-                            <IconWithLabel iconName={'swap-horizontal'} color={'black'} text={'切换相机'} pressEvent={swapCam}/>
+                            <IconWithLabel iconName={frontCam ? 'camera-reverse' : 'camera-reverse-outline'} color={'black'} text={'切换相机'} pressEvent={swapCam}/>
                             <IconWithLabel iconName={'settings'} color={'black'} text={'关闭设置'} pressEvent={() => {
                                 setSettingsVisible(false);
                             }}/>

@@ -48,10 +48,11 @@ export default class HomeScreen extends Component{
                     <View style={{height: 100}}/>
                     <View style={styles.buttonContainer}>
                         <RoundButton
-                            iconText={"add-outline"}
-                            iconSize={35}
+                            iconText={"add"}
+                            iconSize={76}
                             pressEvent={this.navigateToCreateMeeting}
                             theStyle={{backgroundColor: "#069b49"}}
+                            iconStyle={{paddingLeft: 5}}
                             title={"创建"}
                         />
                         <RoundButton

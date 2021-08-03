@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
 import {Component} from "react";
 import {ChatBubble} from "../components/ChatBubble";
-import moment, {Moment} from "moment";
+import moment from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
@@ -29,7 +29,6 @@ const RNFS = require('react-native-fs');
 export default class MeetingChat extends Component {
     constructor(props) {
         super(props);
-        this.message = [];
         MeetingVariable.mediaService.registerNewMessageListener(this.recvNewMessage);
         this.sendButtonWidth = new Animated.Value(0);
         this.addButtonWidth = new Animated.Value(50);
@@ -85,6 +84,7 @@ export default class MeetingChat extends Component {
         const {selected, text} = this.state;
         const peerId = selected ? selected : null;
         const message = {
+            type: MessageType.text,
             fromMyself: true,
             text: text,
             timestamp: moment(),
@@ -96,6 +96,7 @@ export default class MeetingChat extends Component {
             MeetingVariable.messages.push(message);
             this.setState({
                 text: null,
+                messages: MeetingVariable.messages,
             }, () => {
                 this.hideSendButton();
                 this.showAddButton();
@@ -107,7 +108,6 @@ export default class MeetingChat extends Component {
     }
 
     recvNewMessage = (message) => {
-        MeetingVariable.messages.push(message);
         this.setState({
             messages: MeetingVariable.messages,
         })
@@ -195,7 +195,7 @@ export default class MeetingChat extends Component {
             let _timestamp = null;
             const fileURL = await this.fileService.pickAndUpload((jobId, filename, fileType) => {
                 _timestamp = moment();
-                this.message.push({
+                MeetingVariable.messages.push({
                     type: MessageType.file,
                     timestamp: _timestamp,
                     fromMyself: true,
@@ -208,15 +208,19 @@ export default class MeetingChat extends Component {
             if (_timestamp == null) {
                 _timestamp = moment();
             }
+
+            this.setState({
+                messages: MeetingVariable.messages
+            })
             await MeetingVariable.mediaService.sendFile(fileURL, _timestamp);
         } catch (err) {
-
+            console.warn(err)
         }
     }
 
     renderTextItem = ({item}) => {
         const peerInfo = item.fromMyself ? null : MeetingVariable.mediaService.getPeerDetailsByPeerId(item.fromPeerId).getPeerInfo();
-        const toPeerInfo = item.fromMyself ? MeetingVariable.mediaService.getPeerDetailsByPeerId(item.toPeerId).getPeerInfo() : null;
+        const toPeerInfo = item.fromMyself && !item.broadcast ? MeetingVariable.mediaService.getPeerDetailsByPeerId(item.toPeerId).getPeerInfo() : null;
 
         return (
             <View style={[style.listItem, {justifyContent: item.fromMyself ? 'flex-end' : 'flex-start'}]}>
@@ -269,9 +273,9 @@ export default class MeetingChat extends Component {
 
     renderItem = ({item}) => {
         if (item.type === MessageType.text) {
-            return this.renderTextItem(item);
+            return this.renderTextItem({item});
         } else {
-
+            return this.renderFileItem({item});
         }
     }
 
@@ -356,6 +360,7 @@ export default class MeetingChat extends Component {
                         setSelected={(value) => {this.setState({selected: value})}}
                         name = {selectedName}
                         setName = {(value) => {this.setState({selectedName: value})}}
+                        closeModal = {() => {this.setState({visible: false,})}}
                     />
                 </Modal>
             </SafeAreaView>
@@ -363,7 +368,7 @@ export default class MeetingChat extends Component {
     }
 }
 
-const MemberSelector = ({selected, setSelected, name, setName}) => {
+const MemberSelector = ({selected, setSelected, name, setName, closeModal}) => {
     const participants = MeetingVariable.mediaService.getPeerDetails();
 
     const renderItem = ({item}) => {
@@ -411,8 +416,12 @@ const MemberSelector = ({selected, setSelected, name, setName}) => {
                     }
                 </View>
                 <TouchableOpacity onPress={() => {
-                    setSelected(null);
-                    setName(null);
+                    if (selected) {
+                        setSelected(null);
+                        setName(null);
+                    } else {
+                        closeModal();
+                    }
                 }}>
                     <Ionicons name={'close-circle-outline'} color={'#aaaaaa'} size={20}
                               style={{marginLeft: 20, marginRight: 5}}
