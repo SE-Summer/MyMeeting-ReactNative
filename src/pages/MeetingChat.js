@@ -12,15 +12,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
 import {Component} from "react";
 import {ChatBubble} from "../components/ChatBubble";
-import moment from "moment";
+import moment, {Moment} from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
 import {Avatar} from "react-native-elements";
-import {MeetingVariable} from "../MeetingVariable";
-import {FileService} from "../service/FileService";
-import {fileUploadURL} from "../ServiceConfig";
-import {FileJobType, MessageType} from "../utils/Types";
+import {fileService, MeetingVariable} from "../MeetingVariable";
+import {FileJobStatus, FileJobType, MessageType} from "../utils/Types";
+import DocumentPicker from "react-native-document-picker";
 const windowWidth = Dimensions.get('window').width;
 
 
@@ -31,7 +30,6 @@ export default class MeetingChat extends Component {
         this.sendButtonWidth = new Animated.Value(0);
         this.addButtonWidth = new Animated.Value(50);
         this.listRef = React.createRef();
-        this.fileService = new FileService(fileUploadURL(config_key.token));
         this.state = {
             text: null,
             toolsBarFlex: new Animated.Value(0),
@@ -188,36 +186,65 @@ export default class MeetingChat extends Component {
             return;
         }
         try {
-            let _timestamp = null;
-            const fileURL = await this.fileService.pickAndUpload((jobId, filename, fileType) => {
-                _timestamp = moment();
-                MeetingVariable.messages.push({
-                    type: MessageType.file,
-                    timestamp: _timestamp,
-                    fromMyself: true,
-                    fileJobType: FileJobType.upload,
-                    jobId: jobId,
-                    filename: filename,
-                    fileType: fileType,
-                });
-            });
-            if (_timestamp == null) {
-                _timestamp = moment();
-            }
+            const file = await fileService.pickFile();
 
+            let message = {
+                type: MessageType.file,
+                timestamp: moment(),
+                fromMyself: true,
+                fileJobType: FileJobType.upload,
+                fileURL: null,
+                filename: file.name,
+                fileType: file.type,
+                fileJobStatus: FileJobStatus.progressing,
+                totalBytes: file.size,
+                bytesSent: 0,
+                filePath: file.path,
+            }
+            MeetingVariable.messages.push(message);
             this.setState({
                 messages: MeetingVariable.messages
-            })
-            await MeetingVariable.mediaService.sendFile(fileURL, _timestamp);
+            });
+
+            const fileURL = await fileService.uploadFile(file, (bytesSent, totalBytes) => {
+                message.bytesSent = bytesSent;
+                message.totalBytes = totalBytes;
+                this.setState({
+                    messages: MeetingVariable.messages,
+                });
+            });
+            message.fileURL = fileURL;
+            message.fileJobStatus = FileJobStatus.completed;
+            await MeetingVariable.mediaService.sendFile(fileURL, message.timestamp, message.filename, message.fileType);
         } catch (err) {
-            console.warn(err);
+            if (DocumentPicker.isCancel(err)) {
+                console.warn('[File]  User cancelled file picker');
+            } else {
+                message.fileJobStatus = FileJobStatus.
+                console.error('[Error]  Fail to upload file', err);
+            }
         }
     }
 
     downloadFile = async (message) => {
-        await this.fileService.download(message.fileURL, this.fileService.getDefaultDownloadPath() + '/', (jobId) => {
-            message.jobId = jobId;
-        });
+        try {
+            await fileService.download(message.fileURL, `${this.fileService.getDefaultDownloadPath()}/${message.filename}`,
+                (bytesSent, totalBytes) => {
+                    message.bytesSent = bytesSent;
+                    message.totalBytes = totalBytes;
+                    this.setState({
+                        messages: MeetingVariable.messages,
+                    });
+                },
+                (status) => {
+                    message.fileJobStatus = status;
+                    this.setState({
+                        messages: MeetingVariable.messages,
+                    });
+                });
+        } catch (err) {
+            console.error('[Error]  Fail to download file', JSON.stringify(err));
+        }
     }
 
     renderTextItem = ({item}) => {

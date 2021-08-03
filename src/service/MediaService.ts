@@ -47,9 +47,9 @@ export class MediaService
     private permissionUpdated: boolean = null;
     private allowed: boolean = null;
 
-    private updatePeerCallbacks: (() => void)[] = null;
-    private newMessageCallbacks: ((message: types.Message) => void)[] = null;
-    private meetingEndCallbacks: (() => void)[] = null;
+    private updatePeerCallbacks: Map<string, () => void> = null;
+    private newMessageCallbacks: Map<string, (message: types.Message) => void> = null;
+    private meetingEndCallbacks: Map<string, () => void> = null;
 
     constructor()
     {
@@ -67,27 +67,43 @@ export class MediaService
             this.permissionUpdated = false;
             this.allowed = false;
 
-            this.updatePeerCallbacks = [];
-            this.newMessageCallbacks = [];
+            this.updatePeerCallbacks = new Map<string, () => void>();
+            this.newMessageCallbacks = new Map<string, (message: types.Message) => void>();
+            this.meetingEndCallbacks = new Map<string, () => void>();
 
         } catch (err) {
             console.error('[Error]  Fail to construct MediaService instance', err);
         }
     }
 
-    registerPeerUpdateListener(updatePeerCallback: () => void)
+    public registerPeerUpdateListener(key: string, updatePeerCallback: () => void)
     {
-        this.updatePeerCallbacks.push(updatePeerCallback);
+        this.updatePeerCallbacks.set(key, updatePeerCallback);
     }
 
-    registerNewMessageListener(newMessageCallback: (message: types.Message) => void)
+    public deletePeerUpdateListener(key: string)
     {
-        this.newMessageCallbacks.push(newMessageCallback);
+        this.updatePeerCallbacks.delete(key);
     }
 
-    registerMeetingEndListener(meetingEndCallback: () => void)
+    public registerNewMessageListener(key: string, newMessageCallback: (message: types.Message) => void)
     {
-        // this.
+        this.newMessageCallbacks.set(key, newMessageCallback);
+    }
+
+    public deleteNewMessageListener(key: string)
+    {
+        this.newMessageCallbacks.delete(key);
+    }
+
+    public registerMeetingEndListener(key: string, meetingEndCallback: () => void)
+    {
+        this.meetingEndCallbacks.set(key, meetingEndCallback);
+    }
+
+    public deleteMeetingEndListener(key: string)
+    {
+        this.meetingEndCallbacks.delete(key);
     }
 
     public getPeerDetails()

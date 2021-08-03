@@ -94,7 +94,10 @@ export declare type Message = {
     text?: string,
     fileJobType?: FileJobType,
     fileURL?: string,
-    jobId?: number,
     filename?: string,
     fileType?: string,
+    fileJobStatus?: FileJobStatus,
+    totalBytes?: number,
+    bytesSent?: number,
+    filePath?: string,
 }
