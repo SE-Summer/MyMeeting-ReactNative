@@ -2,7 +2,14 @@ import {registerGlobals} from 'react-native-webrtc'
 import * as mediasoupClient from "mediasoup-client";
 import {types as mediasoupTypes} from "mediasoup-client";
 import * as types from "../utils/Types";
-import {serviceConfig, SignalMethod, SignalType, socketConnectionOptions, TransportType} from "../ServiceConfig";
+import {
+    meetingURL,
+    serviceConfig,
+    SignalMethod,
+    SignalType,
+    socketConnectionOptions,
+    TransportType
+} from "../ServiceConfig";
 import {SignalingService} from "./SignalingService";
 import {PeerMedia} from "../utils/media/PeerMedia";
 import {timeoutCallback} from "../utils/media/MediaUtils";
@@ -14,7 +21,7 @@ export class MediaService
 {
     private roomToken: string = null;
     private userToken: string = null;
-    private serverURL: string = null;
+    private meetingURL: string = null;
     private displayName: string = null;
     private deviceName: string = null;
     private avatar: string = null;
@@ -138,14 +145,14 @@ export class MediaService
 
         this.roomToken = roomToken;
         this.userToken = userToken;
-        this.serverURL = `${serviceConfig.serverURL}?roomId=${this.roomToken}&peerId=${this.userToken}`;
+        this.meetingURL = meetingURL(roomToken, userToken);
         this.displayName = displayName;
         this.deviceName = deviceName;
         this.avatar = avatar;
         console.log('[Log]  Try to join meeting with roomToken = ' + roomToken);
 
         try {
-            this.signaling = new SignalingService(this.serverURL, socketConnectionOptions, this.onSignalingDisconnect.bind(this));
+            this.signaling = new SignalingService(this.meetingURL, socketConnectionOptions, this.onSignalingDisconnect.bind(this));
             this.registerSignalingListeners();
             await this.signaling.waitForConnection();
             await this.waitForAllowed();

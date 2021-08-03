@@ -129,7 +129,7 @@ export const ListItem = ({date, item, index, pressEvent}) => {
                     </View>
                     <View style={styles.idInnerContainer}>
                         <View style={{flex: 1}}>
-                            <Text style={styles.idFont}>密码: {passwordVisible ? item.password : '********'}</Text>
+                            <Text style={styles.idFont}>密码: {passwordVisible ? item.password : '--'}</Text>
                         </View>
                         <FontAwesome5 name={passwordVisible ? 'eye' : 'eye-slash'} color={'#aaaaaa'} onPress={() => {
                             setPasswordVisible(!passwordVisible);
