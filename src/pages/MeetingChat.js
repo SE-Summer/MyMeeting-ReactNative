@@ -31,7 +31,6 @@ export default class MeetingChat extends Component {
         this.sendButtonWidth = new Animated.Value(0);
         this.addButtonWidth = new Animated.Value(50);
         this.listRef = React.createRef();
-        this.uploadFileJobs = new Map();
         this.fileService = new FileService(fileUploadURL(config_key.token));
         this.state = {
             text: null,
@@ -211,7 +210,7 @@ export default class MeetingChat extends Component {
             })
             await MeetingVariable.mediaService.sendFile(fileURL, _timestamp);
         } catch (err) {
-            console.warn(err)
+            console.warn(err);
         }
     }
 
