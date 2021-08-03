@@ -305,7 +305,7 @@ export default class Meeting extends Component
             peerDetails: MeetingVariable.mediaService.getPeerDetails().length === 0 ? null : MeetingVariable.mediaService.getPeerDetails(),
         }, () => {
             this.forceUpdate();
-            console.log('[React]  state.peerDetails of Meeting updated : ' + this.state.peerDetails);
+            console.log('[React]  state.peerDetails of Meeting updated : ' + JSON.stringify(this.state.peerDetails));
         })
     }
 
