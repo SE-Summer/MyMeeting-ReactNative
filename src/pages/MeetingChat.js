@@ -314,7 +314,41 @@ export default class MeetingChat extends Component {
     }
 
     renderFileItem = ({item}) => {
+        const peerInfo = item.fromMyself ? null : MeetingVariable.mediaService.getPeerDetailsByPeerId(item.fromPeerId).getPeerInfo();
 
+        return (
+            <View style={[style.listItem, {justifyContent: item.fromMyself ? 'flex-end' : 'flex-start'}]}>
+                {
+                    !item.fromMyself &&
+                    <View style={style.avatarContainer}>
+                        <Avatar
+                            rounded
+                            size={40}
+                            source={{
+                                uri: peerInfo.avatar
+                            }}
+                        />
+                        <Text style={style.listUsername}>{peerInfo.displayName}</Text>
+                    </View>
+                }
+                <Text>
+                    {item.filename}
+                </Text>
+                {
+                    item.fromMyself &&
+                    <View style={style.avatarContainer}>
+                        <Avatar
+                            rounded
+                            size={40}
+                            source={{
+                                uri: config_key.avatarUri
+                            }}
+                        />
+                        <Text style={style.listUsername}>{MeetingVariable.myName}</Text>
+                    </View>
+                }
+            </View>
+        );
     }
 
     renderItem = ({item}) => {

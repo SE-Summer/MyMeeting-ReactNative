@@ -29,35 +29,34 @@ export class FileService
 
     public async uploadFile(file: DocumentPickerResponse, _onUploadProgress: (bytesSent: number, totalBytes: number) => void): Promise<string>
     {
-        try {
-            let formData = new FormData();
-            // @ts-ignore
-            formData.append('file', file);
+        const uploadFileItem = {
+            // name: file.name,
+            filename: file.name,
+            filepath: file.uri,
+            filetype: file.type,
+        };
 
-            const URL = fileUploadURL(config_key.token);
-            const config = {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Transfer-Encoding': 'chunked',
-                },
-                onUploadProgress: (progressEvent) => {
-                    _onUploadProgress(progressEvent.loaded, progressEvent.total);
-                    console.log('[Log]  File uploading ... ' + (progressEvent.loaded / progressEvent.total * 100 | 0) + '%');
-                }
-            }
+        const uploadFileOptions = {
+            toUrl: fileUploadURL(config_key.token),
+            files: [uploadFileItem],
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+            method: 'POST',
+            progress: (res) => {
+                _onUploadProgress(res.totalBytesSent, res.totalBytesExpectedToSend);
+                console.log(res.totalBytesSent / res.totalBytesExpectedToSend + '%')
+            },
+        };
 
-            const result = await postFormData(URL, formData, config);
-            if (result.data && result.data.status === 'OK') {
-                console.log(`[Log]  File uploaded, path = ${result.data.path}`);
-                return result.data.path;
-            } else {
-                console.error('[Error]  Fail to upload file');
-                return Promise.reject('Fail to upload file');
-            }
+        console.log('hit1');
+        const { jobId, promise } = RNFS.uploadFiles(uploadFileOptions);
+        const result = await promise;
 
-        } catch (err) {
-            console.error('[Error]  Fail to upload file', err);
-            return Promise.reject('Fail to upload file');
+        console.log(result);
+        if (result.statusCode === 200) {
+            console.log(JSON.stringify(result));
+            return result;
         }
     }
 
