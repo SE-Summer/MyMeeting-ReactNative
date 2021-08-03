@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
 import {Component} from "react";
 import {ChatBubble} from "../components/ChatBubble";
-import moment, {Moment} from "moment";
+import moment from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config, config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
@@ -22,8 +22,6 @@ import {FileService} from "../service/FileService";
 import {fileUploadURL} from "../ServiceConfig";
 import {FileJobType, MessageType} from "../utils/Types";
 const windowWidth = Dimensions.get('window').width;
-
-const RNFS = require('react-native-fs');
 
 
 export default class MeetingChat extends Component {
@@ -173,7 +171,6 @@ export default class MeetingChat extends Component {
     }
 
     uploadFile = async () => {
-        // await this.fileService.download('http://se-summer.cn:4446/static/files/erJHles8haZ7eZFu9QR7ik9hTkmSL66z.jpg', RNFS.MainBundlePath);
 
         if (this.state.selected) {
             return;
@@ -201,8 +198,10 @@ export default class MeetingChat extends Component {
         }
     }
 
-    downloadFile = async (fileURL) => {
-
+    downloadFile = async (message) => {
+        await this.fileService.download(message.fileURL, this.fileService.getDefaultDownloadPath() + '/', (jobId) => {
+            message.jobId = jobId;
+        });
     }
 
     renderItem = ({item}) => {

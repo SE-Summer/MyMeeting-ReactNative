@@ -333,12 +333,14 @@ export class MediaService
         }
     }
 
-    public async sendFile(_fileURL: string, _timestamp: Moment)
+    public async sendFile(_fileURL: string, _timestamp: Moment, _filename: string, _fileType: string)
     {
         try {
             const sendFile: types.SendFile = {
                 fileURL: _fileURL,
                 timestamp: _timestamp,
+                fileType: _fileType,
+                filename: _filename,
             };
 
             await this.signaling.sendRequest(SignalMethod.sendFile, sendFile);
@@ -583,9 +585,12 @@ export class MediaService
                 type: types.MessageType.file,
                 broadcast: true,
                 fileJobType: types.FileJobType.download,
+                fileURL: recvFile.fileURL,
                 fromMyself: false,
                 fromPeerId: recvFile.fromPeerId,
                 timestamp: recvFile.timestamp,
+                filename: recvFile.filename,
+                fileType: recvFile.fileType,
             }
 
             this.newMessageCallbacks.forEach((callback) => {

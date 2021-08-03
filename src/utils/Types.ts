@@ -50,12 +50,16 @@ export declare type RecvText = {
 export declare type SendFile = {
     fileURL: string,
     timestamp: Moment,
+    filename: string,
+    fileType: string,
 }
 
 export declare type RecvFile = {
     fromPeerId: string,
     fileURL: string,
     timestamp: Moment,
+    filename: string,
+    fileType: string,
 }
 
 export enum MessageType {
@@ -78,6 +82,7 @@ export declare type FileJob = {
     status: FileJobStatus,
     totalBytes: number,
     bytesSent: number,
+    filePath: string,
 }
 
 export declare type Message = {
@@ -88,6 +93,7 @@ export declare type Message = {
     broadcast?: boolean,
     text?: string,
     fileJobType?: FileJobType,
+    fileURL?: string,
     jobId?: number,
     filename?: string,
     fileType?: string,

@@ -1,23 +1,30 @@
 import DocumentPicker from "react-native-document-picker";
 import {postFormData} from "../utils/Utils";
 import {FileJob, FileJobStatus} from "../utils/Types";
+import {DownloadBeginCallbackResult, DownloadProgressCallbackResult, DownloadResult} from "react-native-fs";
 
 const AsyncLock = require('async-lock');
-
 const RNFS = require('react-native-fs');
 
 export class FileService
 {
     // index: jobId
     private fileJobs: FileJob[] = null;
+    private downloadFileJobs: Map<number, FileJob> = null;
     private readonly uploadURL: string = null;
     private readonly asyncLock = null;
 
     constructor(uploadURL: string)
     {
         this.fileJobs = [];
+        this.downloadFileJobs = new Map<number, FileJob>();
         this.uploadURL = uploadURL;
         this.asyncLock = new AsyncLock();
+    }
+
+    public getDefaultDownloadPath()
+    {
+        return RNFS.DownloadDirectoryPath;
     }
 
     public async pickAndUpload(getFileDetails: (jobId: number, filename: string, fileType: string) => void): Promise<string>
@@ -37,9 +44,10 @@ export class FileService
             this.asyncLock.acquire('write_fileJobs', () => {
                 jobId = this.fileJobs.length;
                 this.fileJobs.push({
+                    filePath: file.uri,
                     status: FileJobStatus.progressing,
                     totalBytes: file.size,
-                    bytesSent: 0,
+                    bytesSent: 0
                 });
                 getFileDetails(jobId, file.name, file.type);
             });
@@ -77,24 +85,59 @@ export class FileService
         }
     }
 
-    public async download(fromURL: string, savePath: string)
+    public async download(fromURL: string, savePath: string, getJobId: (jobId: number) => void)
     {
-        const downloadOpts = {
-            fromUrl: fromURL,          // URL to download file from
-            toFile: savePath,           // Local filesystem path to save the file to
-            // headers?: Headers;        // An object of headers to be passed to the server
-            // background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
-            // discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
-            // cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only, defaults to true)
-            // progressInterval?: number;
-            // progressDivider?: number;
-            // begin?: (res: DownloadBeginCallbackResult) => void;
-            // progress?: (res: DownloadProgressCallbackResult) => void;
-            // resumable?: () => void;    // only supported on iOS yet
-            // connectionTimeout?: number // only supported on Android yet
-            // readTimeout?: number       // supported on Android and iOS
-            // backgroundTimeout?: number // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
-        };
-        RNFS.downloadFile(downloadOpts);
+        try {
+            const downloadOpts = {
+                fromUrl: fromURL,
+                toFile: savePath,
+                begin: (res: DownloadBeginCallbackResult) => {
+                    this.downloadFileJobs.set(res.jobId, {
+                        filePath: savePath,
+                        bytesSent: 0,
+                        status: res.statusCode == 200 ? FileJobStatus.progressing : FileJobStatus.failed,
+                        totalBytes: res.contentLength
+                    });
+                    console.log('[Log]  File download begins, jobId = ' + res.jobId);
+                },
+                progress: (res: DownloadProgressCallbackResult) => {
+                    if (this.downloadFileJobs.has(res.jobId)) {
+                        let fileJob = this.downloadFileJobs.get(res.jobId);
+                        fileJob.bytesSent = res.bytesWritten;
+                        fileJob.totalBytes = res.contentLength;
+                        console.log('[Log]  File downloading ... ' + (res.bytesWritten / res.contentLength * 100 | 0) + '%');
+                    }
+                },
+            };
+            const { jobId, promise } = RNFS.downloadFile(downloadOpts);
+            getJobId(jobId);
+            const result: DownloadResult = await promise;
+
+            if (!this.downloadFileJobs.has(jobId)) {
+                this.downloadFileJobs.set(jobId, {
+                    filePath: savePath,
+                    bytesSent: 0,
+                    status: FileJobStatus.progressing,
+                    totalBytes: 0,
+                });
+            }
+
+            if (result.statusCode == 200) {
+                this.downloadFileJobs.get(jobId).status = FileJobStatus.completed;
+                console.log('[Log]  File downloaded to path = ' + savePath);
+            } else {
+                this.downloadFileJobs.get(jobId).status = FileJobStatus.failed;
+                console.error('[Error]  Fail to download file, jobId = ' + jobId);
+                return Promise.reject('Fail to download file');
+            }
+
+        } catch (err) {
+            if(err.description === "cancelled") {
+                console.warn('[File]  User cancelled the download');
+            } else {
+                console.error('[Error]  Fail to download file', JSON.stringify(err));
+                return Promise.reject('Fail to download file');
+            }
+        }
     }
 }
