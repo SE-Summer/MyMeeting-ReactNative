@@ -11,14 +11,14 @@ export const SIMULCASTENCODING: RTCRtpEncodingParameters[] = [
     {maxBitrate: 900000}
 ];
 
-const _serverURL = (config.serverUseHttps ? 'https://' : 'http://') + config.serverIp + ':' + config.serverPort + '/room';
+const _serverURL = (config.serverUseHttps ? 'https://' : 'http://') + config.serverIp + ':' + config.serverPort;
 
 export const fileUploadURL = (userToken: string) => {
     return `${_serverURL}/file?token=${userToken}`;
 }
 
 export const meetingURL = (roomToken: string, userToken: string) => {
-    return `${serviceConfig.serverURL}?roomId=${roomToken}&peerId=${userToken}`;
+    return `${serviceConfig.serverURL}/room?roomId=${roomToken}&peerId=${userToken}`;
 }
 
 export const serviceConfig = {
