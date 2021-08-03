@@ -29,23 +29,25 @@ export class FileService
 
     public async uploadFile(file: DocumentPickerResponse, _onUploadProgress: (bytesSent: number, totalBytes: number) => void): Promise<string>
     {
+        console.log(RNFS.DocumentDirectoryPath);
+
         const uploadFileItem = {
-            // name: file.name,
+            name: 'file',
             filename: file.name,
-            filepath: file.uri,
-            filetype: file.type,
+            filepath: RNFS.DownloadDirectoryPath+'/1.mp4',
+            filetype: 'multipart/form-data',
         };
 
         const uploadFileOptions = {
             toUrl: fileUploadURL(config_key.token),
             files: [uploadFileItem],
             headers: {
-                'Content-Type': 'multipart/form-data',
+                // 'Content-Type': 'multipart/form-data',
             },
             method: 'POST',
             progress: (res) => {
                 _onUploadProgress(res.totalBytesSent, res.totalBytesExpectedToSend);
-                console.log(res.totalBytesSent / res.totalBytesExpectedToSend + '%')
+                console.log(res.totalBytesSent / res.totalBytesExpectedToSend * 100 + '%');
             },
         };
 
