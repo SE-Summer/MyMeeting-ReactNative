@@ -15,6 +15,7 @@ import {PeerMedia} from "../utils/media/PeerMedia";
 import {timeoutCallback} from "../utils/media/MediaUtils";
 import * as events from "events"
 import {Moment} from "moment";
+import {config_key} from "../Constants";
 
 const moment = require("moment");
 
@@ -23,6 +24,7 @@ export class MediaService
     private roomToken: string = null;
     private userToken: string = null;
     private meetingURL: string = null;
+    private myId: string = config_key.userId.toString();
     private displayName: string = null;
     private deviceName: string = null;
     private avatar: string = null;
@@ -446,9 +448,20 @@ export class MediaService
     {
         try {
             await this.signaling.sendRequest(SignalMethod.transferHost, { hostId: toPeerId });
+            this.hostPeerId = toPeerId;
         } catch (err) {
             console.error('[Error]  Fail to transfer host to peer peerId = ' + toPeerId, err);
             return Promise.reject('Fail to transfer host');
+        }
+    }
+
+    public async kickPeer(peerId: string)
+    {
+        try {
+            await this.signaling.sendRequest(SignalMethod.kick, { kickedPeerId: peerId });
+        } catch (err) {
+            console.error('[Error]  Fail to kick peer peerId = ' + peerId, err);
+            return Promise.reject('Fail to kick peer');
         }
     }
 
