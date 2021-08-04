@@ -333,7 +333,10 @@ export default class MeetingChat extends Component {
                     </View>
                 }
                 <Text>
-                    {item.filename}
+                    progress:{item.bytesSent/ item.totalBytes}
+                </Text>
+                <Text>
+                    filename: {item.filename}
                 </Text>
                 {
                     item.fromMyself &&

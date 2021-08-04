@@ -630,6 +630,10 @@ export class MediaService
             this.signaling.disconnect();
             await this.leaveMeeting();
             console.warn('[Signaling]  Room closed');
+
+            this.meetingEndCallbacks.forEach((callback) => {
+                callback();
+            });
         });
     }
 }
