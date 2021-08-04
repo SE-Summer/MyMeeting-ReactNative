@@ -88,7 +88,7 @@ export default class MeetingChat extends Component {
             toPeerId: selected,
         };
         try {
-            MeetingVariable.mediaService.sendText(peerId, text);
+            MeetingVariable.mediaService.sendText(peerId, text, message.timestamp);
             MeetingVariable.messages.push(message);
             this.setState({
                 text: null,

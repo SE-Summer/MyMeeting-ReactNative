@@ -17,16 +17,16 @@ export const fileUploadURL = (userToken: string) => {
     return `${_serverURL}/file?token=${userToken}`;
 }
 
-export const meetingURL = (roomToken: string, userToken: string) => {
-    return `${serviceConfig.serverURL}/room?roomId=${roomToken}&peerId=${userToken}`;
+export const meetingURL = (roomToken: string, userToken: string, myId) => {
+    return `${serviceConfig.serverURL}/room?roomId=${roomToken}&peerId=${myId}&userToken=${userToken}`;
 }
 
 export const serviceConfig = {
     requestTimeout: 10000,
     connectTimeout: 20000,
-    reconnectTimeout: 30000,
+    reconnectTimeout: 40000,
     mediaTimeout: 10000,
-    allowTimeout: 5000,
+    allowTimeout: 10000,
     serverIp: config.serverIp,
     serverPort: config.serverPort,
     serverURL: _serverURL,
@@ -63,7 +63,7 @@ export enum SignalMethod {
     newPeer = 'newPeer',
     consumerClosed = 'consumerClosed',
     peerClosed = 'peerClosed',
-    close = 'close',
+    closeMeeting = 'closeMeeting',
     sendText = 'sendText',
     newText = 'newText',
     sendFile = 'sendFile',
@@ -76,6 +76,13 @@ export enum SignalMethod {
     roomClosed = 'roomClosed',
     transferHost = 'transferHost',
     kick = 'kick',
+    kicked = 'kicked',
+}
+
+export enum MeetingEndReason {
+    lostConnection = 'lostConnection',
+    roomClosed = 'roomClosed',
+    kicked = 'kicked',
 }
 
 export const socketConnectionOptions = {

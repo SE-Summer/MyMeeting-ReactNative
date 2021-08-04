@@ -50,9 +50,12 @@ export class SignalingService
         this.callbackMap.get(type).set(method, callback);
     }
 
-    public stopListeners()
+    public removeAllListeners()
     {
-        this.socket.offAny();
+        this.socket.off(SignalType.request);
+        this.socket.off(SignalType.notify);
+        this.socket.off('disconnect');
+        this.socket.off('connect');
     }
 
     public waitForConnection()

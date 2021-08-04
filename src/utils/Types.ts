@@ -101,3 +101,4 @@ export declare type Message = {
     bytesSent?: number,
     filePath?: string,
 }
+
