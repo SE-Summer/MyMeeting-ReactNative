@@ -775,6 +775,11 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@flyerhq/react-native-android-uri-path@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@flyerhq/react-native-android-uri-path/-/react-native-android-uri-path-2.1.2.tgz#a75aa749191fec0ee2cef3a404499e24bdd06d3e"
+  integrity sha512-55H5sKKRTL+5y19X1pZ+UDQlTsv/+QV1OEnyRIbCstf0lp8ISV71mzoh5a2C/IBmackDA/BmhDeR2dxCbZY+Bg==
+
 "@hapi/hoek@^9.0.0":
   version "9.2.0"
   resolved "https://registry.npmjs.org/@hapi/hoek/-/hoek-9.2.0.tgz"
