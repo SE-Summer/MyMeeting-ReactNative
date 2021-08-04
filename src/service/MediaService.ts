@@ -442,6 +442,16 @@ export class MediaService
         }
     }
 
+    public async transferHost(toPeerId: string)
+    {
+        try {
+            await this.signaling.sendRequest(SignalMethod.transferHost, { hostId: toPeerId });
+        } catch (err) {
+            console.error('[Error]  Fail to transfer host to peer peerId = ' + toPeerId, err);
+            return Promise.reject('Fail to transfer host');
+        }
+    }
+
     private async createSendTransport()
     {
         try {

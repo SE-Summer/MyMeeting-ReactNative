@@ -74,6 +74,7 @@ export enum SignalMethod {
     mute = 'mute',
     restartIce = 'restartIce',
     roomClosed = 'roomClosed',
+    transferHost = 'transferHost',
 }
 
 export const socketConnectionOptions = {
