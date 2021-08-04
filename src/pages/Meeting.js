@@ -23,6 +23,8 @@ import {UserLabel} from "../components/UserLabel";
 import {preventDoubleClick} from "../utils/Utils";
 import {MeetingVariable} from "../MeetingVariable";
 import VIForegroundService from "@voximplant/react-native-foreground-service";
+import {TextButton} from "../components/MyButton";
+import {MyAlert} from "../components/MyAlert";
 
 const microInf = {
     isCalled: false,
@@ -69,24 +71,14 @@ export default class Meeting extends Component
             microStat: 'off',
             camStat: 'off',
             newMessage: false,
+            modalVisible: false,
         };
     }
 
     backAction = () => {
-        Alert.alert(
-            "是否要退出会议",
-            null,
-            [
-                {
-                    text: "确定",
-                    onPress: () => this.exit(),
-                    style: 'default',
-                },
-            ],
-            {
-                cancelable: true,
-            }
-        );
+        this.setState({
+            modalVisible: true,
+        })
         return true;
     }
 
@@ -399,6 +391,33 @@ export default class Meeting extends Component
         const {width, height, myCameraStream, myDisplayStream, camStat, microStat, newMessage, frontCam, shareScreen} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
+                <MyAlert
+                    title={'是否要退出会议？'}
+                    okButton={
+                        <TextButton
+                            text={'确定'}
+                            pressEvent={ async () => {
+                                await this.exit();
+                            }}
+                            containerStyle={{borderColor: 'green', borderWidth: 1, borderRadius: 5}}
+                            fontStyle={{fontSize: 14, color: 'green'}}
+                        />
+                    }
+                    cancelButton={
+                        <TextButton
+                            text={'取消'}
+                            pressEvent={() => {
+                                this.setState({
+                                    modalVisible: false,
+                                })
+                            }}
+                            containerStyle={{borderColor: 'green', borderWidth: 1, backgroundColor: 'green', borderRadius: 5}}
+                            fontStyle={{fontSize: 14, color: 'white'}}
+                        />
+                    }
+                    visible={this.state.modalVisible}
+                    setVisible={(value) => {this.setState({modalVisible: value})}}
+                />
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
                 <View style={{flex: 1}} onLayout={this.onLayout}>
                     <GestureRecognizer

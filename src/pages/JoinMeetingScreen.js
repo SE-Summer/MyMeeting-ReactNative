@@ -1,13 +1,15 @@
-import {Text, TextInput, View} from "react-native";
+import {Text, TextInput, TouchableOpacity, View} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {Divider} from "react-native-elements";
 import {SwitchItem} from "../components/Item";
 import {TextButton} from "../components/MyButton";
 import {config_key} from "../Constants";
-import {join} from "../service/MeetingService";
+import {join, reserveJoin} from "../service/MeetingService";
 import * as Progress from 'react-native-progress';
 import {MeetingVariable} from "../MeetingVariable";
+import {MyAlert} from "../components/MyAlert";
+import moment from "moment";
 
 export default class JoinMeetingScreen extends Component{
     constructor(props) {
@@ -22,6 +24,8 @@ export default class JoinMeetingScreen extends Component{
             microphoneStatus: config_key.microphone,
             loading: false,
             joinName: config_key.username,
+            selected: 'immediate',
+            modalVisible: false,
         }
     }
 
@@ -42,19 +46,32 @@ export default class JoinMeetingScreen extends Component{
                 }
 
                 return (
-                    <TextButton text={"加入"} pressEvent={
+                    <TextButton text={'完成'} pressEvent={
                         () => {
+                            const {id, password, selected} = this.state;
+
                             this.meetingIdTextInput.current.blur();
                             this.meetingPasswordInput.current.blur();
-                            this.joinNameInput.current.blur();
-                            const {id, password} = this.state;
-                            if (id == null || id.length === 0 || password == null || password.length === 0)
+
+                            if (selected === 'immediate')
+                                this.joinNameInput.current.blur();
+
+                            if (id == null || id.length === 0 || password == null || password.length === 0) {
+                                toast.show('格式有误', {type: 'warning', duration: 1300, placement: 'top'})
                                 return;
+                            }
 
                             this.setState({
                                 loading: true,
                             }, async () => {
-                                await this.joinM();
+                                try {
+                                    if (selected === 'immediate')
+                                        await this.joinM();
+                                    else
+                                        await this.reserveM();
+                                } catch (e) {
+                                    console.warn(e);
+                                }
                             })
                         }}
                     />
@@ -67,6 +84,9 @@ export default class JoinMeetingScreen extends Component{
         const response = await join(parseInt(this.state.id), this.state.password);
         if (response == null) {
             toast.show('入会失败', {type: 'danger', duration: 1300, placement: 'top'})
+            this.setState({
+                loading: false,
+            })
             return;
         }
 
@@ -91,6 +111,40 @@ export default class JoinMeetingScreen extends Component{
             }
             default: {
                 toast.show('入会失败', {type: 'danger', duration: 1300, placement: 'top'})
+                this.setState({
+                    loading: false,
+                })
+            }
+        }
+    }
+
+    reserveM = async () => {
+        const response = await reserveJoin(parseInt(this.state.id), this.state.password, config_key.token);
+        if (response == null) {
+            toast.show('预约失败', {type: 'danger', duration: 1300, placement: 'top'})
+            this.setState({
+                loading: false,
+            })
+            return;
+        }
+
+        switch (response.status) {
+            case 200: {
+                this.setState({
+                    loading: false,
+                    modalVisible: true,
+                })
+                return;
+            }
+            case 401: {
+                toast.show(response.data.error, {type: 'danger', duration: 1300, placement: 'top'})
+                this.setState({
+                    loading: false,
+                })
+                return;
+            }
+            default: {
+                toast.show('预约失败', {type: 'danger', duration: 1300, placement: 'top'})
                 this.setState({
                     loading: false,
                 })
@@ -131,7 +185,28 @@ export default class JoinMeetingScreen extends Component{
     render() {
         return (
             <View style={{ flex: 1}}>
-                <View style={{borderRadius: 10, marginTop: 20, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
+                <MyAlert
+                    title={'预约成功'}
+                    okButton={
+                        <TextButton
+                            text={'确定'}
+                            pressEvent={() => {
+                                this.props.navigation.pop();
+                            }}
+                            containerStyle={{backgroundColor: 'green', borderRadius: 5}}
+                            fontStyle={{fontSize: 14, color: 'white'}}
+                        />
+                    }
+                    visible={this.state.modalVisible}
+                    setVisible={(value) => {this.setState({modalVisible: value})}}
+                />
+                {
+                    config_key.token &&
+                        <SelectBar selected={this.state.selected} setSelected={(value) => {this.setState({
+                            selected: value,
+                        })}}/>
+                }
+                <View style={{borderRadius: 10, marginTop: 10, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
                     <TextInput
                         ref={this.meetingIdTextInput}
                         value={this.state.id}
@@ -157,24 +232,75 @@ export default class JoinMeetingScreen extends Component{
                         onChangeText={this.passwordChange}
                     />
                 </View>
-                <View style={{marginTop: 60, marginRight: 10, marginLeft: 10, }}>
-                    <Text style={{fontSize: 13, color: '#999999', marginLeft: 10}}>入会名称</Text>
-                    <TextInput
-                        ref={this.joinNameInput}
-                        value={this.state.joinName}
-                        style={{borderRadius: 10, backgroundColor: "white", fontSize: 17}}
-                        textAlign={'center'}
-                        numberOfLines={1}
-                        onChangeText={this.joinNameChange}
-                    />
-                </View>
-                <View style={{marginTop: 40, marginLeft: 10, marginRight: 10, borderRadius: 10, backgroundColor: "white"}}>
-                    <SwitchItem text={"摄像头"} status={this.state.cameraStatus} switchEvent={this.cameraSwitch}/>
-                    <Divider style={{marginLeft: 20, marginRight: 20,}}/>
-                    <SwitchItem text={"麦克风"} status={this.state.microphoneStatus} switchEvent={this.microphoneSwitch}/>
-                </View>
+                {
+                    this.state.selected === 'immediate' &&
+                    <View style={{marginTop: 40, marginRight: 10, marginLeft: 10, }}>
+                        <Text style={{fontSize: 13, color: '#999999', marginLeft: 10}}>入会名称</Text>
+                        <TextInput
+                            ref={this.joinNameInput}
+                            value={this.state.joinName}
+                            style={{borderRadius: 10, backgroundColor: "white", fontSize: 17}}
+                            textAlign={'center'}
+                            numberOfLines={1}
+                            onChangeText={this.joinNameChange}
+                        />
+                    </View>
+                }
+                {
+                    this.state.selected === 'immediate' &&
+                    <View style={{marginTop: 40, marginLeft: 10, marginRight: 10, borderRadius: 10, backgroundColor: "white"}}>
+                        <SwitchItem text={"摄像头"} status={this.state.cameraStatus} switchEvent={this.cameraSwitch}/>
+                        <Divider style={{marginLeft: 20, marginRight: 20,}}/>
+                        <SwitchItem text={"麦克风"} status={this.state.microphoneStatus} switchEvent={this.microphoneSwitch}/>
+                    </View>
+                }
             </View>
         );
     }
 
+}
+
+const SelectBar = ({selected, setSelected}) => {
+    return (
+        <View style={{flexDirection: 'row', marginTop: 25, marginBottom: 15, marginLeft: 40, marginRight: 40}}>
+            <TouchableOpacity
+                activeOpacity={1}
+                style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    padding: 5,
+                    borderBottomLeftRadius: 7,
+                    borderTopLeftRadius: 7,
+                    borderWidth: 1,
+                    borderColor: '#04b35f',
+                    backgroundColor: selected === 'immediate' ? '#04b35f' : null,
+                }}
+                onPress={() => {
+                    setSelected('immediate');
+                }}
+            >
+                <Text style={{fontSize: 15, color: selected === 'immediate' ? 'white' : '#04b35f'}}>立即入会</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                activeOpacity={1}
+                style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    padding: 5,
+                    borderBottomRightRadius: 7,
+                    borderTopRightRadius: 7,
+                    borderBottomWidth: 1,
+                    borderRightWidth: 1,
+                    borderTopWidth: 1,
+                    borderColor: '#04b35f',
+                    backgroundColor: selected === 'reserve' ? '#04b35f' : null,
+                }}
+                onPress={() => {
+                    setSelected('reserve');
+                }}
+            >
+                <Text style={{fontSize: 15, color: selected === 'reserve' ? 'white' : '#04b35f'}}>预约参会</Text>
+            </TouchableOpacity>
+        </View>
+    )
 }

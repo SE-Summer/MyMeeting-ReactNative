@@ -3,14 +3,14 @@ import * as React from "react";
 import {config} from "../Constants";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
-export const TextButton = ({text, pressEvent, containerStyle = null}) => {
+export const TextButton = ({text, pressEvent, containerStyle = null, fontStyle = buttonStyle.normalText}) => {
     return (
         <TouchableOpacity
             onPress={pressEvent}
-            style={containerStyle}
+            style={[containerStyle, {alignSelf: 'flex-start'}]}
         >
             <View style={buttonStyle.normalButtonView}>
-                <Text style={buttonStyle.normalText}>{text}</Text>
+                <Text style={[fontStyle, {textAlign: "center"}]}>{text}</Text>
             </View>
         </TouchableOpacity>
     )
@@ -81,12 +81,13 @@ const buttonStyle = StyleSheet.create({
     },
     normalButtonView: {
         backgroundColor: null,
-        width: 70,
-        height: 30,
+        paddingLeft: 13,
+        paddingRight: 13,
+        paddingTop: 2,
+        paddingBottom: 2,
         justifyContent: "center"
     },
     normalText: {
-        textAlign: "center",
         color: config.qGreen,
         fontSize: 17,
     },

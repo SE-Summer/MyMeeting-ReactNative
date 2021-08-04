@@ -5,6 +5,7 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import {join} from "../service/MeetingService";
 import Share from 'react-native-share';
 import {useRef, useState} from "react";
+import {config_key} from "../Constants";
 
 const colors = [
     '#05783d','#069b49', '#06b45f', '#87e0a8', '#b7e7bf',
@@ -125,6 +126,10 @@ export const ListItem = ({date, item, index, pressEvent}) => {
                 <View style={styles.titleContainer}>
                     <View style={styles.topicContainer}>
                         <Text style={styles.topicStyle}>{item.topic}</Text>
+                        {
+                            item.host === parseInt(config_key.userId) &&
+                                <FontAwesome5 name={'crown'} color={'gold'} style={{marginLeft: 10}}/>
+                        }
                     </View>
                 </View>
                 <View style={styles.timeContainer}>
@@ -200,6 +205,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold'
     },
     topicContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
         borderRadius: 5,
         paddingLeft: 5,

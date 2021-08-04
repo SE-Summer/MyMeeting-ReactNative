@@ -23,6 +23,14 @@ export const loginService = async (email, password) => {
         config_key.userId = user.id;
         config_key.email = user.email;
         config_key.token = user.token;
+
+        const avatarResponse = await getAvatar();
+        if (avatarResponse == null || avatarResponse.status !== 200) {
+            toast.show('获取头像失败', {type: 'warning', duration: 1300, placement: 'top'})
+        } else {
+            config_key.avatarUri = config.baseURL + avatarResponse.data.path;
+        }
+
         return true;
     } else {
         return false;
@@ -36,6 +44,10 @@ export const autoLogin = async () => {
 }
 
 export const logout = async () => {
+    config_key.token = null;
+    config_key.username = null;
+    config_key.userId = null;
+    config_key.avatarUri = null;
     await removeFromStorage(config.usernameIndex);
     await removeFromStorage(config.userIdIndex);
     await removeFromStorage(config.tokenIndex);
