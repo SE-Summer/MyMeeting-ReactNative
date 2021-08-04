@@ -23,7 +23,7 @@ const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
 
 const smallUtils = {
-    buttonOutline: [require('../../assets/image/myButton_Outlined.png'), require('../../assets/image/myButton_Outline_error.png')],
+    buttonOutline: [require('../resources/image/myButton_Outlined.png'), require('../resources/image/myButton_Outline_error.png')],
 }
 
 const InputLabel = ({text}) => {
@@ -179,7 +179,7 @@ export default class LoginScreen extends Component {
                 <KeyboardAwareScrollView style={{backgroundColor: "white", flex: 1}}>
                     <View style={styles.topFillContainer}>
                         <View style={styles.topContainer}>
-                            <Image source={require('../../assets/image/triAngle.png')} style={styles.triAngleImg}/>
+                            <Image source={require('../resources/image/triAngle.png')} style={styles.triAngleImg}/>
                             <View style={{flex: 1, alignItems: "center"}}>
                                 <FlashButton pressEvent={this.flashStart}/>
                             </View>
@@ -189,7 +189,7 @@ export default class LoginScreen extends Component {
                         <MaskedMyMeeting />
                     </View>
                     <View style={styles.imgFillContainer}>
-                        <ImageBackground source={require('../../assets/image/greyBg.png')} style={styles.imageView}>
+                        <ImageBackground source={require('../resources/image/greyBg.png')} style={styles.imageView}>
                             <View style={styles.inputContainer}>
                                 <View style={styles.labelContainer}>
                                     <InputLabel text={this.state.EmailTip}/>

@@ -51,6 +51,7 @@ export default class MeetingChat extends Component {
     }
 
     componentWillUnmount() {
+        MeetingVariable.mediaService.deleteNewMessageListener('messagesInMeetingChatPage');
         Keyboard.removeAllListeners('keyboardDidShow');
     }
 
