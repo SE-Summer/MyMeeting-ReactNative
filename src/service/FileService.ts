@@ -1,5 +1,5 @@
 import DocumentPicker, {DocumentPickerResponse} from "react-native-document-picker";
-import {FileJobStatus} from "../utils/Types";
+import {FileInfo, FileJobStatus} from "../utils/Types";
 import {
     DownloadBeginCallbackResult,
     DownloadProgressCallbackResult,
@@ -23,37 +23,55 @@ export class FileService
         return RNFS.DownloadDirectoryPath;
     }
 
-    public async pickFile(): Promise<DocumentPickerResponse>
+    public getPathByURI(uri: string): string
     {
-        const file = await DocumentPicker.pick({
-            type: [DocumentPicker.types.allFiles],
-        });
-        console.log(`[Log]  File picked: URI: ${file.uri}, Type: ${file.type}, Name: ${file.name}, Size: ${file.size}`);
-
-        return file;
+        let realPath = null;
+        if (Platform.OS == 'android') {
+            realPath = getPath(uri);
+        } else if (Platform.OS == 'ios') {
+            const split = uri.split('/');
+            const name = split.pop();
+            const inbox = split.pop();
+            realPath = `${RNFS.TemporaryDirectoryPath}${inbox}/${name}`;
+        } else {
+            console.error('[Error]  Fail to convert URI to realPath: Platform not supported');
+            throw Error('Fail to convert URI to realPath: Platform not supported');
+        }
+        console.log(`[Log]  File path converted: ${realPath}`);
+        return realPath;
     }
 
-    public async uploadFile(file: DocumentPickerResponse, _onUploadProgress: (bytesSent: number, totalBytes: number) => void): Promise<string>
+    public async pickFile(): Promise<FileInfo>
+    {
+        const picked = await DocumentPicker.pick({
+            type: [DocumentPicker.types.allFiles],
+        });
+        console.log(`[Log]  File picked: URI: ${picked.uri}, Type: ${picked.type}, Name: ${picked.name}, Size: ${picked.size}`);
+
+        let path = null;
+
+        try {
+            path = this.getPathByURI(picked.uri);
+        } catch (err) {
+            return Promise.reject('Fail to convert URI to realPath');
+        }
+
+        return {
+            name: picked.name,
+            path: path,
+            size: picked.size,
+            type: picked.type,
+            uri: picked.uri,
+        };
+    }
+
+    public async uploadFile(file: FileInfo, _onUploadProgress: (bytesSent: number, totalBytes: number) => void): Promise<string>
     {
         try {
-            let realPath = null;
-            if (Platform.OS == 'android') {
-                realPath = getPath(file.uri);
-            } else if (Platform.OS == 'ios') {
-                const split = file.uri.split('/');
-                const name = split.pop();
-                const inbox = split.pop();
-                realPath = `${RNFS.TemporaryDirectoryPath}${inbox}/${name}`;
-            } else {
-                console.error('[Error]  Fail to convert URI to realPath: Platform not supported');
-                return Promise.reject('Fail to convert URI to realPath');
-            }
-            console.log(`[Log]  File path converted: ${realPath}`);
-
             const uploadFileItem = {
                 name: 'file',
                 filename: file.name,
-                filepath: realPath,
+                filepath: file.path,
                 filetype: 'multipart/form-data',
             };
 
