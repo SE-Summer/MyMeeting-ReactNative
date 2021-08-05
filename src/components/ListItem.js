@@ -93,7 +93,7 @@ export const ListItem = ({date, item, index, pressEvent}) => {
     }
 
     const slideRight = () => {
-        if (sharable) {
+        if (accessible) {
             Animated.parallel([
                 Animated.timing(overlayWidth, {
                     toValue: containerWidth,

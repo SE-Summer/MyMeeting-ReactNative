@@ -23,6 +23,17 @@ export class FileService
         return RNFS.DownloadDirectoryPath;
     }
 
+    public getBundlePath()
+    {
+        if (Platform.OS == 'android') {
+            return RNFS.DocumentDirectoryPath;
+        } else if (Platform.OS == 'ios') {
+            return RNFS.MainBundlePath;
+        } else {
+            return null;
+        }
+    }
+
     public getPathByURI(uri: string): string
     {
         let realPath = null;
@@ -94,7 +105,7 @@ export class FileService
 
             if (result.statusCode == 200 && response.status == 'OK' && response.path) {
                 console.log(`[Log]  File updated to path = ${response.path}`);
-                return `${serviceConfig.serverURL}/${response.path}`;
+                return `${serviceConfig.serverURL}${response.path}`;
             } else {
                 console.error('[Error]  Fail to upload file');
                 return Promise.reject('Fail to upload file');

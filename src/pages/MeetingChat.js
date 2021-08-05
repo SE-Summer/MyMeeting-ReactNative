@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
 import {Component} from "react";
-import {ChatBubble} from "../components/ChatBubble";
+import {ChatBubble, FileBubble} from "../components/ChatBubble";
 import moment, {Moment} from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config_key} from "../Constants";
@@ -242,7 +242,7 @@ export default class MeetingChat extends Component {
     // @Param message: reference of a message in MeetingVariable.messages
     downloadFile = async (message) => {
         try {
-            const filePath = `${this.fileService.getDefaultDownloadPath()}/${message.filename}`;
+            const filePath = `${fileService.getBundlePath()}/${message.filename}`;
             await fileService.download(message.fileURL, filePath,
                 (bytesSent, totalBytes) => {
                     message.bytesSent = bytesSent;
@@ -316,7 +316,7 @@ export default class MeetingChat extends Component {
         )
     }
 
-    renderFileItem = ({item}) => {
+        renderFileItem = ({item}) => {
         const peerInfo = item.fromMyself ? null : MeetingVariable.mediaService.getPeerDetailsByPeerId(item.fromPeerId).getPeerInfo();
 
         return (
@@ -334,12 +334,7 @@ export default class MeetingChat extends Component {
                         <Text style={style.listUsername}>{peerInfo.displayName}</Text>
                     </View>
                 }
-                <Text>
-                    progress:{item.bytesSent/ item.totalBytes}
-                </Text>
-                <Text>
-                    filename: {item.filename}
-                </Text>
+                <FileBubble file={item} maxWidth={windowWidth * 0.8} downloadFile={this.downloadFile}/>
                 {
                     item.fromMyself &&
                     <View style={style.avatarContainer}>

@@ -110,6 +110,9 @@ export default class ReServeMeetingScreen extends Component{
                 }
                 case 401: {
                     toast.show(response.data.error, {type: 'danger', duration: 1300, placement: 'top'})
+                    this.setState({
+                        loading: 'normal',
+                    })
                     break;
                 }
             }
