@@ -86,6 +86,14 @@ export declare type FileJob = {
     filePath: string,
 }
 
+export declare type FileInfo = {
+    uri: string,
+    path: string,
+    name: string,
+    type: string,
+    size: number,
+}
+
 export declare type Message = {
     type: MessageType,
     timestamp: Moment,
