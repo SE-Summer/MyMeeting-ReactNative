@@ -26,6 +26,7 @@ import VIForegroundService from "@voximplant/react-native-foreground-service";
 import {TextButton} from "../components/MyButton";
 import {MyAlert} from "../components/MyAlert";
 import CheckBox from '@react-native-community/checkbox';
+import {ParticipantsMenu} from "../components/ParticipantsMenu";
 
 const microInf = {
     isCalled: false,
@@ -299,6 +300,7 @@ export default class Meeting extends Component
     }
 
     recvMessage(message) {
+        console.warn(message);
         message.peerInfo = MeetingVariable.mediaService.getPeerDetailsByPeerId(message.fromPeerId).getPeerInfo();
         message.fromMyself = false;
         MeetingVariable.messages.push(message);
@@ -349,6 +351,7 @@ export default class Meeting extends Component
                 }
             }
             MeetingVariable.messages = [];
+            MeetingVariable.room = [];
             this.props.navigation.navigate('Tab');
         } catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
@@ -443,7 +446,16 @@ export default class Meeting extends Component
                             <CheckBox value={leaveAndClose} tintColors={{true: 'green'}} onValueChange={(value => {this.setState({leaveAndClose: value})})}/>
                         </View>
                     }
-                    borderColor={alertError ? 'red' : null}
+                    backEvent={
+                        alertError ?
+                        async () => {
+                            await this.exit();
+                        } : () => {
+                            this.setState({
+                                modalVisible: false,
+                            })
+                        }
+                    }
                 />
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
                 <View style={{flex: 1}} onLayout={this.onLayout}>
@@ -689,6 +701,7 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, shareScreen,
     }
 
     const [settingsVisible, setSettingsVisible] = useState(false);
+    const [participantsVisible, setParticipantsVisible] = useState(false);
 
     return (
         <View style={style}>
@@ -715,7 +728,8 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, shareScreen,
                     text={'会议聊天'}
                     iconName={newMessage ? 'chatbubbles' : 'chatbubbles-outline'}
                     pressEvent={openChatRoom}
-                    color={newMessage ? '#9be3b1': 'white'}/>
+                    color={newMessage ? '#9be3b1': 'white'}
+                />
                 <IconWithLabel
                     text={'通用设置'}
                     iconName={settingsVisible ? 'settings':'settings-outline'}
@@ -723,6 +737,17 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, shareScreen,
                         setSettingsVisible(true);
                     }}
                 />
+                <Modal
+                    animationType={'slide'}
+                    visible={participantsVisible}
+                    transparent={true}
+                    onRequestClose={() => {setParticipantsVisible(false)}}
+                >
+                    <View style={{flex: 1}}>
+                        <TouchableOpacity style={{flex: 1}} onPress={() => {setParticipantsVisible(false)}}/>
+                        <ParticipantsMenu myCamStat={camStat === 'on'} myMicStat={microStat === 'on'}/>
+                    </View>
+                </Modal>
                 <Modal
                     animationType={'fade'}
                     visible={settingsVisible}
@@ -746,6 +771,12 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, shareScreen,
                                 }}
                             />
                             <IconWithLabel iconName={'image'} color={'black'} text={'虚拟背景'} />
+                            <IconWithLabel
+                                text={'参会人员'}
+                                iconName={'people'}
+                                pressEvent={() => {setParticipantsVisible(true);}}
+                                color={'black'}
+                            />
                             <IconWithLabel
                                 iconName={frontCam ? 'camera-reverse' : 'camera-reverse-outline'}
                                 color={'black'}

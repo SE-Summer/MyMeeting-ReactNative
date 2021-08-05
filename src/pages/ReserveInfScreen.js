@@ -55,6 +55,7 @@ export default class ReserveInfScreen extends Component {
             cameraStatus: config_key.camera,
             microphoneStatus: config_key.microphone,
         };
+        MeetingVariable.room = room;
         MeetingVariable.myName = config_key.username;
         this.props.navigation.navigate('Meeting', params);
     }

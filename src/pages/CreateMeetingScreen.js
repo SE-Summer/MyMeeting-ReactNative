@@ -98,11 +98,13 @@ export default class CreateMeetingScreen extends Component{
                 loading: false
             }, () => {
                 const room = response.data.room;
+
                 const params = {
                     roomInf: room,
                     cameraStatus: this.state.cameraStatus,
                     microphoneStatus: this.state.microphoneStatus,
                 }
+                MeetingVariable.room = room;
                 MeetingVariable.myName = this.state.joinName;
                 this.props.navigation.navigate('Meeting', params);
             })

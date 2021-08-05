@@ -112,6 +112,8 @@ export default class MeetingChat extends Component {
     recvNewMessage = (message) => {
         this.setState({
             messages: MeetingVariable.messages,
+        }, ()  => {
+            this.listRef.current.scrollToEnd();
         })
     }
 
@@ -238,6 +240,7 @@ export default class MeetingChat extends Component {
             this.setState({
                 messages: MeetingVariable.messages,
             })
+            this.listRef.current.scrollToEnd();
             await MeetingVariable.mediaService.sendFile(fileURL, message.timestamp, message.filename, message.fileType);
         } catch (err) {
             message.fileJobStatus = FileJobStatus.failed;
@@ -301,7 +304,7 @@ export default class MeetingChat extends Component {
                         <Text style={style.listUsername}>{item.peerInfo.displayName}</Text>
                     </View>
                 }
-                <ChatBubble maxWidth={windowWidth * 0.8} myInf={item.fromMyself} text={item.text} time={item.timestamp}/>
+                <ChatBubble maxWidth={windowWidth * 0.7} myInf={item.fromMyself} text={item.text} time={item.timestamp}/>
                 {
                     item.fromMyself &&
                     <View style={style.avatarContainer}>
@@ -345,7 +348,7 @@ export default class MeetingChat extends Component {
                         <Text style={style.listUsername}>{item.peerInfo.displayName}</Text>
                     </View>
                 }
-                <FileBubble file={item} maxWidth={windowWidth * 0.8} downloadFile={this.downloadFile}/>
+                <FileBubble file={item} maxWidth={windowWidth * 0.7} downloadFile={this.downloadFile}/>
                 {
                     item.fromMyself &&
                     <View style={style.avatarContainer}>
@@ -588,6 +591,8 @@ const style = StyleSheet.create({
     },
     listContainer: {
         flex: 1,
+        marginTop: 5,
+        marginBottom: 5,
     },
     listItem: {
         flex: 1,

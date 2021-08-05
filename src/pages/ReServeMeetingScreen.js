@@ -145,6 +145,9 @@ export default class ReServeMeetingScreen extends Component{
                     visible={this.state.modalVisible}
                     setVisible={(value) => {this.setState({modalVisible: value})}}
                     content={this.state.msg}
+                    backEvent={() => {
+                        this.props.navigation.pop();
+                    }}
                 />
                 <View style={{borderRadius: 10, marginTop: 20, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
                     <TextInput

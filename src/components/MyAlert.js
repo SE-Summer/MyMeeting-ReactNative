@@ -34,16 +34,16 @@ const styles = StyleSheet.create({
     }
 })
 
-export const MyAlert = ({animationType = 'slide',title, content = null, okButton, cancelButton = null, visible, setVisible, borderColor = null, otherComponent = null}) => {
+export const MyAlert = ({backEvent, animationType = 'slide',title, content = null, okButton, cancelButton = null, visible, otherComponent = null}) => {
     return (
         <Modal
             animationType={animationType}
             visible={visible}
             transparent={true}
-            onRequestClose={() => {setVisible(false)}}
+            onRequestClose={() => {backEvent();}}
         >
-            <TouchableOpacity style={{flex: 0.8}} onPress={() => {setVisible(false)}}/>
-            <View style={[styles.alertContainer, {borderColor: borderColor}]}>
+            <TouchableOpacity style={{flex: 0.8}} onPress={() => {backEvent();}}/>
+            <View style={[styles.alertContainer]}>
                 <View style={styles.titleContainer}>
                     <Text style={styles.titleFont}>{title}</Text>
                 </View>
@@ -65,7 +65,7 @@ export const MyAlert = ({animationType = 'slide',title, content = null, okButton
                     </View>
                 </View>
             </View>
-            <TouchableOpacity style={{flex: 1}} onPress={() => {setVisible(false)}}/>
+            <TouchableOpacity style={{flex: 1}} onPress={() => {backEvent();}}/>
         </Modal>
     )
 }

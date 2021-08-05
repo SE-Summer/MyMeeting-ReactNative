@@ -10,4 +10,5 @@ export const MeetingVariable = {
     mediaStreamFactory: new MediaStreamFactory(),
     messages: [],
     myName: config_key.username,
+    room: null,
 }

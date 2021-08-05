@@ -100,6 +100,7 @@ export default class JoinMeetingScreen extends Component{
                     cameraStatus: this.state.cameraStatus,
                     microphoneStatus: this.state.microphoneStatus,
                 }
+                MeetingVariable.room = room;
                 MeetingVariable.myName = this.state.joinName;
                 this.props.navigation.navigate('Meeting', params);
                 return;
@@ -201,6 +202,9 @@ export default class JoinMeetingScreen extends Component{
                     }
                     visible={this.state.modalVisible}
                     setVisible={(value) => {this.setState({modalVisible: value})}}
+                    backEvent={() => {
+                        this.props.navigation.pop();
+                    }}
                 />
                 {
                     config_key.token &&
