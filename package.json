@@ -13,6 +13,7 @@
     "@flyerhq/react-native-android-uri-path": "^2.1.2",
     "@mdi/font": "^5.9.55",
     "@react-native-async-storage/async-storage": "^1.15.5",
+    "@react-native-community/checkbox": "^0.5.8",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-navigation/bottom-tabs": "^5.11.11",
     "@react-navigation/native": "^5.9.4",

@@ -1,9 +1,44 @@
 import axios from "axios";
-import {config} from "../Constants";
+import {config, myFileType} from "../Constants";
+import * as React from "react";
 
 export const validateEmail = (email) => {
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
+}
+
+export const judgeFileType = (fileMIME, filename) => {
+    if (fileMIME.indexOf('image') !== -1) {
+        return myFileType.image;
+    }
+
+    if (fileMIME.indexOf('application/zip') !== -1) {
+        return myFileType.zip;
+    }
+
+    if (fileMIME.indexOf('text/plain') !== -1) {
+        return myFileType.text;
+    }
+
+    if (fileMIME.indexOf('application/pdf') !== -1) {
+        return myFileType.pdf;
+    }
+
+    if (filename.indexOf('.ppt') !== -1) {
+        return myFileType.ppt;
+    }
+
+    if (filename.indexOf('.doc') !== -1) {
+        return myFileType.word;
+    }
+
+    if (filename.indexOf('.xls') !== -1) {
+        return myFileType.excel;
+    }
+
+    if (filename.indexOf('.mp4') !== -1) {
+        return myFileType.mp4;
+    }
 }
 
 export const preventDoubleClick = (func, inf, interval = 500) => {

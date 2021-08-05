@@ -51,7 +51,9 @@ export default class JoinMeetingScreen extends Component{
                             const {id, password, selected} = this.state;
 
                             this.meetingIdTextInput.current.blur();
+                            this.meetingIdTextInput.current.clear();
                             this.meetingPasswordInput.current.blur();
+                            this.meetingPasswordInput.current.clear();
 
                             if (selected === 'immediate')
                                 this.joinNameInput.current.blur();

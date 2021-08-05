@@ -5,7 +5,7 @@ import {
     Text,
     TouchableHighlight,
     Modal,
-    FlatList, Alert
+    FlatList
 } from "react-native";
 import * as React from "react";
 import {Component, useState} from "react";
@@ -25,6 +25,7 @@ import {MeetingVariable} from "../MeetingVariable";
 import VIForegroundService from "@voximplant/react-native-foreground-service";
 import {TextButton} from "../components/MyButton";
 import {MyAlert} from "../components/MyAlert";
+import CheckBox from '@react-native-community/checkbox';
 
 const microInf = {
     isCalled: false,
@@ -53,10 +54,9 @@ export default class Meeting extends Component
 {
     constructor(props) {
         super(props);
-        this.mediaStreamFactory = new MediaStreamFactory();
-        MeetingVariable.mediaService = new MediaService();
         MeetingVariable.mediaService.registerPeerUpdateListener('peer', this.updatePeerDetails.bind(this));
         MeetingVariable.mediaService.registerNewMessageListener('messagesInMeetingPage', this.recvMessage.bind(this));
+        MeetingVariable.mediaService.registerMeetingEndListener('meetingEnd', this.recvEndSignal.bind(this));
         this.state = {
             view: 'portrait',
             peerDetails: null,
@@ -72,6 +72,8 @@ export default class Meeting extends Component
             camStat: 'off',
             newMessage: false,
             modalVisible: false,
+            alertError: false,
+            leaveAndClose: false,
         };
     }
 
@@ -100,7 +102,7 @@ export default class Meeting extends Component
             await MeetingVariable.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token, config_key.token, // config_key.userId.toString(),
                 MeetingVariable.myName, `${MeetingVariable.myName}'s mobile device`, config_key.avatarUri);
 
-            await this.mediaStreamFactory.waitForUpdate();
+            await MeetingVariable.mediaStreamFactory.waitForUpdate();
             if (cameraStatus) {
                 await this.openCamera();
             }
@@ -117,7 +119,7 @@ export default class Meeting extends Component
             microStat: 'loading',
         })
         try {
-            const micStream = await this.mediaStreamFactory.getMicStream();
+            const micStream = await MeetingVariable.mediaStreamFactory.getMicStream();
 
             if (micStream.getAudioTracks().length === 0) {
                 return Promise.reject("Fail to get local microphone media.");
@@ -181,7 +183,7 @@ export default class Meeting extends Component
     }
 
     openFrontCamera = async () => {
-        const camStream = await this.mediaStreamFactory.getCamFrontStream(this.state.width * 2, this.state.height * 3 / 2, 30);
+        const camStream = await MeetingVariable.mediaStreamFactory.getCamFrontStream(this.state.width * 2, this.state.height * 3 / 2, 30);
 
         if (camStream.getVideoTracks().length === 0) {
             return Promise.reject("Fail to get local camera media.");
@@ -196,7 +198,7 @@ export default class Meeting extends Component
     }
 
     openEnvCamera = async () => {
-        const camStream = await this.mediaStreamFactory.getCamEnvStream(this.state.width * 2, this.state.height * 3 / 2, 30);
+        const camStream = await MeetingVariable.mediaStreamFactory.getCamEnvStream(this.state.width * 2, this.state.height * 3 / 2, 30);
 
         if (camStream.getVideoTracks().length === 0) {
             return Promise.reject("Fail to get local camera media.");
@@ -253,7 +255,7 @@ export default class Meeting extends Component
         try {
             await this.startForegroundService('screen');
 
-            const screenStream = await this.mediaStreamFactory.getDisplayStream(this.state.width * 2, this.state.height * 2, 30);
+            const screenStream = await MeetingVariable.mediaStreamFactory.getDisplayStream(this.state.width * 2, this.state.height * 2, 30);
 
             if (screenStream.getVideoTracks().length === 0) {
                 return Promise.reject("Fail to get local camera media.");
@@ -296,19 +298,28 @@ export default class Meeting extends Component
         })
     }
 
-    openChatRoom = () => {
-        this.setState({
-            newMessage: false,
-        })
-        this.props.navigation.navigate('MeetingChat');
-    }
-
     recvMessage(message) {
+        message.peerInfo = MeetingVariable.mediaService.getPeerDetailsByPeerId(message.fromPeerId).getPeerInfo();
         message.fromMyself = false;
         MeetingVariable.messages.push(message);
         this.setState({
             newMessage: true,
         })
+    }
+
+    recvEndSignal(message) {
+        this.setState({
+            alertError: true,
+            modalVisible: true,
+            error: message,
+        })
+    }
+
+    openChatRoom = () => {
+        this.setState({
+            newMessage: false,
+        })
+        this.props.navigation.navigate('MeetingChat');
     }
 
     onLayout = event => {
@@ -331,14 +342,16 @@ export default class Meeting extends Component
                 await this.closeScreenShare();
             }
             if (MeetingVariable.mediaService) {
-                await MeetingVariable.mediaService.leaveMeeting();
+                if (this.state.leaveAndClose) {
+                    await MeetingVariable.mediaService.closeRoom();
+                } else {
+                    await MeetingVariable.mediaService.leaveMeeting();
+                }
             }
-            MeetingVariable.mediaService = null;
             MeetingVariable.messages = [];
             this.props.navigation.navigate('Tab');
         } catch (e) {
             toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
-            MeetingVariable.mediaService = null;
             MeetingVariable.messages = [];
             this.props.navigation.navigate('Tab');
         }
@@ -388,11 +401,13 @@ export default class Meeting extends Component
 
     render() {
         const {roomInf} = this.props.route.params;
-        const {width, height, myCameraStream, myDisplayStream, camStat, microStat, newMessage, frontCam, shareScreen} = this.state;
+        const {width, height, myCameraStream, myDisplayStream,
+            camStat, microStat, newMessage, frontCam,
+            shareScreen, alertError, leaveAndClose} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <MyAlert
-                    title={'是否要退出会议？'}
+                    title={alertError ? '入会失败' : '是否要退出会议？'}
                     okButton={
                         <TextButton
                             text={'确定'}
@@ -403,7 +418,10 @@ export default class Meeting extends Component
                             fontStyle={{fontSize: 14, color: 'green'}}
                         />
                     }
+                    content={alertError ? this.state.error : null}
                     cancelButton={
+                        alertError ? null
+                            :
                         <TextButton
                             text={'取消'}
                             pressEvent={() => {
@@ -417,6 +435,15 @@ export default class Meeting extends Component
                     }
                     visible={this.state.modalVisible}
                     setVisible={(value) => {this.setState({modalVisible: value})}}
+                    otherComponent={
+                        alertError || roomInf.host !== parseInt(config_key.userId) ? null
+                            :
+                        <View style={{alignItems: 'center', flexDirection: 'row', justifyContent: 'center'}}>
+                            <Text>离开并结束会议</Text>
+                            <CheckBox value={leaveAndClose} tintColors={{true: 'green'}} onValueChange={(value => {this.setState({leaveAndClose: value})})}/>
+                        </View>
+                    }
+                    borderColor={alertError ? 'red' : null}
                 />
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
                 <View style={{flex: 1}} onLayout={this.onLayout}>

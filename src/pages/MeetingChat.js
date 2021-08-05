@@ -79,6 +79,7 @@ export default class MeetingChat extends Component {
     sendMessage = () => {
         const {selected, text} = this.state;
         const peerId = selected ? selected : null;
+
         const message = {
             type: MessageType.text,
             fromMyself: true,
@@ -89,6 +90,11 @@ export default class MeetingChat extends Component {
         };
         try {
             MeetingVariable.mediaService.sendText(peerId, text, message.timestamp);
+
+            if (!message.broadcast && message.toPeerInfo == null) {
+                message.toPeerInfo = MeetingVariable.mediaService.getPeerDetailsByPeerId(message.toPeerId).getPeerInfo();
+            }
+
             MeetingVariable.messages.push(message);
             this.setState({
                 text: null,
@@ -229,6 +235,9 @@ export default class MeetingChat extends Component {
             });
             message.fileURL = fileURL;
             message.fileJobStatus = FileJobStatus.completed;
+            this.setState({
+                messages: MeetingVariable.messages,
+            })
             await MeetingVariable.mediaService.sendFile(fileURL, message.timestamp, message.filename, message.fileType);
         } catch (err) {
             message.fileJobStatus = FileJobStatus.failed;
@@ -258,6 +267,9 @@ export default class MeetingChat extends Component {
                     });
                 });
             message.filePath = filePath;
+            this.setState({
+                messages: MeetingVariable.messages,
+            })
         } catch (err) {
             message.fileJobStatus = FileJobStatus.failed;
             this.setState({
@@ -268,15 +280,12 @@ export default class MeetingChat extends Component {
     }
 
     renderTextItem = ({item}) => {
-        const peerInfo = item.fromMyself ? null : MeetingVariable.mediaService.getPeerDetailsByPeerId(item.fromPeerId).getPeerInfo();
-        const toPeerInfo = item.fromMyself && !item.broadcast ? MeetingVariable.mediaService.getPeerDetailsByPeerId(item.toPeerId).getPeerInfo() : null;
-
         return (
             <View style={[style.listItem, {justifyContent: item.fromMyself ? 'flex-end' : 'flex-start'}]}>
                 {
                     item.fromMyself && !item.broadcast &&
                     <View style={{marginTop: 10,}}>
-                        <Text style={{color: '#aaaaaa'}}>此消息仅{toPeerInfo.displayName}可见</Text>
+                        <Text style={{color: '#aaaaaa'}}>此消息仅{item.toPeerInfo.displayName}可见</Text>
                     </View>
                 }
                 {
@@ -286,10 +295,10 @@ export default class MeetingChat extends Component {
                             rounded
                             size={40}
                             source={{
-                                uri: peerInfo.avatar
+                                uri: item.peerInfo.avatar
                             }}
                         />
-                        <Text style={style.listUsername}>{peerInfo.displayName}</Text>
+                        <Text style={style.listUsername}>{item.peerInfo.displayName}</Text>
                     </View>
                 }
                 <ChatBubble maxWidth={windowWidth * 0.8} myInf={item.fromMyself} text={item.text} time={item.timestamp}/>
@@ -316,8 +325,10 @@ export default class MeetingChat extends Component {
         )
     }
 
-        renderFileItem = ({item}) => {
-        const peerInfo = item.fromMyself ? null : MeetingVariable.mediaService.getPeerDetailsByPeerId(item.fromPeerId).getPeerInfo();
+    renderFileItem = ({item}) => {
+        if (!item.fromMyself && item.peerInfo == null) {
+            item.peerInfo = MeetingVariable.mediaService.getPeerDetailsByPeerId(item.fromPeerId).getPeerInfo();
+        }
 
         return (
             <View style={[style.listItem, {justifyContent: item.fromMyself ? 'flex-end' : 'flex-start'}]}>
@@ -328,10 +339,10 @@ export default class MeetingChat extends Component {
                             rounded
                             size={40}
                             source={{
-                                uri: peerInfo.avatar
+                                uri: item.peerInfo.avatar
                             }}
                         />
-                        <Text style={style.listUsername}>{peerInfo.displayName}</Text>
+                        <Text style={style.listUsername}>{item.peerInfo.displayName}</Text>
                     </View>
                 }
                 <FileBubble file={item} maxWidth={windowWidth * 0.8} downloadFile={this.downloadFile}/>
@@ -584,8 +595,6 @@ const style = StyleSheet.create({
         marginTop: 3,
     },
     listUsername: {
-        position:'absolute',
-        bottom: 0,
         fontSize: 10,
         color: '#555555'
     },

@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     }
 })
 
-export const MyAlert = ({animationType = 'slide',title, content = null, okButton, cancelButton = null, visible, setVisible}) => {
+export const MyAlert = ({animationType = 'slide',title, content = null, okButton, cancelButton = null, visible, setVisible, borderColor = null, otherComponent = null}) => {
     return (
         <Modal
             animationType={animationType}
@@ -43,7 +43,7 @@ export const MyAlert = ({animationType = 'slide',title, content = null, okButton
             onRequestClose={() => {setVisible(false)}}
         >
             <TouchableOpacity style={{flex: 0.8}} onPress={() => {setVisible(false)}}/>
-            <View style={styles.alertContainer}>
+            <View style={[styles.alertContainer, {borderColor: borderColor}]}>
                 <View style={styles.titleContainer}>
                     <Text style={styles.titleFont}>{title}</Text>
                 </View>
@@ -52,6 +52,9 @@ export const MyAlert = ({animationType = 'slide',title, content = null, okButton
                     <View style={styles.contentContainer}>
                         <Text>{content}</Text>
                     </View>
+                }
+                {
+                    otherComponent
                 }
                 <View style={styles.buttonPort}>
                     <View style={styles.buttonContainer}>

@@ -22,3 +22,14 @@ export const config_key = {
     camera: true,
     microphone: false,
 }
+
+export const myFileType = {
+    text: 'file-alt',
+    image: 'image',
+    ppt: 'file-powerpoint',
+    word: 'file-word',
+    excel: 'file-excel',
+    pdf: 'file-pdf',
+    zip: 'file-archive',
+    mp4: 'file-video',
+}

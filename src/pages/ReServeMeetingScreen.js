@@ -62,7 +62,10 @@ export default class ReServeMeetingScreen extends Component{
                 return (
                     <TextButton text={"完成"} pressEvent={() => {
                         this.meetingTopicInput.current.blur();
+                        this.meetingTopicInput.current.clear();
                         this.meetingPasswordInput.current.blur();
+                        this.meetingPasswordInput.current.clear();
+
                         const {nameText, secretText} = this.state;
 
                         if (nameText == null || nameText.length === 0 || secretText == null || secretText.length !== 8) {
