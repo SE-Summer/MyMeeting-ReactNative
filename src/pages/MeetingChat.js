@@ -242,7 +242,8 @@ export default class MeetingChat extends Component {
     // @Param message: reference of a message in MeetingVariable.messages
     downloadFile = async (message) => {
         try {
-            await fileService.download(message.fileURL, `${this.fileService.getDefaultDownloadPath()}/${message.filename}`,
+            const filePath = `${this.fileService.getDefaultDownloadPath()}/${message.filename}`;
+            await fileService.download(message.fileURL, filePath,
                 (bytesSent, totalBytes) => {
                     message.bytesSent = bytesSent;
                     message.totalBytes = totalBytes;
@@ -256,6 +257,7 @@ export default class MeetingChat extends Component {
                         messages: MeetingVariable.messages,
                     });
                 });
+            message.filePath = filePath;
         } catch (err) {
             message.fileJobStatus = FileJobStatus.failed;
             this.setState({

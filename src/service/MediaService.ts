@@ -2,6 +2,7 @@ import {registerGlobals} from 'react-native-webrtc'
 import * as mediasoupClient from "mediasoup-client";
 import {types as mediasoupTypes} from "mediasoup-client";
 import * as types from "../utils/Types";
+import {FileJobStatus} from "../utils/Types";
 import {
     MeetingEndReason,
     meetingURL,
@@ -251,6 +252,7 @@ export class MediaService
 
     public async onSignalingDisconnect()
     {
+        console.warn('[Socket]  Disconnected');
         if (this.joined) {
 
             try {
@@ -548,17 +550,18 @@ export class MediaService
         }
     }
 
-    public async closeMeeting()
+    public async closeRoom()
     {
         if (this.hostPeerId && this.hostPeerId !== this.myId) {
             return Promise.reject('Fail to close meeting: Unauthorized');
         }
         try {
-            await this.signaling.sendRequest(SignalMethod.closeMeeting);
+            this.signaling.removeAllListeners();
+            await this.signaling.sendRequest(SignalMethod.closeRoom);
         } catch (err) {
             console.error('[Error]  Fail to close meeting', err);
-            return Promise.reject('Fail to close meeting');
         }
+        this.leaveMeeting();
     }
 
     private async createSendTransport()
@@ -726,6 +729,7 @@ export class MediaService
                 timestamp: recvFile.timestamp,
                 filename: recvFile.filename,
                 fileType: recvFile.fileType,
+                fileJobStatus: FileJobStatus.unDownloaded,
             }
 
             this.newMessageCallbacks.forEach((callback) => {

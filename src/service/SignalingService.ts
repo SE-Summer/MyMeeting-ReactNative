@@ -7,11 +7,13 @@ export class SignalingService
     private readonly URL: string = null;
     private readonly socket: Socket = null;
     private callbackMap: Map<SignalType ,Map<SignalMethod, object>> = null;
+    private readonly disconnectCallback: () => Promise<void> = null;
 
     constructor(URL: string, opts, onDisconnect: () => Promise<void>)
     {
         this.URL = URL;
         this.socket = io(URL, opts);
+        this.disconnectCallback = onDisconnect;
         console.log('[Socket]  Start to connect');
 
         this.callbackMap = new Map<SignalType ,Map<SignalMethod, (data) => void>>();
@@ -26,11 +28,7 @@ export class SignalingService
             this.handleSignal(SignalType.notify, method, data);
         });
 
-        this.socket.on('disconnect', async () => {
-            console.warn('[Socket]  Disconnected');
-            // this.socket.disconnect();
-            await onDisconnect();
-        })
+        this.socket.on('disconnect', this.disconnectCallback);
     }
 
     private handleSignal(type: SignalType, method: SignalMethod, data)
@@ -52,10 +50,8 @@ export class SignalingService
 
     public removeAllListeners()
     {
-        this.socket.off(SignalType.request);
-        this.socket.off(SignalType.notify);
-        this.socket.off('disconnect');
-        this.socket.off('connect');
+        this.socket.off('disconnect', this.disconnectCallback);
+        this.callbackMap.clear();
     }
 
     public waitForConnection()

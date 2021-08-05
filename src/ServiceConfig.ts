@@ -24,7 +24,7 @@ export const meetingURL = (roomToken: string, userToken: string, myId) => {
 export const serviceConfig = {
     requestTimeout: 10000,
     connectTimeout: 20000,
-    reconnectTimeout: 40000,
+    reconnectTimeout: 60000,
     mediaTimeout: 10000,
     allowTimeout: 10000,
     serverIp: config.serverIp,
@@ -63,7 +63,7 @@ export enum SignalMethod {
     newPeer = 'newPeer',
     consumerClosed = 'consumerClosed',
     peerClosed = 'peerClosed',
-    closeMeeting = 'closeMeeting',
+    closeRoom = 'closeRoom',
     sendText = 'sendText',
     newText = 'newText',
     sendFile = 'sendFile',
