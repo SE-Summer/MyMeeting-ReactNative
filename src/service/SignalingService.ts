@@ -51,7 +51,8 @@ export class SignalingService
     public removeAllListeners()
     {
         this.socket.off('disconnect', this.disconnectCallback);
-        this.callbackMap.clear();
+        this.callbackMap.get(SignalType.notify).clear();
+        this.callbackMap.get(SignalType.request).clear();
     }
 
     public waitForConnection()
