@@ -2,7 +2,9 @@ import {registerGlobals} from 'react-native-webrtc'
 import * as mediasoupClient from "mediasoup-client";
 import {types as mediasoupTypes} from "mediasoup-client";
 import * as types from "../utils/Types";
+import {FileJobStatus} from "../utils/Types";
 import {
+    MeetingEndReason,
     meetingURL,
     serviceConfig,
     SignalMethod,
@@ -16,13 +18,12 @@ import {timeoutCallback} from "../utils/media/MediaUtils";
 import * as events from "events"
 import {Moment} from "moment";
 
-const moment = require("moment");
-
 export class MediaService
 {
     private roomToken: string = null;
     private userToken: string = null;
     private meetingURL: string = null;
+    private myId: string = null;
     private displayName: string = null;
     private deviceName: string = null;
     private avatar: string = null;
@@ -49,7 +50,7 @@ export class MediaService
 
     private updatePeerCallbacks: Map<string, () => void> = null;
     private newMessageCallbacks: Map<string, (message: types.Message) => void> = null;
-    private meetingEndCallbacks: Map<string, () => void> = null;
+    private meetingEndCallbacks: Map<string, (reason: MeetingEndReason) => void> = null;
 
     constructor()
     {
@@ -69,7 +70,7 @@ export class MediaService
 
             this.updatePeerCallbacks = new Map<string, () => void>();
             this.newMessageCallbacks = new Map<string, (message: types.Message) => void>();
-            this.meetingEndCallbacks = new Map<string, () => void>();
+            this.meetingEndCallbacks = new Map<string, (reason: MeetingEndReason) => void>();
 
         } catch (err) {
             console.error('[Error]  Fail to construct MediaService instance', err);
@@ -96,7 +97,7 @@ export class MediaService
         this.newMessageCallbacks.delete(key);
     }
 
-    public registerMeetingEndListener(key: string, meetingEndCallback: () => void)
+    public registerMeetingEndListener(key: string, meetingEndCallback: (reason: MeetingEndReason) => void)
     {
         this.meetingEndCallbacks.set(key, meetingEndCallback);
     }
@@ -115,7 +116,6 @@ export class MediaService
     {
         return this.peerMedia.getPeerDetailsByPeerId(peerId);
     }
-
 
     public getHostPeerId()
     {
@@ -153,37 +153,50 @@ export class MediaService
     }
 
 
+    public joinMeeting(roomToken: string, userToken: string, myUserId: string,
+                       displayName: string, deviceName: string, avatar: string)
+    {
+        return this._joinMeeting(false, roomToken, userToken, myUserId, displayName, deviceName, avatar);
+    }
+
     // steps for connection:
     // create a signaling client which has a socketio inside, then try to connect to server
     // wait until the connection is built
     // send request to get routerRtpCapabilities from server
     // load the routerRtpCapabilities into device
     //
-    public async joinMeeting(roomToken: string, userToken: string, displayName: string, deviceName: string, avatar: string): Promise<void>
+    private async _joinMeeting(reenter: boolean, roomToken?: string, userToken?: string, myUserId?: string,
+                               displayName?: string, deviceName?: string, avatar?: string): Promise<void>
     {
         if (this.joined) {
             console.warn('[Warning]  Already joined a meeting');
             return Promise.reject('Already joined a meeting');
         }
 
-        this.roomToken = roomToken;
-        this.userToken = userToken;
-        this.meetingURL = meetingURL(roomToken, userToken);
-        this.displayName = displayName;
-        this.deviceName = deviceName;
-        this.avatar = avatar;
-        console.log('[Log]  Try to join meeting with roomToken = ' + roomToken);
+        if (!reenter) {
+            this.roomToken = roomToken;
+            this.userToken = userToken;
+            this.myId = myUserId;
+            this.meetingURL = meetingURL(roomToken, userToken, myUserId);
+            this.displayName = displayName;
+            this.deviceName = deviceName;
+            this.avatar = avatar;
+            console.log('[Log]  Try to join meeting with roomToken = ' + roomToken);
 
-        try {
-            this.signaling = new SignalingService(this.meetingURL, socketConnectionOptions, this.onSignalingDisconnect.bind(this));
-            this.registerSignalingListeners();
-            await this.signaling.waitForConnection();
-            await this.waitForAllowed();
+            try {
+                this.signaling = new SignalingService(this.meetingURL, socketConnectionOptions, this.onSignalingDisconnect.bind(this));
+                this.registerSignalingListeners();
+                await this.signaling.waitForConnection();
+                await this.waitForAllowed();
 
-        } catch (err) {
-            console.error('[Error]  Fail to connect socket or the server rejected', err);
-            await this.signaling.disconnect();
-            return Promise.reject('Fail to connect socket or the server rejected');
+            } catch (err) {
+                console.error('[Error]  Fail to connect socket or the server rejected', err);
+                this.meetingEndCallbacks.forEach((callback) => {
+                    callback(MeetingEndReason.lostConnection);
+                });
+                this.leaveMeeting();
+                return Promise.reject('Fail to connect socket or the server rejected');
+            }
         }
 
         try {
@@ -199,20 +212,21 @@ export class MediaService
 
         } catch (err) {
             console.error('[Error]  Fail to prepare device and transports', err);
-            await this.leaveMeeting();
+            this.meetingEndCallbacks.forEach((callback) => {
+                callback(MeetingEndReason.lostConnection);
+            });
+            this.leaveMeeting();
             return Promise.reject('Fail to prepare device and transports');
         }
 
         try {
             const { host, peerInfos } = await this.signaling.sendRequest(SignalMethod.join, {
-            // const peerInfos = await this.signaling.sendRequest(SignalMethod.join, {
                 displayName: this.displayName,
                 avatar: this.avatar,
                 joined: this.joined,
                 device: this.deviceName,
                 rtpCapabilities: this.device.rtpCapabilities,
             } as types.JoinRequest) as { host: string, peerInfos: types.PeerInfo[] };
-            // } as types.JoinRequest) as types.PeerInfo[];
 
             this.hostPeerId = host;
 
@@ -228,16 +242,30 @@ export class MediaService
 
         } catch (err) {
             console.error('[Error]  Fail to join the meeting', err);
-            await this.leaveMeeting();
+            this.meetingEndCallbacks.forEach((callback) => {
+                callback(MeetingEndReason.lostConnection);
+            });
+            this.leaveMeeting();
             return Promise.reject('Fail to join the meeting');
         }
     }
 
     public async onSignalingDisconnect()
     {
+        console.warn('[Socket]  Disconnected');
         if (this.joined) {
+
             try {
                 await this.signaling.waitForReconnection();
+            } catch (err) {
+                this.meetingEndCallbacks.forEach((callback) => {
+                    callback(MeetingEndReason.lostConnection);
+                });
+                this.leaveMeeting();
+                return;
+            }
+
+            try {
                 await this.restartIce();
             } catch (err) {
                 await this.reenter();
@@ -248,6 +276,10 @@ export class MediaService
     private async restartIce()
     {
         console.log('[Log]  Trying to restartIce...');
+        if (this.sendTransport == null || this.recvTransport == null) {
+            console.error('[Error]  Fail to restart Ice: sendTransport or recvTransport has not been created');
+            return Promise.reject('Fail to restart Ice');
+        }
 
         try {
             const sendParam = await this.signaling.sendRequest(SignalMethod.restartIce, { transportId: this.sendTransport.id }) as { iceParameters: mediasoupTypes.IceParameters };
@@ -259,23 +291,36 @@ export class MediaService
             console.log('[Log]  Ice restarted');
         } catch (err) {
             console.error('[Error]  Fail to restart Ice', err);
+            return Promise.reject('Fail to restart Ice');
         }
     }
 
     private async reenter()
     {
-        console.log('[Log]  Trying to reenter the meeting...');
-        await this.leaveMeeting(true);
-        await this.joinMeeting(this.roomToken, this.userToken, this.displayName, this.deviceName, this.avatar);
+        try {
+            console.log('[Log]  Trying to reenter the meeting...');
+            this.joined = false;
+            this.deleteProducers();
+            this.deletePeers();
+            this.deleteTransports();
+            this.resetDevice();
+            await this._joinMeeting(true);
+        } catch (err) {
+            console.error('[Error]  Fail to rejoin the meeting when reentering')
+            return;
+        }
 
-        let tracks: MediaStreamTrack[] = [];
-        this.sendingTracks.forEach((track) => {
-            tracks.push(track);
-        })
-        await this.sendMediaStream(new MediaStream(tracks));
-        console.log('[Log]  Reentered');
+        try {
+            let tracks: MediaStreamTrack[] = [];
+            this.sendingTracks.forEach((track) => {
+                tracks.push(track);
+            });
+            await this.sendMediaStream(new MediaStream(tracks));
+            console.log('[Log]  Reentered');
+        } catch (err) {
+            console.error('[Error]  Fail to resend tracks when reentering')
+        }
     }
-
 
     public async sendMediaStream(stream: MediaStream): Promise<void>
     {
@@ -332,13 +377,13 @@ export class MediaService
     }
 
     // if _toPeerId == null, it means broadcast to everyone in the meetings
-    public async sendText(_toPeerId: string, _text: string): Promise<void>
+    public async sendText(_toPeerId: string, _text: string, _timestamp): Promise<void>
     {
         try {
             const sendText: types.SendText = {
                 toPeerId: _toPeerId,
                 text: _text,
-                timestamp: moment(),
+                timestamp: _timestamp,
             };
 
             await this.signaling.sendRequest(SignalMethod.sendText, sendText);
@@ -367,46 +412,79 @@ export class MediaService
         }
     }
 
-    public async leaveMeeting(reenter: boolean = false)
+    // tell server and clear all meeting-related variables
+    public leaveMeeting()
     {
         this.joined = false;
+        this.resetAllowedState();
+        this.deleteSignaling();
+        this.deleteProducers();
+        this.deletePeers();
+        this.deleteTransports();
+        this.resetDevice();
+        this.deleteSendingTracks();
+    }
+
+    private resetAllowedState()
+    {
         this.permissionUpdated = false;
         this.allowed = false;
+    }
 
-        if (this.signaling && this.signaling.connected()) {
-            try {
-                await this.signaling.sendRequest(SignalMethod.close);
-            } catch (err) {
-                console.error('[Error]  Fail when sending close request', err);
-                return Promise.reject('Fail when sending close request');
-            }
-        }
+    private resetDevice()
+    {
+        this.device = new mediasoupClient.Device();
+    }
 
-        if (this.producers)
+    private deleteProducers()
+    {
+        if (this.producers) {
+            this.producers.forEach((producer) => {
+                if (!producer.closed)
+                    producer.close();
+            });
             this.producers.clear();
+        }
+    }
+
+    private deleteSignaling()
+    {
+        if (this.signaling) {
+            this.signaling.removeAllListeners();
+            if (this.signaling.connected()) {
+                this.signaling.disconnect();
+            }
+            this.signaling = null;
+        }
+    }
+
+    private deletePeers()
+    {
+        this.hostPeerId = null;
 
         if (this.peerMedia)
             this.peerMedia.clear();
+    }
 
-        this.sendTransportOpt = null;
-        this.hostPeerId = null;
-        this.device = new mediasoupClient.Device();
-
+    private deleteTransports()
+    {
         if (this.sendTransport && !this.sendTransport.closed) {
             this.sendTransport.close();
         }
         this.sendTransport = null;
+        this.sendTransportOpt = null;
 
         if (this.recvTransport && !this.recvTransport.closed) {
             this.recvTransport.close();
         }
         this.recvTransport = null;
+    }
 
-        if (this.sendingTracks && !reenter) {
+    private deleteSendingTracks()
+    {
+        if (this.sendingTracks) {
             this.sendingTracks.clear();
         }
-        this.signaling.disconnect();
-        this.signaling = null;
     }
 
     public async closeTrack(track: MediaStreamTrack)
@@ -434,12 +512,56 @@ export class MediaService
     // return Promise.reject('Fail to mute peer') if you are not a host or an error occurs
     public async mutePeer(peerId: string = null)
     {
+        if (this.hostPeerId && this.hostPeerId !== this.myId) {
+            return Promise.reject('Fail to mute peer: Unauthorized');
+        }
         try {
             await this.signaling.sendRequest(SignalMethod.mute, { mutePeerId: peerId });
         } catch (err) {
             console.error('[Error]  Fail to mute peer peerId = ' + peerId, err);
             return Promise.reject('Fail to mute peer');
         }
+    }
+
+    public async transferHost(toPeerId: string)
+    {
+        if (this.hostPeerId && this.hostPeerId !== this.myId) {
+            return Promise.reject('Fail to transfer host: Unauthorized');
+        }
+        try {
+            await this.signaling.sendRequest(SignalMethod.transferHost, { hostId: toPeerId });
+            this.hostPeerId = toPeerId;
+        } catch (err) {
+            console.error('[Error]  Fail to transfer host to peer peerId = ' + toPeerId, err);
+            return Promise.reject('Fail to transfer host');
+        }
+    }
+
+    public async kickPeer(peerId: string)
+    {
+        if (this.hostPeerId && this.hostPeerId !== this.myId) {
+            return Promise.reject('Fail to kick peer: Unauthorized');
+        }
+        try {
+            await this.signaling.sendRequest(SignalMethod.kick, { kickedPeerId: peerId });
+        } catch (err) {
+            console.error('[Error]  Fail to kick peer peerId = ' + peerId, err);
+            return Promise.reject('Fail to kick peer');
+        }
+    }
+
+    public async closeRoom()
+    {
+        if (this.hostPeerId && this.hostPeerId !== this.myId) {
+            return Promise.reject('Fail to close meeting: Unauthorized');
+        }
+        try {
+            this.signaling.removeAllListeners();
+            await this.signaling.sendRequest(SignalMethod.closeRoom);
+        } catch (err) {
+            console.error('[Error]  Fail to close meeting', err);
+        }
+        this.leaveMeeting();
     }
 
     private async createSendTransport()
@@ -607,6 +729,7 @@ export class MediaService
                 timestamp: recvFile.timestamp,
                 filename: recvFile.filename,
                 fileType: recvFile.fileType,
+                fileJobStatus: FileJobStatus.unDownloaded,
             }
 
             this.newMessageCallbacks.forEach((callback) => {
@@ -626,10 +749,20 @@ export class MediaService
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.roomClosed, async () => {
             console.log('[Signaling]  Handling roomClosed notification...');
-            this.signaling.stopListeners();
-            this.signaling.disconnect();
-            await this.leaveMeeting();
+            this.meetingEndCallbacks.forEach((callback) => {
+                callback(MeetingEndReason.roomClosed);
+            });
+            this.leaveMeeting();
             console.warn('[Signaling]  Room closed');
+        });
+
+        this.signaling.registerListener(SignalType.notify, SignalMethod.kicked, async () => {
+            console.log('[Signaling]  Handling kicked notification...');
+            this.meetingEndCallbacks.forEach((callback) => {
+                callback(MeetingEndReason.kicked);
+            });
+            this.leaveMeeting();
+            console.warn('[Signaling]  Kicked by host');
         });
     }
 }

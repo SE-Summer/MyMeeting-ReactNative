@@ -97,7 +97,7 @@ export default class Meeting extends Component
         this.handleBack();
 
         try {
-            await MeetingVariable.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token,
+            await MeetingVariable.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token, config_key.token, // config_key.userId.toString(),
                 MeetingVariable.myName, `${MeetingVariable.myName}'s mobile device`, config_key.avatarUri);
 
             await this.mediaStreamFactory.waitForUpdate();

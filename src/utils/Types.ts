@@ -76,6 +76,7 @@ export enum FileJobStatus {
     progressing,
     completed,
     failed,
+    unDownloaded,
 }
 
 export declare type FileJob = {
@@ -101,3 +102,4 @@ export declare type Message = {
     bytesSent?: number,
     filePath?: string,
 }
+
