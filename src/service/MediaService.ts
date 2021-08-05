@@ -51,6 +51,7 @@ export class MediaService
     private updatePeerCallbacks: Map<string, () => void> = null;
     private newMessageCallbacks: Map<string, (message: types.Message) => void> = null;
     private meetingEndCallbacks: Map<string, (reason: MeetingEndReason) => void> = null;
+    private beMutedCallbacks: Map<string, () => void> = null;
 
     constructor()
     {
@@ -105,6 +106,16 @@ export class MediaService
     public deleteMeetingEndListener(key: string)
     {
         this.meetingEndCallbacks.delete(key);
+    }
+
+    public registerBeMutedListener(key: string, beMutedCallback: () => void)
+    {
+        this.beMutedCallbacks.set(key, beMutedCallback);
+    }
+
+    public deleteBeMutedListener(key: string)
+    {
+        this.beMutedCallbacks.delete(key);
     }
 
     public getPeerDetails()
@@ -192,7 +203,7 @@ export class MediaService
             } catch (err) {
                 console.error('[Error]  Fail to connect socket or the server rejected', err);
                 this.meetingEndCallbacks.forEach((callback) => {
-                    callback(MeetingEndReason.lostConnection);
+                    callback(MeetingEndReason.notAllowed);
                 });
                 this.leaveMeeting();
                 return Promise.reject('Fail to connect socket or the server rejected');
@@ -489,6 +500,11 @@ export class MediaService
 
     public async closeTrack(track: MediaStreamTrack)
     {
+        if (!this.producers.has(track.id)) {
+            console.warn('[Producer]  Already closed and deleted')
+            return;
+        }
+
         const producer = this.producers.get(track.id);
         console.log(`[Log]  Try to close track track.id = ${track.id}`);
 
@@ -763,6 +779,28 @@ export class MediaService
             });
             this.leaveMeeting();
             console.warn('[Signaling]  Kicked by host');
+        });
+
+        this.signaling.registerListener(SignalType.notify, SignalMethod.beMuted, ({producerId}) => {
+            console.log('[Signaling]  Handling beMuted notification...');
+
+            let trackId: string = null;
+            this.producers.forEach((producer, key) => {
+                if (producer.id === producerId) {
+                    if (!producer.closed) {
+                        producer.close();
+                    }
+                    trackId = key;
+                }
+            });
+            if (trackId != null) {
+                this.producers.delete(trackId);
+                this.sendingTracks.delete(trackId);
+                this.beMutedCallbacks.forEach((callback) => {
+                    callback();
+                });
+            }
+            console.warn('[Signaling]  Muted by host');
         });
     }
 }

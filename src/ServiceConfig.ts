@@ -77,9 +77,11 @@ export enum SignalMethod {
     transferHost = 'transferHost',
     kick = 'kick',
     kicked = 'kicked',
+    beMuted = 'beMuted',
 }
 
 export enum MeetingEndReason {
+    notAllowed = 'notAllowed',
     lostConnection = 'lostConnection',
     roomClosed = 'roomClosed',
     kicked = 'kicked',
@@ -91,6 +93,5 @@ export const socketConnectionOptions = {
     autoConnect: false,
     reconnectionAttempts: Infinity,
     reconnectionDelayMax: 2000,
-
     // transports: ['websocket'],
 }
