@@ -5,6 +5,8 @@ const config = {
     serverUseHttps: false,
 }
 
+export const iflytekAPPID = '2d2edf67';
+
 export const SIMULCASTENCODING: RTCRtpEncodingParameters[] = [
     {maxBitrate: 100000},
     {maxBitrate: 300000},

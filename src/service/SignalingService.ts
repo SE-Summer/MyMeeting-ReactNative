@@ -36,7 +36,7 @@ export class SignalingService
         console.log(`[Socket]  Received signal (${type} , ${method})`);
         let callback = this.callbackMap.get(type).get(method) as (data) => void;
         if (callback == undefined) {
-            console.log(`[Socket]  Undefined signal (${type} , ${method})`);
+            console.warn(`[Socket]  Undefined signal (${type} , ${method})`);
         } else {
             callback(data);
             console.log(`[Socket]  Signal handled (${type} , ${method})`);
@@ -51,7 +51,8 @@ export class SignalingService
     public removeAllListeners()
     {
         this.socket.off('disconnect', this.disconnectCallback);
-        this.callbackMap.clear();
+        this.callbackMap.get(SignalType.notify).clear();
+        this.callbackMap.get(SignalType.request).clear();
     }
 
     public waitForConnection()
@@ -122,7 +123,7 @@ export class SignalingService
     {
         return new Promise((resolve, reject) => {
             if (!this.socket || !this.socket.connected) {
-                reject('No socket connection.');3
+                reject('No socket connection.');
             } else {
                 this.socket.emit(SignalType.request, { method, data },
                     timeoutCallback((err, response) => {

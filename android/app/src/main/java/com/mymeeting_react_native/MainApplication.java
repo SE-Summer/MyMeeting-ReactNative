@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.zphhhhh.speech.SpeechPackage;
+import com.zphhhhh.speech.SpeechPackage;
 import com.horcrux.svg.SvgPackage;
 import com.BV.LinearGradient.LinearGradientPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -29,7 +31,8 @@ public class MainApplication extends Application implements ReactApplication {
           List<ReactPackage> packages = new PackageList(this).getPackages();
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
-//            packages.add(new MainReactPackage());
+//            packages.add(new MainReactPackage(),
+//            packages.add(new SpeechPackage());
 //            packages.add(new RNFSPackage());
           return packages;
         }

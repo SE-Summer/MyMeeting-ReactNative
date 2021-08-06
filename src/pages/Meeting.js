@@ -116,6 +116,7 @@ export default class Meeting extends Component
     }
 
     openMicrophone = async () => {
+        MeetingVariable.speechRecognition.start();
         this.setState({
             microStat: 'loading',
         })
@@ -140,6 +141,7 @@ export default class Meeting extends Component
     }
 
     closeMicrophone = async () => {
+        MeetingVariable.speechRecognition.stop();
         this.setState({
             microStat: 'loading',
         })
