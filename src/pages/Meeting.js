@@ -12,8 +12,6 @@ import {Component, useState} from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config, config_key} from "../Constants";
 import {IconWithLabel} from "../components/IconWithLabel";
-import {MediaService} from "../service/MediaService";
-import {MediaStreamFactory} from "../utils/media/MediaStreamFactory";
 import {closeMediaStream} from "../utils/media/MediaUtils";
 import {RTCView} from "react-native-webrtc";
 import moment from "moment";
@@ -27,6 +25,7 @@ import {TextButton} from "../components/MyButton";
 import {MyAlert} from "../components/MyAlert";
 import CheckBox from '@react-native-community/checkbox';
 import {ParticipantsMenu} from "../components/ParticipantsMenu";
+import {PanResponderSubtitle} from "../components/PanResponderSubtitle";
 
 const microInf = {
     isCalled: false,
@@ -75,6 +74,7 @@ export default class Meeting extends Component
             modalVisible: false,
             alertError: false,
             leaveAndClose: false,
+            subtitle: false,
         };
     }
 
@@ -406,7 +406,8 @@ export default class Meeting extends Component
         const {roomInf} = this.props.route.params;
         const {width, height, myCameraStream, myDisplayStream,
             camStat, microStat, newMessage, frontCam,
-            shareScreen, alertError, leaveAndClose} = this.state;
+            shareScreen, alertError, leaveAndClose,
+            subtitle} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <MyAlert
@@ -466,11 +467,12 @@ export default class Meeting extends Component
                             velocityThreshold: 0.3,
                             directionalOffsetThreshold: 80
                         }}
-                        style={{
-                            flex: 1,
-                            zIndex: 10,
-                        }}
+                        style={{flex: 1, zIndex: 10,}}
                     >
+                        {
+                            subtitle &&
+                            <PanResponderSubtitle maxWidth={width} maxHeight={height}/>
+                        }
                         {
                             this.state.view === 'grid' ?
                                 <GridView
@@ -512,6 +514,8 @@ export default class Meeting extends Component
                     view={this.state.view}
                     newMessage={newMessage}
                     setView={(type) => { this.setState({ view: type, }); }}
+                    subtitle={subtitle}
+                    setSubtitle={(value) => {this.setState({subtitle: value})}}
                 />
             </View>
         );
@@ -646,7 +650,8 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
 
 const Footer = ({style, view, setView, swapCam, openChatRoom, shareScreen,
                     openCamera, closeCamera, openMicro, closeMicro, frontCam,
-                    camStat, microStat, newMessage, openScreenShare , closeScreenShare}) => {
+                    camStat, microStat, newMessage, openScreenShare , closeScreenShare,
+                    subtitle, setSubtitle}) => {
     const footerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -770,7 +775,12 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, shareScreen,
                                     }
                                 }}
                             />
-                            <IconWithLabel iconName={'image'} color={'black'} text={'虚拟背景'} />
+                            <IconWithLabel
+                                iconName={'text'}
+                                color={'black'}
+                                text={subtitle ? '关闭字幕' : '开启字幕'}
+                                pressEvent={() => {setSubtitle(!subtitle);}}
+                            />
                             <IconWithLabel
                                 text={'参会人员'}
                                 iconName={'people'}

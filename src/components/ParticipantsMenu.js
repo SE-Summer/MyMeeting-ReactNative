@@ -17,6 +17,8 @@ const styles = StyleSheet.create({
 })
 
 export const ParticipantsMenu = ({myCamStat, myMicStat}) => {
+    const hostId = MeetingVariable.mediaService.getHostPeerId();
+
     const renderItem = ({item}) => {
         const peerInfo = item.getPeerInfo();
         return (
@@ -30,8 +32,7 @@ export const ParticipantsMenu = ({myCamStat, myMicStat}) => {
                 />
                 <Text style={{marginLeft: 30, marginRight: 10}}>{peerInfo.displayName}</Text>
                 {
-                    //todo: can't get peerId
-                    MeetingVariable.room.host === peerInfo.id &&
+                    hostId === peerInfo.id &&
                     <FontAwesome5 name={'crown'} color={'gold'}/>
                 }
                 <View style={styles.iconContainer}>
