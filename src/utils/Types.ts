@@ -111,3 +111,12 @@ export declare type Message = {
     filePath?: string,
 }
 
+export declare type SpeechText = {
+    sentenceEnded: boolean,
+
+    // only the first word in the sentence will have a timestamp
+    timestamp?: Moment,
+    fromMyself: boolean,
+    fromPeerId?: string,
+    text: string,
+}
