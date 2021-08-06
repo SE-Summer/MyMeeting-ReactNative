@@ -57,6 +57,7 @@ export default class Meeting extends Component
         MeetingVariable.mediaService.registerPeerUpdateListener('peer', this.updatePeerDetails.bind(this));
         MeetingVariable.mediaService.registerNewMessageListener('messagesInMeetingPage', this.recvMessage.bind(this));
         MeetingVariable.mediaService.registerMeetingEndListener('meetingEnd', this.recvEndSignal.bind(this));
+        MeetingVariable.mediaService.registerBeMutedListener('muted', this.mutedByHost.bind(this));
         this.state = {
             view: 'portrait',
             peerDetails: null,
@@ -301,8 +302,12 @@ export default class Meeting extends Component
         })
     }
 
+    async mutedByHost() {
+        if (this.state.microStat !== 'off')
+            await this.closeMicrophone();
+    }
+
     recvMessage(message) {
-        console.warn(message);
         message.peerInfo = MeetingVariable.mediaService.getPeerDetailsByPeerId(message.fromPeerId).getPeerInfo();
         message.fromMyself = false;
         MeetingVariable.messages.push(message);
@@ -462,6 +467,10 @@ export default class Meeting extends Component
                 />
                 <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
                 <View style={{flex: 1}} onLayout={this.onLayout}>
+                    {
+                        subtitle &&
+                        <PanResponderSubtitle maxWidth={width} maxHeight={height}/>
+                    }
                     <GestureRecognizer
                         onSwipeLeft={() => this.onSwipeLeft()}
                         onSwipeRight={() => this.onSwipeRight()}
@@ -471,10 +480,6 @@ export default class Meeting extends Component
                         }}
                         style={{flex: 1, zIndex: 10,}}
                     >
-                        {
-                            subtitle &&
-                            <PanResponderSubtitle maxWidth={width} maxHeight={height}/>
-                        }
                         {
                             this.state.view === 'grid' ?
                                 <GridView
@@ -533,10 +538,10 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCa
     })
 
     let streamData = [];
-    let myS = false;
     if (myStream) {
         streamData.push(myStream);
-        myS = true;
+    } else {
+        streamData.push('emptyInf of me');
     }
     if (peerDetails) {
         streamData.push(...peerDetails);
@@ -545,19 +550,19 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCa
 
     const renderItem = ({item, index}) => {
         return (
-            <TouchableOpacity style={{flex: 1}} onPress={() => {
-                if (myS && index === 0) {
+            <TouchableOpacity style={{borderWidth: 1, borderColor: '#aaaaaa'}} onPress={() => {
+                if (index === 0) {
                     turnPortrait(0);
                 } else {
                     turnPortrait(index - 1);
                 }
             }}>
-                <UserLabel text={myS && index === 0 ? MeetingVariable.myName : item.getPeerInfo().displayName}/>
+                <UserLabel text={index === 0 ? MeetingVariable.myName : item.getPeerInfo().displayName}/>
                 <RTCView
                     zOrder={0}
-                    mirror={myS && index === 0 && myFrontCam && !shareScreen}
+                    mirror={index === 0 && myFrontCam && !shareScreen}
                     style={gridStyle.rtcView}
-                    streamURL={myS && index === 0 ? item.toURL() : (new MediaStream(item.getTracks())).toURL()}
+                    streamURL={index === 0 ? (myStream ? item.toURL() : null) : (new MediaStream(item.getTracks())).toURL()}
                 />
             </TouchableOpacity>
         )

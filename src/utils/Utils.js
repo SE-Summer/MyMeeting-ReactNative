@@ -12,7 +12,7 @@ export const judgeFileType = (fileMIME, filename) => {
         return myFileType.image;
     }
 
-    if (fileMIME.indexOf('application/zip') !== -1) {
+    if (filename.indexOf('.zip') !== -1) {
         return myFileType.zip;
     }
 

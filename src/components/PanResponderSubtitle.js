@@ -31,18 +31,20 @@ export const PanResponderSubtitle = ({maxHeight, maxWidth}) => {
     ).current;
 
     return (
-        <View style={{position: 'absolute', alignSelf: 'center', zIndex: 11, width: 200, height: 300, top: 0, left: 0}}>
-            <Animated.View
-                style={{
-                    transform: [{ translateX: pan.x }, { translateY: pan.y }]
-                }}
-                {...panResponder.panHandlers}
-            >
-                <View style={[styles.box, {backgroundColor: rgbaColor(255, 255, 255, opacity), maxWidth: maxWidth * 0.7}]} >
-                    <Text style={styles.text}>这里是字幕</Text>
-                </View>
-            </Animated.View>
-        </View>
+        <Animated.View
+            style={{
+                position: 'absolute',
+                alignSelf: 'center',
+                bottom: 20,
+                transform: [{ translateX: pan.x }, { translateY: pan.y }],
+                zIndex: 20,
+            }}
+            {...panResponder.panHandlers}
+        >
+            <View style={[styles.box, {backgroundColor: rgbaColor(255, 255, 255, opacity), maxWidth: maxWidth * 0.7}]} >
+                <Text style={styles.text}>这里是字幕</Text>
+            </View>
+        </Animated.View>
     );
 }
 

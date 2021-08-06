@@ -159,13 +159,7 @@ export const FileBubble = ({file, maxWidth, downloadFile}) => {
                 } else {
                     return (
                         <View>
-                            <ImageBackground
-                                source={{uri: `file:///${item.filePath}`}}
-                                style={bubbleStyle.imageFile}
-                            >
-                                <FontAwesome5 name={'file-image'} color={'#eeeeeeee'} style={{margin: 5}} size={15}/>
-                                <Text style={{color: item.fromMyself ? 'white' : 'black', margin:5}}>{item.filename}</Text>
-                            </ImageBackground>
+                            <Image source={{uri: `file:///${item.filePath}`}} style={bubbleStyle.imageFile} />
                         </View>
                     )
                 }
