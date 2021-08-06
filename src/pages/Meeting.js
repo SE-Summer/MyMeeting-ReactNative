@@ -112,7 +112,7 @@ export default class Meeting extends Component
                 await this.openMicrophone();
             }
         } catch (e) {
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
 
@@ -137,7 +137,7 @@ export default class Meeting extends Component
 
             await MeetingVariable.mediaService.sendMediaStream(micStream);
         } catch (e) {
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
 
@@ -158,7 +158,7 @@ export default class Meeting extends Component
                 this.forceUpdate();
             });
         } catch (e) {
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
 
@@ -182,7 +182,7 @@ export default class Meeting extends Component
             }
         } catch (e) {
             await VIForegroundService.stopService();
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
 
@@ -231,7 +231,7 @@ export default class Meeting extends Component
                 camStat: 'off',
             });
         } catch (e) {
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
 
@@ -273,7 +273,7 @@ export default class Meeting extends Component
             await MeetingVariable.mediaService.sendMediaStream(screenStream);
         }  catch (e) {
             await VIForegroundService.stopService();
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
 
@@ -289,11 +289,12 @@ export default class Meeting extends Component
                 shareScreen: false,
             });
         } catch (e) {
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
 
     updatePeerDetails() {
+        MeetingVariable.hostId = MeetingVariable.mediaService.getHostPeerId();
         this.setState({
             peerDetails: MeetingVariable.mediaService.getPeerDetails().length === 0 ? null : MeetingVariable.mediaService.getPeerDetails(),
         }, () => {
@@ -303,6 +304,7 @@ export default class Meeting extends Component
     }
 
     async mutedByHost() {
+        toast.show('房主已将您静音', {type: 'warning', duration: 1000, placement: 'bottom'})
         if (this.state.microStat !== 'off')
             await this.closeMicrophone();
     }
@@ -361,7 +363,7 @@ export default class Meeting extends Component
             MeetingVariable.room = [];
             this.props.navigation.navigate('Tab');
         } catch (e) {
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
             MeetingVariable.messages = [];
             this.props.navigation.navigate('Tab');
         }
@@ -489,6 +491,7 @@ export default class Meeting extends Component
                                     myFrontCam={frontCam}
                                     shareScreen={shareScreen}
                                     peerDetails={this.state.peerDetails}
+                                    micStat={microStat}
                                     turnPortrait={this.turnGridToPortrait}
                                 />
                                 :
@@ -529,7 +532,7 @@ export default class Meeting extends Component
     }
 }
 
-const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCam, shareScreen}) => {
+const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCam, shareScreen, micStat}) => {
     const gridStyle = StyleSheet.create({
         rtcView: {
             width: width / 3,
@@ -550,7 +553,15 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCa
 
     const renderItem = ({item, index}) => {
         return (
-            <TouchableOpacity style={{borderWidth: 1, borderColor: '#aaaaaa'}} onPress={() => {
+            <TouchableOpacity
+                style={{
+                    borderWidth: 1,
+                    borderColor: index === 0 ?
+                        (micStat === 'on' ? '#44CE55' : '#f1f3f5')
+                        :
+                        (item.hasAudio ? '#44CE55' : '#f1f3f5')
+                }}
+                onPress={() => {
                 if (index === 0) {
                     turnPortrait(0);
                 } else {

@@ -50,7 +50,8 @@ export default class UserSettingScreen extends Component {
         }).then(async image => {
             const response = await uploadAvatar(image);
             if (response == null || response.status !== 200) {
-                toast.show('上传失败', {type: 'danger', duration: 1300, placement: 'top'});
+                // toast.show('上传失败', {type: 'danger', duration: 1300, placement: 'top'});
+                console.log('上传头像失败')
             } else {
                 await this.refreshAvatar();
             }

@@ -13,4 +13,5 @@ export const MeetingVariable = {
     messages: [],
     myName: config_key.username,
     room: null,
+    hostId: null,
 }

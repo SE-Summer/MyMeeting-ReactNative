@@ -26,7 +26,8 @@ export const loginService = async (email, password) => {
 
         const avatarResponse = await getAvatar();
         if (avatarResponse == null || avatarResponse.status !== 200) {
-            toast.show('获取头像失败', {type: 'warning', duration: 1300, placement: 'top'})
+            // toast.show('获取头像失败', {type: 'warning', duration: 1300, placement: 'top'})
+            console.log('获取头像失败');
         } else {
             config_key.avatarUri = config.baseURL + avatarResponse.data.path;
         }

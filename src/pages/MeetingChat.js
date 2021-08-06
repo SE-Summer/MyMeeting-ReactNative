@@ -105,7 +105,7 @@ export default class MeetingChat extends Component {
                 this.listRef.current.scrollToEnd();
             })
         } catch (e) {
-            toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
+            // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
     }
 

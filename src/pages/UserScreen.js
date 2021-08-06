@@ -32,7 +32,7 @@ export default class UserScreen extends Component{
         const {navigation} = this.props;
         const response = await getAvatar();
         if (response == null ||response.status !== 200) {
-            toast.show('获取头像失败', {type: 'warning', duration: 1300, placement: 'top'})
+            // toast.show('获取头像失败', {type: 'warning', duration: 1300, placement: 'top'})
         } else {
             config_key.avatarUri = config.baseURL + response.data.path;
             this.setState({

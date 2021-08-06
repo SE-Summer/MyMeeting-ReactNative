@@ -1,14 +1,13 @@
 import * as React from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View, Dimensions, ImageBackground} from "react-native";
+import {Image, StyleSheet, Text, TouchableOpacity, View, Dimensions} from "react-native";
 import moment from "moment";
 import {FileJobStatus, FileJobType} from "../utils/Types";
 import * as Progress from 'react-native-progress';
 import FileViewer from 'react-native-file-viewer';
-import {config, myFileType} from "../Constants";
+import {myFileType} from "../Constants";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import {judgeFileType} from "../utils/Utils";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {useEffect, useState} from "react";
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -95,7 +94,7 @@ export const FileBubble = ({file, maxWidth, downloadFile}) => {
                 <FontAwesome5 name={iconName} size={30} color={iconColor}/>
                 {
                     fileJobStatus === FileJobStatus.completed &&
-                    <Ionicons name={'checkmark-circle-outline'} style={{marginLeft: 10}} color={'#3dc163'} size={14}/>
+                    <Ionicons name={'checkmark-circle-outline'} style={{marginLeft: 5}} color={'#3dc163'} size={14}/>
                 }
             </View>
         )

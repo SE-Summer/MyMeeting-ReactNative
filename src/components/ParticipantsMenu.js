@@ -17,8 +17,6 @@ const styles = StyleSheet.create({
 })
 
 export const ParticipantsMenu = ({myCamStat, myMicStat}) => {
-    const hostId = MeetingVariable.mediaService.getHostPeerId();
-
     const renderItem = ({item}) => {
         const peerInfo = item.getPeerInfo();
         return (
@@ -32,7 +30,7 @@ export const ParticipantsMenu = ({myCamStat, myMicStat}) => {
                 />
                 <Text style={{marginLeft: 30, marginRight: 10}}>{peerInfo.displayName}</Text>
                 {
-                    hostId === peerInfo.id &&
+                    MeetingVariable.hostId === peerInfo.id &&
                     <FontAwesome5 name={'crown'} color={'gold'}/>
                 }
                 <View style={styles.iconContainer}>
@@ -63,7 +61,7 @@ export const ParticipantsMenu = ({myCamStat, myMicStat}) => {
                 />
                 <Text style={{marginLeft: 30, marginRight: 10}}>{MeetingVariable.myName}</Text>
                 {
-                    MeetingVariable.room.host === parseInt(config_key.userId) &&
+                    MeetingVariable.hostId === config_key.token &&
                     <FontAwesome5 name={'crown'} color={'gold'}/>
                 }
                 <View style={styles.iconContainer}>
