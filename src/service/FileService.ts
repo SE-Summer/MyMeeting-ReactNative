@@ -128,6 +128,7 @@ export class FileService
             const downloadOpts = {
                 fromUrl: fromURL,
                 toFile: savePath,
+                progressInterval: 800,
                 begin: (res: DownloadBeginCallbackResult) => {
                     _onDownloadProgress(0, res.contentLength);
                     setFileJobStatus(res.statusCode == 200 ? FileJobStatus.progressing : FileJobStatus.failed);
