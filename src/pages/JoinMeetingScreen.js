@@ -22,7 +22,7 @@ export default class JoinMeetingScreen extends Component{
             password: null,
             cameraStatus: config_key.camera,
             microphoneStatus: config_key.microphone,
-            loading: false,
+            loading: 'normal',
             joinName: config_key.username,
             selected: 'immediate',
             modalVisible: false,
@@ -33,13 +33,13 @@ export default class JoinMeetingScreen extends Component{
         const {route, navigation} = this.props;
         navigation.addListener('focus', () => {
             this.setState({
-                loading: false,
+                loading: 'normal',
             })
         })
         navigation.setOptions({
             title: route.params.quickJoin ? '快速参会' : null,
             headerRight: () => {
-                if (this.state.loading) {
+                if (this.state.loading === 'waiting') {
                     return (
                         <Progress.CircleSnail spinDuration={4000} duration={800} color={['#9be3b1', '#06b45f', '#05783d']} style={{marginRight: 7}}/>
                     )
@@ -64,7 +64,7 @@ export default class JoinMeetingScreen extends Component{
                             }
 
                             this.setState({
-                                loading: true,
+                                loading: 'waiting',
                             }, async () => {
                                 try {
                                     if (selected === 'immediate')
@@ -87,7 +87,7 @@ export default class JoinMeetingScreen extends Component{
         if (response == null) {
             toast.show('入会失败', {type: 'danger', duration: 1300, placement: 'top'})
             this.setState({
-                loading: false,
+                loading: 'normal',
             })
             return;
         }
@@ -106,16 +106,18 @@ export default class JoinMeetingScreen extends Component{
                 return;
             }
             case 401: {
-                toast.show(response.data.error, {type: 'danger', duration: 1300, placement: 'top'})
                 this.setState({
-                    loading: false,
+                    loading: 'normal',
+                }, () => {
+                    toast.show(response.data.error, {type: 'danger', duration: 1300, placement: 'top'})
                 })
                 return;
             }
             default: {
-                toast.show('入会失败', {type: 'danger', duration: 1300, placement: 'top'})
                 this.setState({
-                    loading: false,
+                    loading: 'normal',
+                }, () => {
+                    toast.show('入会失败', {type: 'danger', duration: 1300, placement: 'top'})
                 })
             }
         }

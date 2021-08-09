@@ -5,7 +5,7 @@ import {
     Text,
     TouchableHighlight,
     Modal,
-    FlatList
+    FlatList,
 } from "react-native";
 import * as React from "react";
 import {Component, useState} from "react";
@@ -26,6 +26,7 @@ import {MyAlert} from "../components/MyAlert";
 import CheckBox from '@react-native-community/checkbox';
 import {ParticipantsMenu} from "../components/ParticipantsMenu";
 import {PanResponderSubtitle} from "../components/PanResponderSubtitle";
+import Orientation, {useOrientationChange} from "react-native-orientation-locker";
 
 const microInf = {
     isCalled: false,
@@ -44,6 +45,7 @@ const screenStyle = StyleSheet.create({
         flexDirection: 'row',
     },
     footer: {
+        height: null,
         backgroundColor: '#202020',
         flexDirection: 'row',
         alignSelf: 'flex-end',
@@ -76,6 +78,7 @@ export default class Meeting extends Component
             alertError: false,
             leaveAndClose: false,
             subtitle: false,
+            hideHeadAndFoot: false,
         };
     }
 
@@ -99,6 +102,7 @@ export default class Meeting extends Component
     async componentDidMount() {
         const {cameraStatus, microphoneStatus} = this.props.route.params;
         this.handleBack();
+        Orientation.unlockAllOrientations();
 
         try {
             await MeetingVariable.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token, config_key.token, // config_key.userId.toString(),
@@ -114,6 +118,10 @@ export default class Meeting extends Component
         } catch (e) {
             // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
+    }
+
+    componentWillUnmount() {
+        Orientation.lockToPortrait();
     }
 
     openMicrophone = async () => {
@@ -333,7 +341,7 @@ export default class Meeting extends Component
         this.props.navigation.navigate('MeetingChat');
     }
 
-    onLayout = event => {
+    getMainContainerScale = event => {
         let {width,height} = event.nativeEvent.layout;
         this.setState({
             width: width,
@@ -416,7 +424,7 @@ export default class Meeting extends Component
         const {width, height, myCameraStream, myDisplayStream,
             camStat, microStat, newMessage, frontCam,
             shareScreen, alertError, leaveAndClose,
-            subtitle} = this.state;
+            subtitle, hideHeadAndFoot} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <MyAlert
@@ -467,8 +475,13 @@ export default class Meeting extends Component
                         }
                     }
                 />
-                <Header style={screenStyle.header} roomInf={roomInf} exit={this.backAction}/>
-                <View style={{flex: 1}} onLayout={this.onLayout}>
+                {
+                    !hideHeadAndFoot &&
+                    <View style={screenStyle.header}>
+                        <Header roomInf={roomInf} exit={this.backAction}/>
+                    </View>
+                }
+                <View style={{flex: 1}} onLayout={this.getMainContainerScale}>
                     {
                         subtitle &&
                         <PanResponderSubtitle maxWidth={width} maxHeight={height}/>
@@ -493,6 +506,9 @@ export default class Meeting extends Component
                                     peerDetails={this.state.peerDetails}
                                     micStat={microStat}
                                     turnPortrait={this.turnGridToPortrait}
+                                    setHideBar={() => {
+                                        this.setState({hideHeadAndFoot: !hideHeadAndFoot})
+                                    }}
                                 />
                                 :
                                 <PortraitView
@@ -503,40 +519,56 @@ export default class Meeting extends Component
                                     shareScreen={shareScreen}
                                     microStat={microStat}
                                     peerToShow={this.state.peerDetails ? this.state.peerDetails[this.state.portraitIndex] : null}
+                                    setHideBar={() => {this.setState({hideHeadAndFoot: !hideHeadAndFoot})}}
                                 />
                         }
                     </GestureRecognizer>
                 </View>
-                <Footer
-                    openCamera={this.openCamera}
-                    closeCamera={this.closeCamera}
-                    openMicro={this.openMicrophone}
-                    closeMicro={this.closeMicrophone}
-                    openScreenShare={this.openScreenShare}
-                    closeScreenShare={this.closeScreenShare}
-                    openChatRoom={this.openChatRoom}
-                    frontCam={frontCam}
-                    shareScreen={shareScreen}
-                    swapCam={this.swapCam}
-                    microStat={microStat}
-                    camStat={camStat}
-                    style={screenStyle.footer}
-                    view={this.state.view}
-                    newMessage={newMessage}
-                    setView={(type) => { this.setState({ view: type, }); }}
-                    subtitle={subtitle}
-                    setSubtitle={(value) => {this.setState({subtitle: value})}}
-                />
+                {
+                    !hideHeadAndFoot &&
+                    <View style={[screenStyle.footer]}>
+                        <Footer
+                            openCamera={this.openCamera}
+                            closeCamera={this.closeCamera}
+                            openMicro={this.openMicrophone}
+                            closeMicro={this.closeMicrophone}
+                            openScreenShare={this.openScreenShare}
+                            closeScreenShare={this.closeScreenShare}
+                            openChatRoom={this.openChatRoom}
+                            frontCam={frontCam}
+                            shareScreen={shareScreen}
+                            swapCam={this.swapCam}
+                            microStat={microStat}
+                            camStat={camStat}
+                            view={this.state.view}
+                            newMessage={newMessage}
+                            setView={(type) => { this.setState({ view: type, }); }}
+                            subtitle={subtitle}
+                            setSubtitle={(value) => {this.setState({subtitle: value})}}
+                        />
+                    </View>
+
+                }
+
             </View>
         );
     }
 }
 
-const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCam, shareScreen, micStat}) => {
+const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCam, shareScreen, micStat, setHideBar}) => {
+    let gridWidth = width / 3, gridHeight = width / 6;
+
+    useOrientationChange((orientation) => {
+        switch (orientation) {
+            case 'LANDSCAPE-RIGHT': case 'LANDSCAPE-LEFT': gridWidth = width / 5; gridHeight = height / 2; break;
+            default: break;
+        }
+    });
+
     const gridStyle = StyleSheet.create({
         rtcView: {
-            width: width / 3,
-            height: height / 6,
+            width: gridWidth,
+            height: gridHeight,
         }
     })
 
@@ -559,7 +591,7 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCa
                     borderColor: index === 0 ?
                         (micStat === 'on' ? '#44CE55' : '#f1f3f5')
                         :
-                        (item.hasAudio ? '#44CE55' : '#f1f3f5')
+                        (item.hasAudio() ? '#44CE55' : '#f1f3f5')
                 }}
                 onPress={() => {
                 if (index === 0) {
@@ -580,25 +612,34 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCa
     }
 
     return (
-        <View style={{flex: 1}}>
+        <TouchableOpacity activeOpacity={0} style={{flex: 1}} onPress={() => {setHideBar();}}>
             <FlatList
                 data={streamData}
                 renderItem={renderItem}
                 numColumns={3}
                 keyExtractor={((item, index) => index)}
             />
-        </View>
+        </TouchableOpacity>
     )
 }
 
-const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCam, shareScreen}) => {
+const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCam, shareScreen, setHideBar}) => {
+    let smallWindowWidth = width / 4, smallWindowHeight = width / 3;
+
+    useOrientationChange((orientation) => {
+        switch (orientation) {
+            case 'LANDSCAPE-RIGHT': case 'LANDSCAPE-LEFT': smallWindowHeight = smallWindowWidth * 0.75; break;
+            default: break;
+        }
+    });
+
     const portraitStyle = StyleSheet.create({
         smallWindow: {
             position: 'absolute',
-            left: width * 2 / 3 - 10,
-            top: height * 2 / 3 - 10,
-            width: width / 3,
-            height: height / 3,
+            left: width - smallWindowWidth - 10,
+            top: height - smallWindowHeight - 10,
+            width: smallWindowWidth,
+            height: smallWindowHeight,
         },
         bigWindow: {
             position: 'absolute',
@@ -613,7 +654,7 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
 
     if (peerToShow) {
         return (
-            <View style={{flex: 1}}>
+            <TouchableOpacity activeOpacity={0} style={{flex: 1}} onPress={() => {setHideBar();}}>
                 {
                     peerBig ?
                         <PeerWindow
@@ -650,23 +691,25 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
                             />
                     }
                 </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
         )
     } else {
         return (
-            <MyStreamWindow
-                rtcViewStyle={portraitStyle.bigWindow}
-                myStream={myStream}
-                zOrder={0}
-                microStat={microStat}
-                frontCam={myFrontCam}
-                shareScreen={shareScreen}
-            />
+            <TouchableOpacity activeOpacity={0} style={{flex: 1}} onPress={() => {setHideBar();}}>
+                <MyStreamWindow
+                    rtcViewStyle={portraitStyle.bigWindow}
+                    myStream={myStream}
+                    zOrder={0}
+                    microStat={microStat}
+                    frontCam={myFrontCam}
+                    shareScreen={shareScreen}
+                />
+            </TouchableOpacity>
         )
     }
 }
 
-const Footer = ({style, view, setView, swapCam, openChatRoom, shareScreen,
+const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
                     openCamera, closeCamera, openMicro, closeMicro, frontCam,
                     camStat, microStat, newMessage, openScreenShare , closeScreenShare,
                     subtitle, setSubtitle}) => {
@@ -727,102 +770,100 @@ const Footer = ({style, view, setView, swapCam, openChatRoom, shareScreen,
     const [participantsVisible, setParticipantsVisible] = useState(false);
 
     return (
-        <View style={style}>
-            <View style={[footerStyle.wholeContainer]}>
-                <IconWithLabel
-                    text={microStat === 'on' ? '开启静音' : '解除静音'}
-                    iconName={microStat === 'on' ? 'mic' : 'mic-outline'}
-                    pressEvent={() => {preventDoubleClick(microEvent, microInf)}}
-                    color={microStat === 'on' ? '#9be3b1' : 'white'}
-                />
-                <IconWithLabel
-                    text={camStat === 'on' ? '关闭视频' : '开启视频'}
-                    iconName={camStat === 'on' ? 'videocam' : 'videocam-outline'}
-                    pressEvent={() => {preventDoubleClick(camEvent, camInf)}}
-                    color={camStat === 'on' ? '#9be3b1' : 'white'}
-                />
-                <IconWithLabel
-                    text={shareScreen ? '停止共享' : '共享屏幕'}
-                    iconName={shareScreen ? 'tv' : 'tv-outline'}
-                    pressEvent={() => {preventDoubleClick(shareScreenEvent, shareScreenInf)}}
-                    color={shareScreen ? '#9be3b1' : 'white'}
-                />
-                <IconWithLabel
-                    text={'会议聊天'}
-                    iconName={newMessage ? 'chatbubbles' : 'chatbubbles-outline'}
-                    pressEvent={openChatRoom}
-                    color={newMessage ? '#9be3b1': 'white'}
-                />
-                <IconWithLabel
-                    text={'通用设置'}
-                    iconName={settingsVisible ? 'settings':'settings-outline'}
-                    pressEvent={() => {
-                        setSettingsVisible(true);
-                    }}
-                />
-                <Modal
-                    animationType={'slide'}
-                    visible={participantsVisible}
-                    transparent={true}
-                    onRequestClose={() => {setParticipantsVisible(false)}}
-                >
-                    <View style={{flex: 1}}>
-                        <TouchableOpacity style={{flex: 1}} onPress={() => {setParticipantsVisible(false)}}/>
-                        <ParticipantsMenu myCamStat={camStat === 'on'} myMicStat={microStat === 'on'}/>
+        <View style={[footerStyle.wholeContainer]}>
+            <IconWithLabel
+                text={microStat === 'on' ? '开启静音' : '解除静音'}
+                iconName={microStat === 'on' ? 'mic' : 'mic-outline'}
+                pressEvent={() => {preventDoubleClick(microEvent, microInf)}}
+                color={microStat === 'on' ? '#9be3b1' : 'white'}
+            />
+            <IconWithLabel
+                text={camStat === 'on' ? '关闭视频' : '开启视频'}
+                iconName={camStat === 'on' ? 'videocam' : 'videocam-outline'}
+                pressEvent={() => {preventDoubleClick(camEvent, camInf)}}
+                color={camStat === 'on' ? '#9be3b1' : 'white'}
+            />
+            <IconWithLabel
+                text={shareScreen ? '停止共享' : '共享屏幕'}
+                iconName={shareScreen ? 'tv' : 'tv-outline'}
+                pressEvent={() => {preventDoubleClick(shareScreenEvent, shareScreenInf)}}
+                color={shareScreen ? '#9be3b1' : 'white'}
+            />
+            <IconWithLabel
+                text={'会议聊天'}
+                iconName={newMessage ? 'chatbubbles' : 'chatbubbles-outline'}
+                pressEvent={openChatRoom}
+                color={newMessage ? '#9be3b1': 'white'}
+            />
+            <IconWithLabel
+                text={'通用设置'}
+                iconName={settingsVisible ? 'settings':'settings-outline'}
+                pressEvent={() => {
+                    setSettingsVisible(true);
+                }}
+            />
+            <Modal
+                animationType={'slide'}
+                visible={participantsVisible}
+                transparent={true}
+                onRequestClose={() => {setParticipantsVisible(false)}}
+            >
+                <View style={{flex: 1}}>
+                    <TouchableOpacity style={{flex: 1}} onPress={() => {setParticipantsVisible(false)}}/>
+                    <ParticipantsMenu myCamStat={camStat === 'on'} myMicStat={microStat === 'on'}/>
+                </View>
+            </Modal>
+            <Modal
+                animationType={'fade'}
+                visible={settingsVisible}
+                transparent={true}
+                onRequestClose={() => {setSettingsVisible(false)}}
+            >
+                <View style={{flex: 1, justifyContent: 'flex-end'}}>
+                    <TouchableOpacity style={{flex: 1}} onPress={() => {setSettingsVisible(false);}}/>
+                    <View style={menuStyle.container}>
+                        <IconWithLabel
+                            iconName={view === 'grid' ? 'tablet-portrait' : 'grid'}
+                            color={'black'}
+                            text={view === 'grid' ? '人像视图' : '网格视图'}
+                            pressEvent={() => {
+                                if (view === 'grid') {
+                                    setView('portrait');
+                                }
+                                else if (view === 'portrait') {
+                                    setView('grid');
+                                }
+                            }}
+                        />
+                        <IconWithLabel
+                            iconName={'text'}
+                            color={'black'}
+                            text={subtitle ? '关闭字幕' : '开启字幕'}
+                            pressEvent={() => {setSubtitle(!subtitle);}}
+                        />
+                        <IconWithLabel
+                            text={'参会人员'}
+                            iconName={'people'}
+                            pressEvent={() => {setParticipantsVisible(true);}}
+                            color={'black'}
+                        />
+                        <IconWithLabel
+                            iconName={frontCam ? 'camera-reverse' : 'camera-reverse-outline'}
+                            color={'black'}
+                            text={frontCam ? '切换后置' : '切换前置'}
+                            pressEvent={swapCam}
+                        />
+                        <IconWithLabel iconName={'settings'} color={'black'} text={'关闭设置'} pressEvent={() => {
+                            setSettingsVisible(false);
+                        }}/>
                     </View>
-                </Modal>
-                <Modal
-                    animationType={'fade'}
-                    visible={settingsVisible}
-                    transparent={true}
-                    onRequestClose={() => {setSettingsVisible(false)}}
-                >
-                    <View style={{flex: 1, justifyContent: 'flex-end'}}>
-                        <TouchableOpacity style={{flex: 1}} onPress={() => {setSettingsVisible(false);}}/>
-                        <View style={menuStyle.container}>
-                            <IconWithLabel
-                                iconName={view === 'grid' ? 'tablet-portrait' : 'grid'}
-                                color={'black'}
-                                text={view === 'grid' ? '人像视图' : '网格视图'}
-                                pressEvent={() => {
-                                    if (view === 'grid') {
-                                        setView('portrait');
-                                    }
-                                    else if (view === 'portrait') {
-                                        setView('grid');
-                                    }
-                                }}
-                            />
-                            <IconWithLabel
-                                iconName={'text'}
-                                color={'black'}
-                                text={subtitle ? '关闭字幕' : '开启字幕'}
-                                pressEvent={() => {setSubtitle(!subtitle);}}
-                            />
-                            <IconWithLabel
-                                text={'参会人员'}
-                                iconName={'people'}
-                                pressEvent={() => {setParticipantsVisible(true);}}
-                                color={'black'}
-                            />
-                            <IconWithLabel
-                                iconName={frontCam ? 'camera-reverse' : 'camera-reverse-outline'}
-                                color={'black'}
-                                text={frontCam ? '切换后置' : '切换前置'}
-                                pressEvent={swapCam}
-                            />
-                            <IconWithLabel iconName={'settings'} color={'black'} text={'关闭设置'} pressEvent={() => {
-                                setSettingsVisible(false);
-                            }}/>
-                        </View>
-                    </View>
-                </Modal>
-            </View>
+                </View>
+            </Modal>
         </View>
     )
 }
 
-const Header = ({style, roomInf, exit}) => {
+const Header = ({roomInf, exit}) => {
     const headerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -876,34 +917,32 @@ const Header = ({style, roomInf, exit}) => {
     const [showInf, setShowInf] = useState(false);
 
     return (
-        <View style={style}>
-            <View style={headerStyle.wholeContainer}>
-                <TouchableOpacity style={headerStyle.headerIconContainer} onPress={() => {setShowInf(true)}}>
-                    <Ionicons name={'information-circle-outline'} size={20} color={'#cccccc'}/>
-                </TouchableOpacity>
-                <View style={headerStyle.titleContainer}>
-                    <Text style={headerStyle.title}>MyMeeting</Text>
-                </View>
-                <TouchableHighlight style={headerStyle.exitButton} onPress={exit}>
-                    <Text style={headerStyle.exitText}>离开</Text>
-                </TouchableHighlight>
-                <Modal
-                    animationType={'slide'}
-                    visible={showInf}
-                    transparent={true}
-                    onRequestClose={() => {setShowInf(false)}}
-                >
-                    <View style={{flex: 1,}}>
-                        <TouchableOpacity style={{flex: 1}} onPress={() => {setShowInf(false)}}/>
-                        <View style={infStyle.infContainer}>
-                            <Text style={infStyle.infText}>会议主题：{roomInf.topic}</Text>
-                            <Text style={infStyle.infText}>会议号：{roomInf.id}</Text>
-                            <Text style={infStyle.infText}>会议时间：{moment(roomInf.start_time).format('MM-DD HH:mm')} ~ {moment(roomInf.end_time).format('MM-DD HH:mm')}</Text>
-                        </View>
-                        <TouchableOpacity style={{flex: 1}} onPress={() => {setShowInf(false)}}/>
-                    </View>
-                </Modal>
+        <View style={headerStyle.wholeContainer}>
+            <TouchableOpacity style={headerStyle.headerIconContainer} onPress={() => {setShowInf(true)}}>
+                <Ionicons name={'information-circle-outline'} size={20} color={'#cccccc'}/>
+            </TouchableOpacity>
+            <View style={headerStyle.titleContainer}>
+                <Text style={headerStyle.title}>MyMeeting</Text>
             </View>
+            <TouchableHighlight style={headerStyle.exitButton} onPress={exit}>
+                <Text style={headerStyle.exitText}>离开</Text>
+            </TouchableHighlight>
+            <Modal
+                animationType={'slide'}
+                visible={showInf}
+                transparent={true}
+                onRequestClose={() => {setShowInf(false)}}
+            >
+                <View style={{flex: 1,}}>
+                    <TouchableOpacity style={{flex: 1}} onPress={() => {setShowInf(false)}}/>
+                    <View style={infStyle.infContainer}>
+                        <Text style={infStyle.infText}>会议主题：{roomInf.topic}</Text>
+                        <Text style={infStyle.infText}>会议号：{roomInf.id}</Text>
+                        <Text style={infStyle.infText}>会议时间：{moment(roomInf.start_time).format('MM-DD HH:mm')} ~ {moment(roomInf.end_time).format('MM-DD HH:mm')}</Text>
+                    </View>
+                    <TouchableOpacity style={{flex: 1}} onPress={() => {setShowInf(false)}}/>
+                </View>
+            </Modal>
         </View>
     )
 }

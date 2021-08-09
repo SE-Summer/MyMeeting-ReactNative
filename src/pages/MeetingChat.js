@@ -301,7 +301,7 @@ export default class MeetingChat extends Component {
                                 uri: item.peerInfo.avatar
                             }}
                         />
-                        <Text style={style.listUsername}>{item.peerInfo.displayName}</Text>
+                        <Text style={style.listUsername} numberOfLines={1}>{item.peerInfo.displayName}</Text>
                     </View>
                 }
                 <ChatBubble maxWidth={windowWidth * 0.7} myInf={item.fromMyself} text={item.text} time={item.timestamp}/>
@@ -315,7 +315,7 @@ export default class MeetingChat extends Component {
                                 uri: config_key.avatarUri
                             }}
                         />
-                        <Text style={style.listUsername}>{MeetingVariable.myName}</Text>
+                        <Text style={style.listUsername} numberOfLines={1}>{MeetingVariable.myName}</Text>
                     </View>
                 }
                 {
@@ -345,7 +345,7 @@ export default class MeetingChat extends Component {
                                 uri: item.peerInfo.avatar
                             }}
                         />
-                        <Text style={style.listUsername}>{item.peerInfo.displayName}</Text>
+                        <Text style={style.listUsername} numberOfLines={1}>{item.peerInfo.displayName}</Text>
                     </View>
                 }
                 <FileBubble file={item} maxWidth={windowWidth * 0.7} downloadFile={this.downloadFile}/>
@@ -359,7 +359,7 @@ export default class MeetingChat extends Component {
                                 uri: config_key.avatarUri
                             }}
                         />
-                        <Text style={style.listUsername}>{MeetingVariable.myName}</Text>
+                        <Text style={style.listUsername} numberOfLines={1}>{MeetingVariable.myName}</Text>
                     </View>
                 }
             </View>

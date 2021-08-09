@@ -90,7 +90,7 @@ export const FileBubble = ({file, maxWidth, downloadFile}) => {
     const NormalFile = ({filename, fileJobStatus, fromMyself, iconColor, iconName}) => {
         return (
             <View style={bubbleStyle.fileContainer}>
-                <Text style={bubbleStyle.filename}>{filename}</Text>
+                <Text style={bubbleStyle.filename} numberOfLines={1}>{filename}</Text>
                 <FontAwesome5 name={iconName} size={30} color={iconColor}/>
                 {
                     fileJobStatus === FileJobStatus.completed &&
@@ -164,7 +164,7 @@ export const FileBubble = ({file, maxWidth, downloadFile}) => {
                 }
             default: return (
                 <View style={bubbleStyle.fileContainer}>
-                    <Text style={bubbleStyle.filename}>{item.filename}</Text>
+                    <Text style={bubbleStyle.filename} numberOfLines={1}>{item.filename}</Text>
                     <FontAwesome5 name={'question-circle'} size={30}/>
                     {
                         item.fileJobStatus === FileJobStatus.completed &&

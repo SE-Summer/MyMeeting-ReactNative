@@ -38,6 +38,8 @@ export const ListItem = ({date, item, index, pressEvent}) => {
             const response = await join(item.id, item.password);
             if (response != null && response.status === 200) {
                 pressEvent(response.data.room);
+            } else {
+                toast.show('入会失败', {type: 'danger', duration: 1000, placement: 'top'});
             }
         };
     } else {

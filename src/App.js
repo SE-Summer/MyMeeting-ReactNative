@@ -20,6 +20,7 @@ import MeetingChat from "./pages/MeetingChat";
 import { ToastProvider } from 'react-native-toast-notifications'
 import Toast from "react-native-toast-notifications";
 import VIForegroundService from "@voximplant/react-native-foreground-service";
+import Orientation from 'react-native-orientation-locker';
 
 const forFade = ({ current }) => ({
     cardStyle: {
@@ -37,6 +38,7 @@ const Stack = createStackNavigator();
 
 export default function App() {
     VIForegroundService.createNotificationChannel(channelConfig).then();
+    Orientation.lockToPortrait();
     return (
         <SafeAreaProvider>
             <ToastProvider>

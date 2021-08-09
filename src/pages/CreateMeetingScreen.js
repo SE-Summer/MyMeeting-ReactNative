@@ -92,28 +92,18 @@ export default class CreateMeetingScreen extends Component{
     }
 
     joinAfterCreate = async (room) => {
-        const response = await join(room.id, room.password);
-        if (response.status === 200) {
-            this.setState({
-                loading: false
-            }, () => {
-                const room = response.data.room;
-
-                const params = {
-                    roomInf: room,
-                    cameraStatus: this.state.cameraStatus,
-                    microphoneStatus: this.state.microphoneStatus,
-                }
-                MeetingVariable.room = room;
-                MeetingVariable.myName = this.state.joinName;
-                this.props.navigation.navigate('Meeting', params);
-            })
-        } else {
-            toast.show(response.data.error, {type: 'danger', duration: 1300, placement: 'top'});
-            this.setState({
-                loading: false,
-            })
-        }
+        this.setState({
+            loading: false
+        }, () => {
+            const params = {
+                roomInf: room,
+                cameraStatus: this.state.cameraStatus,
+                microphoneStatus: this.state.microphoneStatus,
+            }
+            MeetingVariable.room = room;
+            MeetingVariable.myName = this.state.joinName;
+            this.props.navigation.navigate('Meeting', params);
+        })
     }
 
     cameraSwitch = (value) => {
