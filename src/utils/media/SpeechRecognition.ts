@@ -2,7 +2,8 @@ import { Recognizer } from "react-native-speech-iflytek";
 import {NativeEventEmitter} from "react-native";
 import {iflytekAPPID} from "../../ServiceConfig";
 import {SpeechText} from "../Types";
-import * as moment from "moment";
+// @ts-ignore
+import moment from "moment";
 
 Recognizer.init(iflytekAPPID);
 
