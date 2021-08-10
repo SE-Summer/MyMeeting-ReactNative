@@ -1,14 +1,11 @@
 import * as React from "react";
 import {Component} from "react";
-import {Text, TextInput, View, StyleSheet, Dimensions} from "react-native";
-import {validateEmail} from "../utils/Utils";
+import {Text, TextInput, View, StyleSheet} from "react-native";
+import {validateEmail, windowHeight, windowWidth} from "../utils/Utils";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
 import VerificationCodeInput from "../components/VerificationCodeInput";
 import {emailCheck, verifyCode} from "../service/UserService";
-
-const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
 
 const emailStyles = StyleSheet.create({
     title1: {
@@ -26,6 +23,7 @@ const emailStyles = StyleSheet.create({
     input: {
         backgroundColor: 'white',
         fontSize: 16,
+        color: 'black',
     },
     titleContainer: {
         height: windowHeight / 3,

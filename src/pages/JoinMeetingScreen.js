@@ -9,7 +9,6 @@ import {join, reserveJoin} from "../service/MeetingService";
 import * as Progress from 'react-native-progress';
 import {MeetingVariable} from "../MeetingVariable";
 import {MyAlert} from "../components/MyAlert";
-import moment from "moment";
 
 export default class JoinMeetingScreen extends Component{
     constructor(props) {
@@ -218,7 +217,7 @@ export default class JoinMeetingScreen extends Component{
                     <TextInput
                         ref={this.meetingIdTextInput}
                         value={this.state.id}
-                        style={{fontSize:17}}
+                        style={{fontSize:17, color: 'black'}}
                         placeholder={"会议号"}
                         textAlign={"center"}
                         numberOfLines={1}
@@ -230,7 +229,7 @@ export default class JoinMeetingScreen extends Component{
                     <TextInput
                         ref={this.meetingPasswordInput}
                         value={this.state.password}
-                        style={{fontSize: 17}}
+                        style={{fontSize: 17, color: 'black'}}
                         placeholder={"会议密码(8位数字)"}
                         textAlign={"center"}
                         numberOfLines={1}
@@ -247,7 +246,7 @@ export default class JoinMeetingScreen extends Component{
                         <TextInput
                             ref={this.joinNameInput}
                             value={this.state.joinName}
-                            style={{borderRadius: 10, backgroundColor: "white", fontSize: 17}}
+                            style={{borderRadius: 10, backgroundColor: "white", fontSize: 17, color: 'black'}}
                             textAlign={'center'}
                             numberOfLines={1}
                             onChangeText={this.joinNameChange}

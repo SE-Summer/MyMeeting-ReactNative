@@ -5,7 +5,7 @@ import {SwitchItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
 import {config_key} from "../Constants";
-import {create, join} from "../service/MeetingService";
+import {create} from "../service/MeetingService";
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {MeetingVariable} from "../MeetingVariable";
@@ -13,6 +13,7 @@ import {MeetingVariable} from "../MeetingVariable";
 const style = StyleSheet.create({
     input: {
         fontSize: 17,
+        color: 'black',
     },
     divider: {
         marginLeft: 20,

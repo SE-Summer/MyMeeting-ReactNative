@@ -5,7 +5,7 @@ import {
     Text,
     TouchableHighlight,
     Modal,
-    FlatList, Dimensions, Animated,
+    FlatList,Animated,
 } from "react-native";
 import * as React from "react";
 import {Component, useState} from "react";
@@ -13,18 +13,16 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import {config, config_key} from "../Constants";
 import {IconWithLabel} from "../components/IconWithLabel";
 import {closeMediaStream} from "../utils/media/MediaUtils";
-import {RTCView} from "react-native-webrtc";
 import moment from "moment";
 import GestureRecognizer from 'react-native-swipe-gestures';
-import {MyStreamWindow, PeerWindow} from "../components/MeetingWindows";
-import {UserLabel} from "../components/UserLabel";
-import {preventDoubleClick} from "../utils/Utils";
+import {GridMyWindow, GridPeerWindow, MyStreamWindow, PeerWindow} from "../components/MeetingWindows";
+import {preventDoubleClick, windowHeight, windowWidth} from "../utils/Utils";
 import {MeetingVariable} from "../MeetingVariable";
 import VIForegroundService from "@voximplant/react-native-foreground-service";
 import {TextButton} from "../components/MyButton";
 import {MyAlert} from "../components/MyAlert";
 import CheckBox from '@react-native-community/checkbox';
-import {ParticipantsMenu} from "../components/ParticipantsMenu";
+import {HostMenu, ParticipantsMenu} from "../components/ParticipantsMenu";
 import {PanResponderSubtitle} from "../components/PanResponderSubtitle";
 import Orientation, {useOrientationChange} from "react-native-orientation-locker";
 
@@ -38,9 +36,6 @@ const microInf = {
     isCalled: false,
     timer: null,
 }
-
-const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
 
 const screenStyle = StyleSheet.create({
     header: {
@@ -456,7 +451,7 @@ export default class Meeting extends Component
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <MyAlert
-                    title={alertError ? '入会失败' : '是否要退出会议？'}
+                    title={alertError ? '已退出会议' : '是否要退出会议？'}
                     okButton={
                         <TextButton
                             text={'确定'}
@@ -607,31 +602,25 @@ const GridView = ({myStream, peerDetails, turnPortrait, myFrontCam, shareScreen,
 
 
     const renderItem = ({item, index}) => {
-        return (
-            <TouchableOpacity
-                style={{
-                    borderWidth: 1,
-                    borderColor: index === 0 ?
-                        (micStat === 'on' ? '#44CE55' : '#f1f3f5')
-                        :
-                        (item.hasAudio() ? '#44CE55' : '#f1f3f5')
-                }}
-                onPress={() => {
-                if (index === 0) {
-                    turnPortrait(0);
-                } else {
-                    turnPortrait(index - 1);
-                }
-            }}>
-                <UserLabel text={index === 0 ? MeetingVariable.myName : item.getPeerInfo().displayName}/>
-                <RTCView
-                    zOrder={0}
-                    mirror={index === 0 && myFrontCam && !shareScreen}
-                    style={gridStyle.rtcView}
-                    streamURL={index === 0 ? (myStream ? item.toURL() : null) : (new MediaStream(item.getTracks())).toURL()}
+        if (index === 0) {
+            return (
+                <GridMyWindow
+                    mirror={myFrontCam && !shareScreen}
+                    rtcViewStyle={gridStyle.rtcView}
+                    myStream={myStream}
+                    microStat={micStat}
+                    pressEvent={() => {turnPortrait(0)}}
                 />
-            </TouchableOpacity>
-        )
+            )
+        } else {
+            return (
+                <GridPeerWindow
+                    rtcViewStyle={gridStyle.rtcView}
+                    item={item}
+                    pressEvent={() => {turnPortrait(index-1)}}
+                />
+            )
+        }
     }
 
     return (
@@ -761,6 +750,9 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
         },
         progress: {
             margin: 5,
+        },
+        outerContainer: {
+            flexDirection: 'column',
         }
     })
 
@@ -798,6 +790,8 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
 
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [participantsVisible, setParticipantsVisible] = useState(false);
+    const [hostVisible, setHostVisible] = useState(false);
+    const [orientationLock, setOrientationLock] = useState(false);
 
     return (
         <View style={[footerStyle.wholeContainer]}>
@@ -844,6 +838,17 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
                 </View>
             </Modal>
             <Modal
+                animationType={'slide'}
+                visible={hostVisible}
+                transparent={true}
+                onRequestClose={() => {setHostVisible(false)}}
+            >
+                <View style={{flex: 1}}>
+                    <TouchableOpacity style={{flex: 1}} onPress={() => {setHostVisible(false)}}/>
+                    <HostMenu />
+                </View>
+            </Modal>
+            <Modal
                 animationType={'fade'}
                 visible={settingsVisible}
                 transparent={true}
@@ -851,41 +856,73 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
             >
                 <View style={{flex: 1, justifyContent: 'flex-end'}}>
                     <TouchableOpacity style={{flex: 1}} onPress={() => {setSettingsVisible(false);}}/>
-                    <View style={[menuStyle.container]}>
-                        <IconWithLabel
-                            iconName={view === 'grid' ? 'tablet-portrait' : 'grid'}
-                            color={'black'}
-                            text={view === 'grid' ? '人像视图' : '网格视图'}
-                            pressEvent={() => {
-                                if (view === 'grid') {
-                                    setView('portrait');
-                                }
-                                else if (view === 'portrait') {
-                                    setView('grid');
-                                }
-                            }}
-                        />
-                        <IconWithLabel
-                            iconName={'text'}
-                            color={'black'}
-                            text={subtitle ? '关闭字幕' : '开启字幕'}
-                            pressEvent={() => {setSubtitle(!subtitle);}}
-                        />
-                        <IconWithLabel
-                            text={'参会人员'}
-                            iconName={'people'}
-                            pressEvent={() => {setParticipantsVisible(true);}}
-                            color={'black'}
-                        />
-                        <IconWithLabel
-                            iconName={frontCam ? 'camera-reverse' : 'camera-reverse-outline'}
-                            color={'black'}
-                            text={frontCam ? '切换后置' : '切换前置'}
-                            pressEvent={swapCam}
-                        />
-                        <IconWithLabel iconName={'settings'} color={'black'} text={'关闭设置'} pressEvent={() => {
-                            setSettingsVisible(false);
-                        }}/>
+                    <View style={menuStyle.outerContainer}>
+                        <View style={menuStyle.container}>
+                            <IconWithLabel
+                                iconName={view === 'grid' ? 'tablet-portrait' : 'grid'}
+                                color={'black'}
+                                text={view === 'grid' ? '人像视图' : '网格视图'}
+                                pressEvent={() => {
+                                    if (view === 'grid') {
+                                        setView('portrait');
+                                    }
+                                    else if (view === 'portrait') {
+                                        setView('grid');
+                                    }
+                                }}
+                            />
+                            {
+                                MeetingVariable.hostId === config_key.token &&
+                                <IconWithLabel
+                                    iconName={'build'}
+                                    color={'black'}
+                                    text={'管理成员'}
+                                    pressEvent={() => {setHostVisible(true);}}
+                                />
+                            }
+                            <IconWithLabel
+                                text={'参会人员'}
+                                iconName={'people'}
+                                pressEvent={() => {setParticipantsVisible(true);}}
+                                color={'black'}
+                            />
+                        </View>
+                        <View style={[menuStyle.container]}>
+                            <IconWithLabel
+                                iconName={'text'}
+                                color={'black'}
+                                text={subtitle ? '关闭字幕' : '开启字幕'}
+                                pressEvent={() => {setSubtitle(!subtitle);}}
+                            />
+                            <IconWithLabel
+                                iconName={frontCam ? 'camera-reverse' : 'camera-reverse-outline'}
+                                color={'black'}
+                                text={frontCam ? '切换后置' : '切换前置'}
+                                pressEvent={swapCam}
+                            />
+                            <IconWithLabel
+                                text={orientationLock ? '自动旋转' : '禁用旋转'}
+                                color={'black'}
+                                iconName={orientationLock ? 'sync-circle-outline' : 'sync-circle'}
+                                pressEvent={() => {
+                                    if (orientationLock) {
+                                        Orientation.unlockAllOrientations();
+                                    } else {
+                                        Orientation.getOrientation((orientation => {
+                                            switch (orientation) {
+                                                case 'LANDSCAPE-LEFT': Orientation.lockToLandscapeLeft(); break;
+                                                case 'LANDSCAPE-RIGHT': Orientation.lockToLandscapeRight(); break;
+                                                default: Orientation.lockToPortrait(); break;
+                                            }
+                                        }))
+                                    }
+                                    setOrientationLock(!orientationLock);
+                                }}
+                            />
+                            <IconWithLabel iconName={'settings'} color={'black'} text={'关闭设置'} pressEvent={() => {
+                                setSettingsVisible(false);
+                            }}/>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -926,7 +963,7 @@ const Header = ({roomInf, exit}) => {
         },
         exitText: {
             color: 'white',
-        }
+        },
     })
 
     const infStyle = StyleSheet.create({

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {Modal, TouchableOpacity, View, StyleSheet, Text, Dimensions} from "react-native";
-const windowWidth = Dimensions.get('window').width;
+import {Modal, TouchableOpacity, View, StyleSheet, Text} from "react-native";
+import {windowWidth} from "../utils/Utils";
 
 const styles = StyleSheet.create({
     alertContainer: {

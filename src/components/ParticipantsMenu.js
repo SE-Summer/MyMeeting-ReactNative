@@ -43,7 +43,7 @@ export const ParticipantsMenu = ({myCamStat, myMicStat}) => {
 
     const Empty = () => {
         return (
-            <View style={{alignItems: 'center', justifyContent: 'center'}}>
+            <View style={{alignItems: 'center', justifyContent: 'center', marginTop: 15}}>
                 <Text>-没有其他参会人员-</Text>
             </View>
         )
@@ -95,10 +95,6 @@ export const HostMenu = () => {
                     }}
                 />
                 <Text style={{marginLeft: 30, marginRight: 10}}>{peerInfo.displayName}</Text>
-                {
-                    MeetingVariable.hostId === peerInfo.id &&
-                    <FontAwesome5 name={'crown'} color={'gold'}/>
-                }
                 <View style={participantsMenuStyles.iconContainer}>
                     <Ionicons
                         name={'mic'}
@@ -143,7 +139,7 @@ export const HostMenu = () => {
 
     const Empty = () => {
         return (
-            <View style={{alignItems: 'center', justifyContent: 'center'}}>
+            <View style={{alignItems: 'center', justifyContent: 'center', marginTop: 15}}>
                 <Text>-没有其他参会人员-</Text>
             </View>
         )

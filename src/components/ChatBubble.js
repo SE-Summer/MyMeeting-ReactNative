@@ -1,15 +1,13 @@
 import * as React from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View, Dimensions} from "react-native";
+import {Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import moment from "moment";
-import {FileJobStatus, FileJobType} from "../utils/Types";
+import {FileJobStatus} from "../utils/Types";
 import * as Progress from 'react-native-progress';
 import FileViewer from 'react-native-file-viewer';
 import {myFileType} from "../Constants";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
-import {judgeFileType} from "../utils/Utils";
+import {judgeFileType, windowWidth} from "../utils/Utils";
 import Ionicons from "react-native-vector-icons/Ionicons";
-
-const windowWidth = Dimensions.get('window').width;
 
 const bubbleStyle = StyleSheet.create({
     myBubble: {
@@ -87,7 +85,7 @@ export const FileBubble = ({file, maxWidth, downloadFile}) => {
         })
     }
 
-    const NormalFile = ({filename, fileJobStatus, fromMyself, iconColor, iconName}) => {
+    const NormalFile = ({filename, fileJobStatus, iconColor, iconName}) => {
         return (
             <View style={bubbleStyle.fileContainer}>
                 <Text style={bubbleStyle.filename} numberOfLines={1}>{filename}</Text>

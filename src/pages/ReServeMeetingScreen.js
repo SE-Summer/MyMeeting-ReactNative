@@ -15,6 +15,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 const style = StyleSheet.create({
     input: {
         fontSize: 17,
+        color: 'black',
     },
     divider: {
         marginLeft: 20,
@@ -86,7 +87,6 @@ export default class ReServeMeetingScreen extends Component{
 
     onCommit = async () => {
         const {nameText, secretText, startTime, endTime} = this.state;
-        const {navigation} = this.props;
 
         const inf = {};
         inf.start_time = moment(startTime).format('YYYY-MM-DD HH:mm:ss');

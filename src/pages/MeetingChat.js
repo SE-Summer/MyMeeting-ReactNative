@@ -4,7 +4,6 @@ import {
     TextInput,
     FlatList,
     Text,
-    Dimensions,
     TouchableOpacity,
     Animated, Keyboard, Modal,
 } from "react-native";
@@ -12,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as React from 'react';
 import {Component} from "react";
 import {ChatBubble, FileBubble} from "../components/ChatBubble";
-import moment, {Moment} from "moment";
+import moment from "moment";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
@@ -20,8 +19,7 @@ import {Avatar} from "react-native-elements";
 import {fileService, MeetingVariable} from "../MeetingVariable";
 import {FileJobStatus, FileJobType, MessageType} from "../utils/Types";
 import DocumentPicker from "react-native-document-picker";
-const windowWidth = Dimensions.get('window').width;
-
+import {windowWidth} from "../utils/Utils";
 
 export default class MeetingChat extends Component {
     constructor(props) {
@@ -109,7 +107,7 @@ export default class MeetingChat extends Component {
         }
     }
 
-    recvNewMessage = (message) => {
+    recvNewMessage = () => {
         this.setState({
             messages: MeetingVariable.messages,
         }, ()  => {
@@ -587,7 +585,8 @@ const style = StyleSheet.create({
         backgroundColor: '#f1f3f5',
         borderRadius: 10,
         margin: 6,
-        textAlignVertical: 'top'
+        textAlignVertical: 'top',
+        color: 'black',
     },
     listContainer: {
         flex: 1,

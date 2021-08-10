@@ -99,7 +99,7 @@ export default class EditProfileScreen extends Component {
                     multiline={false}
                     onChangeText={this.textChange}
                     keyboardType={"default"}
-                    style={{backgroundColor: "white", borderRadius: 10, fontSize: 16}}
+                    style={{backgroundColor: "white", borderRadius: 10, fontSize: 16, color: 'black'}}
                 />
             </View>
         );

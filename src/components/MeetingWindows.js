@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {View} from "react-native";
+import {TouchableHighlight, TouchableOpacity, View} from "react-native";
 import {UserLabel} from "./UserLabel";
 import {RTCView} from "react-native-webrtc";
 import {DefaultPic, DefaultWithAudioPic} from "./DefaultPic";
@@ -53,39 +53,64 @@ export const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, microStat, front
     )
 }
 
-export const GridMyWindow = ({mirror, style, myStream}) => {
-    if (myStream) {
-        return (
+export const GridMyWindow = ({mirror, rtcViewStyle, myStream, microStat, pressEvent}) => {
+    return (
+        <TouchableHighlight
+            style={{
+                borderWidth: 1,
+                borderColor: (microStat === 'on' ? '#44CE55' : '#f1f3f5')
+            }}
+            onPress={pressEvent}
+        >
             <View>
                 <UserLabel text={MeetingVariable.myName}/>
-                <RTCView
-                    zOrder={0}
-                    mirror={mirror}
-                    style={style}
-                    streamURL={myStream.toURL()}
-                />
+                {
+                    myStream ?
+                        <RTCView
+                            zOrder={0}
+                            mirror={mirror}
+                            style={rtcViewStyle}
+                            streamURL={myStream.toURL()}
+                        />
+                        :
+                        microStat === 'on' ?
+                            <DefaultWithAudioPic style={rtcViewStyle} imgSrc={config_key.avatarUri}/>
+                            :
+                            <DefaultPic style={rtcViewStyle} imgSrc={config_key.avatarUri}/>
+                }
             </View>
-        )
-    } else {
-        return (
-            <View>
-                <UserLabel text={MeetingVariable.myName}/>
 
-            </View>
-        )
-    }
+        </TouchableHighlight>
+    )
 }
 
-export const GridPeerWindow = ({item}) => {
+export const GridPeerWindow = ({rtcViewStyle, item, pressEvent}) => {
+    const peerInfo = item.getPeerInfo();
     return (
-        <View>
-            <UserLabel text={index === 0 ? MeetingVariable.myName : item.getPeerInfo().displayName}/>
-            <RTCView
-                zOrder={0}
-                mirror={index === 0 && myFrontCam && !shareScreen}
-                style={gridStyle.rtcView}
-                streamURL={index === 0 ? (myStream ? item.toURL() : null) : (new MediaStream(item.getTracks())).toURL()}
-            />
-        </View>
+        <TouchableOpacity
+            style={{
+                borderWidth: 1,
+                borderColor: (item.hasAudio() ? '#44CE55' : '#f1f3f5'),
+            }}
+            onPress={pressEvent}
+        >
+            <View>
+                <UserLabel text={peerInfo.displayName}/>
+                {
+                    item.hasVideo() ?
+                        <RTCView
+                            zOrder={0}
+                            mirror={false}
+                            style={rtcViewStyle}
+                            streamURL={new MediaStream(item.getTracks()).toURL()}
+                        />
+                        :
+                        item.hasAudio() ?
+                            <DefaultWithAudioPic style={rtcViewStyle} imgSrc={peerInfo.avatar}/>
+                            :
+                            <DefaultPic style={rtcViewStyle} imgSrc={peerInfo.avatar}/>
+                }
+            </View>
+        </TouchableOpacity>
     )
 }

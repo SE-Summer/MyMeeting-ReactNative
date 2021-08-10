@@ -6,21 +6,16 @@ import {
     ImageBackground,
     Image,
     Text,
-    Dimensions,
 } from "react-native";
 import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import {config, config_key} from "../Constants";
-import {validateEmail} from "../utils/Utils";
+import {config_key} from "../Constants";
+import {validateEmail, windowHeight, windowWidth} from "../utils/Utils";
 import {loginService} from "../service/UserService";
-import {setInStorage} from "../utils/StorageUtils";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RNExitApp from 'react-native-exit-app';
-
-const windowHeight = Dimensions.get('window').height;
-const windowWidth = Dimensions.get('window').width;
 
 const smallUtils = {
     buttonOutline: [require('../resources/image/myButton_Outlined.png'), require('../resources/image/myButton_Outline_error.png')],
