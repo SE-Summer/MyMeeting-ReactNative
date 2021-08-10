@@ -1,10 +1,12 @@
 import * as React from 'react';
-import {Modal, TouchableOpacity, View, StyleSheet, Text} from "react-native";
+import {Modal, TouchableOpacity, View, StyleSheet, Text, Dimensions} from "react-native";
+const windowWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
     alertContainer: {
+        alignSelf: 'center',
         backgroundColor: 'white',
-        margin: 40,
+        width: windowWidth * 0.7,
         borderRadius: 10,
         elevation: 3,
         padding: 10,

@@ -5,7 +5,7 @@ import {
     Text,
     TouchableHighlight,
     Modal,
-    FlatList,
+    FlatList, Dimensions, Animated,
 } from "react-native";
 import * as React from "react";
 import {Component, useState} from "react";
@@ -39,6 +39,9 @@ const microInf = {
     timer: null,
 }
 
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
+
 const screenStyle = StyleSheet.create({
     header: {
         backgroundColor: '#202020',
@@ -60,6 +63,7 @@ export default class Meeting extends Component
         MeetingVariable.mediaService.registerNewMessageListener('messagesInMeetingPage', this.recvMessage.bind(this));
         MeetingVariable.mediaService.registerMeetingEndListener('meetingEnd', this.recvEndSignal.bind(this));
         MeetingVariable.mediaService.registerBeMutedListener('muted', this.mutedByHost.bind(this));
+        this.barHeight = new Animated.Value(60);
         this.state = {
             view: 'portrait',
             peerDetails: null,
@@ -377,6 +381,30 @@ export default class Meeting extends Component
         }
     }
 
+    setHideBar = (value = null) => {
+        if (value == null) {
+            value = !this.state.hideHeadAndFoot;
+        }
+
+        if (value) {
+            Animated.timing(this.barHeight, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: false,
+            }).start();
+        } else {
+            Animated.timing(this.barHeight, {
+                toValue: 60,
+                duration: 200,
+                useNativeDriver: false,
+            }).start();
+        }
+
+        this.setState({
+            hideHeadAndFoot: value,
+        })
+    }
+
     onSwipeLeft() {
         if (this.state.view === 'portrait' && this.state.peerDetails) {
             if (this.state.portraitIndex < this.state.peerDetails.length - 1) {
@@ -424,7 +452,7 @@ export default class Meeting extends Component
         const {width, height, myCameraStream, myDisplayStream,
             camStat, microStat, newMessage, frontCam,
             shareScreen, alertError, leaveAndClose,
-            subtitle, hideHeadAndFoot} = this.state;
+            subtitle} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <MyAlert
@@ -476,10 +504,9 @@ export default class Meeting extends Component
                     }
                 />
                 {
-                    !hideHeadAndFoot &&
-                    <View style={screenStyle.header}>
+                    <Animated.View style={[screenStyle.header, {height: this.barHeight}]}>
                         <Header roomInf={roomInf} exit={this.backAction}/>
-                    </View>
+                    </Animated.View>
                 }
                 <View style={{flex: 1}} onLayout={this.getMainContainerScale}>
                     {
@@ -498,17 +525,13 @@ export default class Meeting extends Component
                         {
                             this.state.view === 'grid' ?
                                 <GridView
-                                    width={width}
-                                    height={height}
                                     myStream={shareScreen ? myDisplayStream : myCameraStream}
                                     myFrontCam={frontCam}
                                     shareScreen={shareScreen}
                                     peerDetails={this.state.peerDetails}
                                     micStat={microStat}
                                     turnPortrait={this.turnGridToPortrait}
-                                    setHideBar={() => {
-                                        this.setState({hideHeadAndFoot: !hideHeadAndFoot})
-                                    }}
+                                    setHideBar={this.setHideBar}
                                 />
                                 :
                                 <PortraitView
@@ -519,14 +542,13 @@ export default class Meeting extends Component
                                     shareScreen={shareScreen}
                                     microStat={microStat}
                                     peerToShow={this.state.peerDetails ? this.state.peerDetails[this.state.portraitIndex] : null}
-                                    setHideBar={() => {this.setState({hideHeadAndFoot: !hideHeadAndFoot})}}
+                                    setHideBar={this.setHideBar}
                                 />
                         }
                     </GestureRecognizer>
                 </View>
                 {
-                    !hideHeadAndFoot &&
-                    <View style={[screenStyle.footer]}>
+                    <Animated.View style={[screenStyle.footer, {height: this.barHeight}]}>
                         <Footer
                             openCamera={this.openCamera}
                             closeCamera={this.closeCamera}
@@ -544,9 +566,8 @@ export default class Meeting extends Component
                             newMessage={newMessage}
                             setView={(type) => { this.setState({ view: type, }); }}
                             subtitle={subtitle}
-                            setSubtitle={(value) => {this.setState({subtitle: value})}}
                         />
-                    </View>
+                    </Animated.View>
 
                 }
 
@@ -555,13 +576,15 @@ export default class Meeting extends Component
     }
 }
 
-const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCam, shareScreen, micStat, setHideBar}) => {
-    let gridWidth = width / 3, gridHeight = width / 6;
+const GridView = ({myStream, peerDetails, turnPortrait, myFrontCam, shareScreen, micStat, setHideBar}) => {
+    const [gridWidth, setGridWidth] = useState(windowWidth / 3);
+    const [gridHeight, setGridHeight] = useState(windowWidth * 4 / 9);
+    const [column, setColumn] = useState(3);
 
     useOrientationChange((orientation) => {
         switch (orientation) {
-            case 'LANDSCAPE-RIGHT': case 'LANDSCAPE-LEFT': gridWidth = width / 5; gridHeight = height / 2; break;
-            default: break;
+            case 'LANDSCAPE-RIGHT': case 'LANDSCAPE-LEFT': setGridWidth(windowHeight / 5); setGridHeight(windowWidth / 3); setColumn(5); setHideBar(true); break;
+            default: setGridWidth(windowWidth / 3 ); setGridHeight(windowWidth * 4 / 9); setColumn(3); break;
         }
     });
 
@@ -612,11 +635,12 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCa
     }
 
     return (
-        <TouchableOpacity activeOpacity={0} style={{flex: 1}} onPress={() => {setHideBar();}}>
+        <TouchableOpacity activeOpacity={0.6} style={{flex: 1}} onPress={() => {setHideBar();}}>
             <FlatList
                 data={streamData}
                 renderItem={renderItem}
-                numColumns={3}
+                numColumns={column}
+                key={column === 3 ? 'v' : 'h'}
                 keyExtractor={((item, index) => index)}
             />
         </TouchableOpacity>
@@ -624,14 +648,19 @@ const GridView = ({width, height, myStream, peerDetails, turnPortrait, myFrontCa
 }
 
 const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCam, shareScreen, setHideBar}) => {
-    let smallWindowWidth = width / 4, smallWindowHeight = width / 3;
+    const [smallWindowWidth, setSmallWidth] = useState(windowWidth / 3);
+    const [smallWindowHeight, setSmallHeight]= useState(windowWidth * 4 / 9);
 
-    useOrientationChange((orientation) => {
+    const changeScaleDueToOrientation = (orientation) => {
         switch (orientation) {
-            case 'LANDSCAPE-RIGHT': case 'LANDSCAPE-LEFT': smallWindowHeight = smallWindowWidth * 0.75; break;
-            default: break;
+            case 'LANDSCAPE-RIGHT': case 'LANDSCAPE-LEFT': setSmallHeight(windowHeight * 4 / 15); setSmallWidth(windowHeight / 5); break;
+            default: setSmallHeight(windowWidth * 4 / 9); setSmallWidth(windowWidth / 3); break;
         }
-    });
+    }
+
+    Orientation.getOrientation((orientation => changeScaleDueToOrientation(orientation)));
+
+    useOrientationChange(orientation => changeScaleDueToOrientation(orientation));
 
     const portraitStyle = StyleSheet.create({
         smallWindow: {
@@ -654,7 +683,7 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
 
     if (peerToShow) {
         return (
-            <TouchableOpacity activeOpacity={0} style={{flex: 1}} onPress={() => {setHideBar();}}>
+            <TouchableOpacity activeOpacity={0.6} style={{flex: 1}} onPress={() => {setHideBar();}}>
                 {
                     peerBig ?
                         <PeerWindow
@@ -676,7 +705,7 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
                     {
                         peerBig ?
                             <MyStreamWindow
-                                rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}}
+                                rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
                                 myStream={myStream}
                                 zOrder={1}
                                 microStat={microStat}
@@ -685,7 +714,7 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
                             />
                             :
                             <PeerWindow
-                                rtcViewStyle={{width: width/3 - 3, height: height/3 - 3, backgroundColor: 'black'}}
+                                rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
                                 peerToShow={peerToShow}
                                 zOrder={1}
                             />
@@ -695,7 +724,7 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
         )
     } else {
         return (
-            <TouchableOpacity activeOpacity={0} style={{flex: 1}} onPress={() => {setHideBar();}}>
+            <TouchableOpacity activeOpacity={0.6} style={{flex: 1}} onPress={() => {setHideBar();}}>
                 <MyStreamWindow
                     rtcViewStyle={portraitStyle.bigWindow}
                     myStream={myStream}
@@ -728,6 +757,7 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
             padding: 10,
             flexDirection: 'row',
             justifyContent: 'space-around',
+            height: 60,
         },
         progress: {
             margin: 5,
@@ -821,7 +851,7 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
             >
                 <View style={{flex: 1, justifyContent: 'flex-end'}}>
                     <TouchableOpacity style={{flex: 1}} onPress={() => {setSettingsVisible(false);}}/>
-                    <View style={menuStyle.container}>
+                    <View style={[menuStyle.container]}>
                         <IconWithLabel
                             iconName={view === 'grid' ? 'tablet-portrait' : 'grid'}
                             color={'black'}
@@ -891,7 +921,6 @@ const Header = ({roomInf, exit}) => {
             flex: 1,
             backgroundColor: '#e00000',
             borderRadius: 10,
-            padding: 3,
             alignItems: 'center',
             justifyContent: 'center',
         },

@@ -4,6 +4,7 @@ import {UserLabel} from "./UserLabel";
 import {RTCView} from "react-native-webrtc";
 import {DefaultPic, DefaultWithAudioPic} from "./DefaultPic";
 import {MeetingVariable} from "../MeetingVariable";
+import {config_key} from "../Constants";
 
 export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
     return (
@@ -19,9 +20,9 @@ export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
                      :
                     (
                         peerToShow.hasAudio() ?
-                            <DefaultWithAudioPic style={rtcViewStyle}/>
+                            <DefaultWithAudioPic style={rtcViewStyle} imgSrc={peerToShow.getPeerInfo().avatar}/>
                             :
-                            <DefaultPic style={rtcViewStyle}/>
+                            <DefaultPic style={rtcViewStyle} imgSrc={peerToShow.getPeerInfo().avatar}/>
                     )
             }
         </View>
@@ -42,12 +43,49 @@ export const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, microStat, front
                     /> :
                     (
                         microStat === 'on' ?
-                            <DefaultWithAudioPic style={rtcViewStyle}/>
+                            <DefaultWithAudioPic style={rtcViewStyle} imgSrc={config_key.avatarUri}/>
                             :
-                            <DefaultPic style={rtcViewStyle}/>
+                            <DefaultPic style={rtcViewStyle} imgSrc={config_key.avatarUri}/>
                     )
 
             }
+        </View>
+    )
+}
+
+export const GridMyWindow = ({mirror, style, myStream}) => {
+    if (myStream) {
+        return (
+            <View>
+                <UserLabel text={MeetingVariable.myName}/>
+                <RTCView
+                    zOrder={0}
+                    mirror={mirror}
+                    style={style}
+                    streamURL={myStream.toURL()}
+                />
+            </View>
+        )
+    } else {
+        return (
+            <View>
+                <UserLabel text={MeetingVariable.myName}/>
+
+            </View>
+        )
+    }
+}
+
+export const GridPeerWindow = ({item}) => {
+    return (
+        <View>
+            <UserLabel text={index === 0 ? MeetingVariable.myName : item.getPeerInfo().displayName}/>
+            <RTCView
+                zOrder={0}
+                mirror={index === 0 && myFrontCam && !shareScreen}
+                style={gridStyle.rtcView}
+                streamURL={index === 0 ? (myStream ? item.toURL() : null) : (new MediaStream(item.getTracks())).toURL()}
+            />
         </View>
     )
 }
