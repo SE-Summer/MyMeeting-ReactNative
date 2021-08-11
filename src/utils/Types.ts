@@ -1,6 +1,7 @@
 import {types as mediasoupTypes} from "mediasoup-client";
 import {MediaKind, TransportType} from "../ServiceConfig";
 import {Moment} from "moment";
+import {SctpStreamParameters} from "mediasoup-client/lib/SctpParameters";
 
 export declare type JoinRequest = {
     displayName: string,
@@ -32,6 +33,15 @@ export declare type ConsumerInfo = {
     producerId: string,
     kind: MediaKind,
     rtpParameters : mediasoupTypes.RtpParameters
+}
+
+export declare type  DataConsumerInfo = {
+    producerPeerId: string,
+    dataProducerId: string,
+    dataConsumerId: string,
+    sctpParameters: SctpStreamParameters,
+    protocol: string,
+    label: string
 }
 
 export declare type SendText = {
@@ -118,5 +128,6 @@ export declare type SpeechText = {
     timestamp?: Moment,
     fromMyself: boolean,
     fromPeerId?: string,
+    displayName: string,
     text: string,
 }

@@ -1,8 +1,8 @@
-import {registerGlobals} from 'react-native-webrtc'
+import {MediaStream, MediaStreamTrack, registerGlobals} from 'react-native-webrtc';
 import * as mediasoupClient from "mediasoup-client";
 import {types as mediasoupTypes} from "mediasoup-client";
 import * as types from "../utils/Types";
-import {FileJobStatus} from "../utils/Types";
+import {FileJobStatus, SpeechText} from "../utils/Types";
 import {
     MeetingEndReason,
     meetingURL,
@@ -39,7 +39,10 @@ export class MediaService
     private readonly sendingTracks: Map<string, MediaStreamTrack> = null;
     // track.id ==> producer
     private readonly producers: Map<string, mediasoupTypes.Producer> = null;
+    private dataProducer: mediasoupTypes.DataProducer = null;
     private readonly peerMedia: PeerMedia = null;
+    // dataConsumerId ==> dataConsumer
+    private readonly dataConsumers: Map<string, mediasoupTypes.DataConsumer> = null;
 
     private hostPeerId: string = null;
 
@@ -52,6 +55,7 @@ export class MediaService
     private newMessageCallbacks: Map<string, (message: types.Message) => void> = null;
     private meetingEndCallbacks: Map<string, (reason: MeetingEndReason) => void> = null;
     private beMutedCallbacks: Map<string, () => void> = null;
+    private newSpeechCallbacks: Map<string, (speech: SpeechText) => void> = null;
 
     constructor()
     {
@@ -62,6 +66,7 @@ export class MediaService
             this.sendingTracks = new Map<string, MediaStreamTrack>();
             this.producers = new Map<string, mediasoupTypes.Producer>();
             this.peerMedia = new PeerMedia();
+            this.dataConsumers = new Map<string, mediasoupTypes.DataConsumer>();
 
             this.eventEmitter = new events.EventEmitter();
 
@@ -73,6 +78,7 @@ export class MediaService
             this.newMessageCallbacks = new Map<string, (message: types.Message) => void>();
             this.meetingEndCallbacks = new Map<string, (reason: MeetingEndReason) => void>();
             this.beMutedCallbacks = new Map<string, () => void>();
+            this.newSpeechCallbacks = new Map<string, (speech: SpeechText) => void>();
 
         } catch (err) {
             console.error('[Error]  Fail to construct MediaService instance', err);
@@ -117,6 +123,16 @@ export class MediaService
     public deleteBeMutedListener(key: string)
     {
         this.beMutedCallbacks.delete(key);
+    }
+
+    public registerNewSpeechListener(key: string, newSpeechCallback: (speechText: SpeechText) => void)
+    {
+        this.newSpeechCallbacks.set(key, newSpeechCallback);
+    }
+
+    public deleteNewSpeechListener(key: string)
+    {
+        this.newSpeechCallbacks.delete(key);
     }
 
     public getPeerDetails()
@@ -424,6 +440,36 @@ export class MediaService
         }
     }
 
+    public async sendSpeechText(speechText: SpeechText)
+    {
+        if (!this.dataProducer || this.dataProducer.closed) {
+            this.dataProducer = await this.sendTransport.produceData({
+                ordered: true,
+            });
+            this.dataProducer.on('transportclose', () => {
+                console.log(`[DataProducer event]  Transport closed`);
+                if (!this.dataProducer.closed) {
+                    this.dataProducer.close();
+                }
+                this.dataProducer = null;
+            });
+            this.dataProducer.on('error', (err) => {
+                console.error('[Error] DataProducer error' + JSON.stringify(err));
+                if (!this.dataProducer.closed) {
+                    this.dataProducer.close();
+                }
+                this.dataProducer = null;
+            });
+            this.dataProducer.on('close', () => {
+                console.log(`[DataProducer event]  Closed`);
+                this.dataProducer = null;
+            });
+        }
+        speechText.fromMyself = false;
+        speechText.fromPeerId = this.myId;
+        this.dataProducer.send(JSON.stringify(speechText));
+    }
+
     // tell server and clear all meeting-related variables
     public leaveMeeting()
     {
@@ -611,7 +657,7 @@ export class MediaService
             }
         });
 
-        this.sendTransport.on('produce', async ({ kind, rtpParameters, appData }, done, errBack) => {
+        this.sendTransport.on('produce', async ({ kind, rtpParameters, appData }, callback, errBack) => {
             console.log('[Transport event]  event: produce, handled by sendTransport');
             try {
                 // producerId
@@ -622,11 +668,30 @@ export class MediaService
                         rtpParameters,
                         appData
                     }) as {producerId: string};
-                done({id: producerId});
+                callback({id: producerId});
             } catch (err) {
                 errBack(err);
             }
         });
+
+        this.sendTransport.on('producedata', async (parameters, callback, errBack) => {
+            try
+            {
+                const { id } = await this.signaling.sendRequest(
+                    SignalMethod.produceData,
+                    {
+                        transportId          : this.sendTransport.id,
+                        sctpStreamParameters : parameters.sctpStreamParameters,
+                        label                : parameters.label,
+                        protocol             : parameters.protocol
+                    }) as { id: string };
+                callback({ id });
+            }
+            catch (error)
+            {
+                errBack(error);
+            }
+        })
     }
 
     private async createRecvTransport()
@@ -696,6 +761,47 @@ export class MediaService
             });
         });
 
+        this.signaling.registerListener(SignalType.notify, SignalMethod.newDataConsumer, async (data: types.DataConsumerInfo) => {
+            console.log('[Signaling]  Handling newDataConsumer notification...');
+            const dataConsumer = await this.recvTransport.consumeData({
+                id                  : data.dataConsumerId,
+                dataProducerId      : data.dataProducerId,
+                label               : data.label,
+                protocol            : data.protocol,
+                sctpStreamParameters: data.sctpParameters
+            });
+            console.log('[Signaling]  New DataConsumer created');
+
+            dataConsumer.on('transportclose', () => {
+                console.log(`[DataConsumer event]  Transport closed`);
+                if (!dataConsumer.closed) {
+                    dataConsumer.close();
+                }
+            });
+
+            dataConsumer.on('error', (err) => {
+                console.error('[Error] DataConsumer error' + JSON.stringify(err));
+                if (!dataConsumer.closed) {
+                    dataConsumer.close();
+                }
+            });
+
+            dataConsumer.on('close', () => {
+                console.log(`[DataConsumer event]  Closed`);
+            });
+
+            dataConsumer.on('message', (text: string) => {
+                console.log(text);
+                const speechText = JSON.parse(text);
+                console.log(`[DataConsumer]  Receive ${speechText.text} from ${speechText.displayName}`);
+                this.newSpeechCallbacks.forEach((callback) => {
+                    callback(speechText);
+                });
+            });
+
+            this.dataConsumers.set(data.dataConsumerId, dataConsumer);
+        });
+
         this.signaling.registerListener(SignalType.notify, SignalMethod.consumerClosed, ({ consumerId }) => {
             console.log('[Signaling]  Handling consumerClosed notification...');
             console.log(`[Signaling]  Delete consumer id = ${consumerId}`);
@@ -704,6 +810,16 @@ export class MediaService
             this.updatePeerCallbacks.forEach((callback) => {
                 callback();
             });
+        });
+
+        this.signaling.registerListener(SignalType.notify, SignalMethod.dataConsumerClosed, ({ dataConsumerId }) => {
+            console.log('[Signaling]  Handling dataConsumerClosed notification...');
+            console.log(`[Signaling]  Delete data consumer id = ${dataConsumerId}`);
+
+            if (this.dataConsumers.has(dataConsumerId)) {
+                this.dataConsumers.get(dataConsumerId).close();
+                this.dataConsumers.delete(dataConsumerId);
+            }
         });
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.peerClosed, ({ peerId }) => {

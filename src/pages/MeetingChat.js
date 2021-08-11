@@ -16,7 +16,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import {config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
 import {Avatar} from "react-native-elements";
-import {fileService, MeetingVariable} from "../MeetingVariable";
+import {MeetingVariable} from "../MeetingVariable";
 import {FileJobStatus, FileJobType, MessageType} from "../utils/Types";
 import DocumentPicker from "react-native-document-picker";
 import {windowWidth} from "../utils/Utils";
@@ -195,7 +195,7 @@ export default class MeetingChat extends Component {
         let file = null;
 
         try {
-            file = await fileService.pickFile();
+            file = await MeetingVariable.fileService.pickFile();
         } catch (err) {
             if (DocumentPicker.isCancel(err)) {
                 console.warn('[File]  User cancelled file picker');
@@ -226,7 +226,7 @@ export default class MeetingChat extends Component {
                 messages: MeetingVariable.messages
             });
 
-            const fileURL = await fileService.uploadFile(file, (bytesSent, totalBytes) => {
+            const fileURL = await MeetingVariable.fileService.uploadFile(file, (bytesSent, totalBytes) => {
                 message.bytesSent = bytesSent;
                 message.totalBytes = totalBytes;
                 this.setState({
@@ -252,8 +252,8 @@ export default class MeetingChat extends Component {
     // @Param message: reference of a message in MeetingVariable.messages
     downloadFile = async (message) => {
         try {
-            const filePath = `${fileService.getBundlePath()}/${message.filename}`;
-            await fileService.download(message.fileURL, filePath,
+            const filePath = `${MeetingVariable.fileService.getBundlePath()}/${message.filename}`;
+            await MeetingVariable.fileService.download(message.fileURL, filePath,
                 (bytesSent, totalBytes) => {
                     message.bytesSent = bytesSent;
                     message.totalBytes = totalBytes;

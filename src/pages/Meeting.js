@@ -25,6 +25,10 @@ import CheckBox from '@react-native-community/checkbox';
 import {HostMenu, ParticipantsMenu} from "../components/ParticipantsMenu";
 import {PanResponderSubtitle} from "../components/PanResponderSubtitle";
 import Orientation, {useOrientationChange} from "react-native-orientation-locker";
+import {
+    RTCView,
+    MediaStream,
+} from 'react-native-webrtc';
 
 const microInf = {
     isCalled: false,
