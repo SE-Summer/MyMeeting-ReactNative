@@ -777,6 +777,7 @@ export class MediaService
                 if (!dataConsumer.closed) {
                     dataConsumer.close();
                 }
+                this.dataConsumers.delete(data.dataConsumerId);
             });
 
             dataConsumer.on('error', (err) => {
@@ -784,10 +785,12 @@ export class MediaService
                 if (!dataConsumer.closed) {
                     dataConsumer.close();
                 }
+                this.dataConsumers.delete(data.dataConsumerId);
             });
 
             dataConsumer.on('close', () => {
                 console.log(`[DataConsumer event]  Closed`);
+                this.dataConsumers.delete(data.dataConsumerId);
             });
 
             dataConsumer.on('message', (text: string) => {
