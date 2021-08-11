@@ -3,8 +3,10 @@ import {config, myFileType} from "../Constants";
 import * as React from "react";
 import {Dimensions} from "react-native";
 
-export const windowWidth = Dimensions.get('window').width;
-export const windowHeight = Dimensions.get('window').height;
+const getWidth = Dimensions.get('window').width;
+const getHeight = Dimensions.get('window').height;
+export const windowWidth = getWidth < getHeight ? getWidth : getHeight;
+export const windowHeight = getHeight > getWidth ? getHeight : getWidth;
 
 export const validateEmail = (email) => {
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

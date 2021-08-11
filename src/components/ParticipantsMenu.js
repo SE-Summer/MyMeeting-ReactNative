@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {FlatList, Text, View, StyleSheet, Alert} from "react-native";
+import {FlatList, Text, View, StyleSheet, Alert, TouchableOpacity} from "react-native";
 import {MeetingVariable} from "../MeetingVariable";
 import {Avatar} from "react-native-elements";
 import {config_key} from "../Constants";
@@ -139,14 +139,35 @@ export const HostMenu = () => {
 
     const Empty = () => {
         return (
-            <View style={{alignItems: 'center', justifyContent: 'center', marginTop: 15}}>
+            <View style={{alignItems: 'center', justifyContent: 'center', marginTop: 10}}>
                 <Text>-没有其他参会人员-</Text>
             </View>
         )
     }
 
     return (
-        <View style={{flex: 2, backgroundColor: '#f1f3f5'}}>
+        <View style={{flex: 2, backgroundColor: '#f1f3f5', alignItems: 'center'}}>
+            {
+                MeetingVariable.mediaService.getPeerDetails().length !== 0 &&
+                <TouchableOpacity
+                    style={{
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 7,
+                        backgroundColor: '#ff585e',
+                        borderRadius: 5,
+                        margin: 10,
+                    }}
+                    onPress={() => {
+                        MeetingVariable.mediaService.mutePeer(null).then(
+                            toast.show('已全体静音', {type: 'normal', duration: 1000, placement: 'top'})
+                        )
+                    }}
+                >
+                    <Text style={{color: 'white'}}>全体静音</Text>
+                </TouchableOpacity>
+            }
+
             <FlatList
                 data={MeetingVariable.mediaService.getPeerDetails()}
                 renderItem={renderItem}

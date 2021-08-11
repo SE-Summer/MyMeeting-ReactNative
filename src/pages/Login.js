@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     },
     titleContainer: {
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         height: windowHeight * 0.31,
     },
     buttonContainer: {
