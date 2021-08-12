@@ -25,6 +25,7 @@ import CheckBox from '@react-native-community/checkbox';
 import {HostMenu, ParticipantsMenu} from "../components/ParticipantsMenu";
 import {PanResponderSubtitle} from "../components/PanResponderSubtitle";
 import Orientation, {useOrientationChange} from "react-native-orientation-locker";
+import RNSwitchAudioOutput from 'react-native-switch-audio-output';
 
 const microInf = {
     isCalled: false,
@@ -78,6 +79,7 @@ export default class Meeting extends Component
             leaveAndClose: false,
             subtitle: false,
             hideHeadAndFoot: false,
+            audioRoute: 'Speaker',
         };
     }
 
@@ -300,6 +302,22 @@ export default class Meeting extends Component
         }
     }
 
+    switchAudioRoute = () => {
+        if (this.state.audioRoute === 'Speaker') {
+            this.setState({
+                audioRoute: 'Headphone',
+            }, () => {
+                RNSwitchAudioOutput.selectAudioOutput(RNSwitchAudioOutput.AUDIO_HEADPHONE);
+            })
+        } else {
+            this.setState({
+                audioRoute: 'Speaker',
+            }, () => {
+                RNSwitchAudioOutput.selectAudioOutput(RNSwitchAudioOutput.AUDIO_SPEAKER);
+            })
+        }
+    }
+
     updatePeerDetails() {
         MeetingVariable.hostId = MeetingVariable.mediaService.getHostPeerId();
         this.setState({
@@ -447,7 +465,7 @@ export default class Meeting extends Component
         const {width, height, myCameraStream, myDisplayStream,
             camStat, microStat, newMessage, frontCam,
             shareScreen, alertError, leaveAndClose,
-            subtitle} = this.state;
+            subtitle, audioRoute} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <MyAlert
@@ -561,6 +579,8 @@ export default class Meeting extends Component
                             newMessage={newMessage}
                             setView={(type) => { this.setState({ view: type, }); }}
                             subtitle={subtitle}
+                            audioStatus={audioRoute}
+                            switchAudioRoute={this.switchAudioRoute}
                         />
                     </Animated.View>
 
@@ -730,7 +750,7 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
 const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
                     openCamera, closeCamera, openMicro, closeMicro, frontCam,
                     camStat, microStat, newMessage, openScreenShare , closeScreenShare,
-                    subtitle, setSubtitle}) => {
+                    subtitle, setSubtitle, audioStatus, switchAudioRoute}) => {
     const footerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -885,6 +905,12 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
                                 iconName={'people'}
                                 pressEvent={() => {setParticipantsVisible(true);}}
                                 color={'black'}
+                            />
+                            <IconWithLabel
+                                text={audioStatus === 'Speaker' ? '扬声器开' : '扬声器关'}
+                                color={'black'}
+                                iconName={audioStatus === 'Speaker' ? 'volume-high' : 'volume-mute'}
+                                pressEvent={switchAudioRoute}
                             />
                         </View>
                         <View style={[menuStyle.container]}>
