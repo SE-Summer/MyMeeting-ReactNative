@@ -90,7 +90,7 @@ export default class MeetingChat extends Component {
             MeetingVariable.mediaService.sendText(peerId, text, message.timestamp);
 
             if (!message.broadcast && message.toPeerInfo == null) {
-                message.toPeerInfo = MeetingVariable.mediaService.getPeerDetailsByPeerId(message.toPeerId).getPeerInfo();
+                message.toPeerInfo = MeetingVariable.mediaService.getPeerDetailByPeerId(message.toPeerId).getPeerInfo();
             }
 
             MeetingVariable.messages.push(message);
@@ -328,7 +328,7 @@ export default class MeetingChat extends Component {
 
     renderFileItem = ({item}) => {
         if (!item.fromMyself && item.peerInfo == null) {
-            item.peerInfo = MeetingVariable.mediaService.getPeerDetailsByPeerId(item.fromPeerId).getPeerInfo();
+            item.peerInfo = MeetingVariable.mediaService.getPeerDetailByPeerId(item.fromPeerId).getPeerInfo();
         }
 
         return (

@@ -65,14 +65,7 @@ export class MediaService
 
             this.sendingTracks = new Map<string, MediaStreamTrack>();
             this.producers = new Map<string, mediasoupTypes.Producer>();
-            this.peerMedia = new PeerMedia( (consumerInfo: types.ConsumerInfo) => {
-                return this.recvTransport.consume({
-                    id            : consumerInfo.consumerId,
-                    producerId    : consumerInfo.producerId,
-                    kind          : consumerInfo.kind,
-                    rtpParameters : consumerInfo.rtpParameters
-                });
-            });
+            this.peerMedia = new PeerMedia();
             this.dataConsumers = new Map<string, mediasoupTypes.DataConsumer>();
 
             this.eventEmitter = new events.EventEmitter();
@@ -147,7 +140,7 @@ export class MediaService
         return this.peerMedia.getPeerDetails();
     }
 
-    public getPeerDetailsByPeerId(peerId: string)
+    public getPeerDetailByPeerId(peerId: string)
     {
         return this.peerMedia.getPeerDetailByPeerId(peerId);
     }
@@ -751,17 +744,15 @@ export class MediaService
 
         this.signaling.registerListener(SignalType.notify, SignalMethod.newConsumer, async (data: types.ConsumerInfo) => {
             console.log('[Signaling]  Handling newConsumer notification...');
+            console.log('[Signaling]  Creating consumer kind = ' + data.kind);
             const consumer = await this.recvTransport.consume({
                 id            : data.consumerId,
                 producerId    : data.producerId,
                 kind          : data.kind,
                 rtpParameters : data.rtpParameters
             });
-            console.log('[Signaling]  Creating consumer kind = ' + data.kind);
-            const { track } = consumer;
-            console.log('[Consumer]  Received track', track);
-            console.log(`[Signaling]  Add trackId = ${track.id} sent from peerId = ${data.producerPeerId}`);
-            this.peerMedia.addConsumerInfo(data.producerPeerId, consumer, track);
+            consumer.pause();
+            this.peerMedia.addConsumer(data.producerPeerId, consumer);
 
             this.updatePeerCallbacks.forEach((callback) => {
                 callback();
@@ -815,7 +806,7 @@ export class MediaService
         this.signaling.registerListener(SignalType.notify, SignalMethod.consumerClosed, ({ consumerId }) => {
             console.log('[Signaling]  Handling consumerClosed notification...');
             console.log(`[Signaling]  Delete consumer id = ${consumerId}`);
-            this.peerMedia.deleteConsumerAndTrack(consumerId);
+            this.peerMedia.deleteConsumer(consumerId);
 
             this.updatePeerCallbacks.forEach((callback) => {
                 callback();

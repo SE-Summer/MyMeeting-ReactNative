@@ -25,10 +25,6 @@ import CheckBox from '@react-native-community/checkbox';
 import {HostMenu, ParticipantsMenu} from "../components/ParticipantsMenu";
 import {PanResponderSubtitle} from "../components/PanResponderSubtitle";
 import Orientation, {useOrientationChange} from "react-native-orientation-locker";
-import {
-    RTCView,
-    MediaStream,
-} from 'react-native-webrtc';
 
 const microInf = {
     isCalled: false,
@@ -321,7 +317,7 @@ export default class Meeting extends Component
     }
 
     recvMessage(message) {
-        message.peerInfo = MeetingVariable.mediaService.getPeerDetailsByPeerId(message.fromPeerId).getPeerInfo();
+        message.peerInfo = MeetingVariable.mediaService.getPeerDetailByPeerId(message.fromPeerId).getPeerInfo();
         message.fromMyself = false;
         MeetingVariable.messages.push(message);
         this.setState({
