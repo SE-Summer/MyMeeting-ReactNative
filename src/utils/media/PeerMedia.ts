@@ -79,10 +79,44 @@ class PeerDetail
         return tracks;
     }
 
-    public unsubscribe()
+    public getVideoTracks()
+    {
+        let tracks: MediaStreamTrack[] = [];
+        this.consumers.forEach((consumer) => {
+            if (consumer.kind === 'video') {
+                consumer.resume();
+                tracks.push(consumer.track);
+            }
+        });
+        return tracks;
+    }
+
+    public getAudioTracks()
+    {
+
+        let tracks: MediaStreamTrack[] = [];
+        this.consumers.forEach((consumer) => {
+            if (consumer.kind === 'audio') {
+                consumer.resume();
+                tracks.push(consumer.track);
+            }
+        });
+        return tracks;
+    }
+
+    public subscribe()
     {
         this.consumers.forEach((consumer) => {
-            consumer.pause();
+            consumer.resume();
+        });
+    }
+
+    public unsubscribeVideo()
+    {
+        this.consumers.forEach((consumer) => {
+            if (consumer.kind === 'video') {
+                consumer.pause();
+            }
         });
     }
 
