@@ -65,7 +65,14 @@ export class MediaService
 
             this.sendingTracks = new Map<string, MediaStreamTrack>();
             this.producers = new Map<string, mediasoupTypes.Producer>();
-            this.peerMedia = new PeerMedia();
+            this.peerMedia = new PeerMedia( (consumerInfo: types.ConsumerInfo) => {
+                return this.recvTransport.consume({
+                    id            : consumerInfo.consumerId,
+                    producerId    : consumerInfo.producerId,
+                    kind          : consumerInfo.kind,
+                    rtpParameters : consumerInfo.rtpParameters
+                });
+            });
             this.dataConsumers = new Map<string, mediasoupTypes.DataConsumer>();
 
             this.eventEmitter = new events.EventEmitter();
@@ -142,7 +149,7 @@ export class MediaService
 
     public getPeerDetailsByPeerId(peerId: string)
     {
-        return this.peerMedia.getPeerDetailsByPeerId(peerId);
+        return this.peerMedia.getPeerDetailByPeerId(peerId);
     }
 
     public getHostPeerId()
@@ -754,7 +761,7 @@ export class MediaService
             const { track } = consumer;
             console.log('[Consumer]  Received track', track);
             console.log(`[Signaling]  Add trackId = ${track.id} sent from peerId = ${data.producerPeerId}`);
-            this.peerMedia.addConsumerAndTrack(data.producerPeerId, consumer, track);
+            this.peerMedia.addConsumerInfo(data.producerPeerId, consumer, track);
 
             this.updatePeerCallbacks.forEach((callback) => {
                 callback();

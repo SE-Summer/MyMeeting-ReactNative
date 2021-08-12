@@ -35,7 +35,13 @@ export declare type ConsumerInfo = {
     rtpParameters : mediasoupTypes.RtpParameters
 }
 
-export declare type  DataConsumerInfo = {
+export declare type ConsumerDetail = {
+    consumerInfo: ConsumerInfo,
+    consumer?: mediasoupTypes.Consumer,
+    track?: MediaStreamTrack,
+}
+
+export declare type DataConsumerInfo = {
     producerPeerId: string,
     dataProducerId: string,
     dataConsumerId: string,
