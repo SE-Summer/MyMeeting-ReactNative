@@ -97,23 +97,35 @@ class PeerDetail
         return this._hasAudio;
     }
 
-    public closeConsumers()
+    public clearConsumerDetails()
     {
-        this.consumers.forEach((consumer) => {
-            if (!consumer.closed) {
-                consumer.close();
+        this.consumerDetails.forEach((consumerDetail) => {
+            if (!consumerDetail.consumer.closed) {
+                consumerDetail.consumer.close();
             }
-        })
+        });
+        this.consumerDetails.clear();
+    }
+
+    public stopConsumers()
+    {
+        this.consumerDetails.forEach((consumerDetail) => {
+            if (!consumerDetail.consumer.closed) {
+                consumerDetail.consumer.close();
+            }
+            consumerDetail.consumer = null;
+            consumerDetail.track = null;
+        });
     }
 
     private updateMediaStatus()
     {
         this._hasAudio = false;
         this._hasVideo = false;
-        this.tracks.forEach((track) => {
-            if (track.kind === 'video')
+        this.consumerDetails.forEach((consumerDetail) => {
+            if (consumerDetail.consumerInfo.kind === 'video')
                 this._hasVideo = true;
-            else if (track.kind === 'audio')
+            else if (consumerDetail.consumerInfo.kind === 'audio')
                 this._hasAudio = true;
         });
     }
@@ -182,8 +194,8 @@ export class PeerMedia
             this.consumerId2Details.delete(consumerId);
         });
 
-        peerDetail.closeConsumers();
-        peerDetail.closeConsumers();
+        peerDetail.clearConsumerDetails();
+        peerDetail.clearConsumerDetails();
         this.peerId2Details.delete(peerId);
     }
 
@@ -199,7 +211,7 @@ export class PeerMedia
     public clear()
     {
         this.peerId2Details.forEach((peerDetail) => {
-            peerDetail.closeConsumers();
+            peerDetail.clearConsumerDetails();
         });
         this.peerId2Details.clear();
         this.consumerId2Details.clear();
