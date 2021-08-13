@@ -335,7 +335,7 @@ export default class Meeting extends Component
     }
 
     recvMessage(message) {
-        message.peerInfo = MeetingVariable.mediaService.getPeerDetailsByPeerId(message.fromPeerId).getPeerInfo();
+        message.peerInfo = MeetingVariable.mediaService.getPeerDetailByPeerId(message.fromPeerId).getPeerInfo();
         message.fromMyself = false;
         MeetingVariable.messages.push(message);
         this.setState({

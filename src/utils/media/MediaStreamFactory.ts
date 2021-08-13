@@ -1,4 +1,7 @@
-import {mediaDevices} from "react-native-webrtc";
+import {
+    MediaStream,
+    mediaDevices,
+} from 'react-native-webrtc';
 import {serviceConfig} from "../../ServiceConfig";
 import * as events from "events"
 import {timeoutCallback} from "./MediaUtils";

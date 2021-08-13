@@ -2,6 +2,7 @@ import { Recognizer } from "react-native-speech-iflytek";
 import {NativeEventEmitter} from "react-native";
 import {iflytekAPPID} from "../../ServiceConfig";
 import {SpeechText} from "../Types";
+import {MeetingVariable} from "../../MeetingVariable";
 // @ts-ignore
 import moment from "moment";
 
@@ -39,12 +40,15 @@ export class SpeechRecognition
             console.log(`[Recognizer]  Recognized speech: ${text}`);
             console.log('[Recognizer]  Sentence ended');
             let speechText: SpeechText = {
+                displayName: MeetingVariable.myName,
                 fromMyself: true,
-                sentenceEnded: false,
+                sentenceEnded: true,
                 text: text,
-                timestamp: this.sentenceEnded ? moment() : null,
+                timestamp: this.sentenceEnded ? moment() : null
             }
             this.sentenceEnded = true;
+
+            this.sendSpeechText(speechText);
             this.recognizedCallbacks.forEach((callback) => {
                 callback(speechText);
             });
@@ -56,21 +60,24 @@ export class SpeechRecognition
         } else {
             console.log(`[Recognizer]  Recognized speech: ${text}`);
             let speechText: SpeechText = {
+                displayName: MeetingVariable.myName,
                 fromMyself: true,
                 sentenceEnded: false,
                 text: text,
-                timestamp: this.sentenceEnded ? moment() : null,
+                timestamp: this.sentenceEnded ? moment() : null
             }
+            this.sentenceEnded = false;
+
+            this.sendSpeechText(speechText);
             this.recognizedCallbacks.forEach((callback) => {
                 callback(speechText);
             });
-            this.sentenceEnded = false;
         }
     }
 
     private sendSpeechText(text: SpeechText)
     {
-
+        MeetingVariable.mediaService.sendSpeechText(text);
     }
 
     public start()

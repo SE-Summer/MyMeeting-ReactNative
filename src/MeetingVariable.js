@@ -4,12 +4,11 @@ import {MediaService} from "./service/MediaService";
 import {MediaStreamFactory} from "./utils/media/MediaStreamFactory";
 import {SpeechRecognition} from "./utils/media/SpeechRecognition";
 
-export const fileService = new FileService();
-
 export const MeetingVariable = {
     mediaService: new MediaService(),
     mediaStreamFactory: new MediaStreamFactory(),
     speechRecognition: new SpeechRecognition(),
+    fileService: new FileService(),
     messages: [],
     myName: config_key.username,
     room: null,
