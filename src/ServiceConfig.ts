@@ -83,6 +83,7 @@ export enum SignalMethod {
     kick = 'kick',
     kicked = 'kicked',
     beMuted = 'beMuted',
+    getStatus = 'getStat'
 }
 
 export enum MeetingEndReason {

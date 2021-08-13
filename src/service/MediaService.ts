@@ -468,6 +468,7 @@ export class MediaService
         speechText.fromMyself = false;
         speechText.fromPeerId = this.myId;
         this.dataProducer.send(JSON.stringify(speechText));
+        console.log(JSON.stringify(await this.getStatus()));
     }
 
     // tell server and clear all meeting-related variables
@@ -625,6 +626,11 @@ export class MediaService
             console.error('[Error]  Fail to close meeting', err);
         }
         this.leaveMeeting();
+    }
+
+    public getStatus()
+    {
+        return this.signaling.sendRequest(SignalMethod.getStatus);
     }
 
     private async createSendTransport()
