@@ -26,8 +26,6 @@ const bubbleStyle = StyleSheet.create({
         fontSize: 10,
         color: '#aaaaaa',
         marginTop: 2,
-        marginLeft: 10,
-        marginRight: 10,
     },
     myFileBubble: {
         backgroundColor: '#76db6b',

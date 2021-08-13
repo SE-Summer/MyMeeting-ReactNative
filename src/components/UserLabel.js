@@ -16,7 +16,7 @@ export const UserLabel = ({text}) => {
                 backgroundColor: '#aaaaaa55',
                 zIndex: 10
             }}>
-            <Text style={{fontSize: 12, color: 'white'}}>{text}</Text>
+            <Text style={{fontSize: 12, color: 'white'}} numberOfLines={1}>{text}</Text>
         </View>
     )
 }
