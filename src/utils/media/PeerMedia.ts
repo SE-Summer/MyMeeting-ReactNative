@@ -73,7 +73,10 @@ class PeerDetail
     {
         let tracks: MediaStreamTrack[] = [];
         this.consumers.forEach((consumer) => {
-            consumer.resume();
+            if (consumer.paused) {
+                consumer.emit('resume');
+                consumer.resume();
+            }
             tracks.push(consumer.track);
         });
         return tracks;
@@ -84,7 +87,10 @@ class PeerDetail
         let tracks: MediaStreamTrack[] = [];
         this.consumers.forEach((consumer) => {
             if (consumer.kind === 'video') {
-                consumer.resume();
+                if (consumer.paused) {
+                    consumer.emit('resume');
+                    consumer.resume();
+                }
                 tracks.push(consumer.track);
             }
         });
@@ -97,7 +103,10 @@ class PeerDetail
         let tracks: MediaStreamTrack[] = [];
         this.consumers.forEach((consumer) => {
             if (consumer.kind === 'audio') {
-                consumer.resume();
+                if (consumer.paused) {
+                    consumer.emit('resume');
+                    consumer.resume();
+                }
                 tracks.push(consumer.track);
             }
         });
@@ -107,7 +116,10 @@ class PeerDetail
     public subscribe()
     {
         this.consumers.forEach((consumer) => {
-            consumer.resume();
+            if (consumer.paused) {
+                consumer.emit('resume');
+                consumer.resume();
+            }
         });
     }
 
@@ -115,7 +127,10 @@ class PeerDetail
     {
         this.consumers.forEach((consumer) => {
             if (consumer.kind === 'video') {
-                consumer.pause();
+                if (!consumer.paused) {
+                    consumer.emit('pause');
+                    consumer.pause();
+                }
             }
         });
     }

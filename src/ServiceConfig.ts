@@ -1,6 +1,6 @@
 const config = {
-    serverIp: 'se-summer.cn',
-    // serverIp: '192.168.0.106',
+    // serverIp: 'se-summer.cn',
+    serverIp: '122.112.175.61',
     serverPort: 4446,
     serverUseHttps: false,
 }
@@ -10,7 +10,7 @@ export const iflytekAPPID = '2d2edf67';
 export const SIMULCASTENCODING: RTCRtpEncodingParameters[] = [
     {maxBitrate: 100000},
     {maxBitrate: 300000},
-    {maxBitrate: 900000}
+    {maxBitrate: 700000}
 ];
 
 const _serverURL = (config.serverUseHttps ? 'https://' : 'http://') + config.serverIp + ':' + config.serverPort;

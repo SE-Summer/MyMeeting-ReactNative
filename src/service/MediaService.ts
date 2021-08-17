@@ -8,7 +8,7 @@ import {
     meetingURL,
     serviceConfig,
     SignalMethod,
-    SignalType,
+    SignalType, SIMULCASTENCODING,
     socketConnectionOptions,
     TransportType
 } from "../ServiceConfig";
@@ -268,6 +268,23 @@ export class MediaService
 
             this.joined = true;
 
+            await this.createDataProducer();
+
+            // setTimeout(() => {
+            //     this.sendSpeechText({
+            //         displayName: "test", fromMyself: false, sentenceEnded: false, text: "123"
+            //     });
+            //     this.sendSpeechText({
+            //         displayName: "test", fromMyself: false, sentenceEnded: false, text: "123456789"
+            //     });
+            //     this.sendSpeechText({
+            //         displayName: "test", fromMyself: false, sentenceEnded: false, text: "1234567890987654321"
+            //     });
+            // }, 10000)
+            setTimeout(async () => {
+                console.log(JSON.stringify(await this.getStatus()));
+            }, 20000)
+
         } catch (err) {
             console.error('[Error]  Fail to join the meeting', err);
             this.meetingEndCallbacks.forEach((callback) => {
@@ -364,7 +381,9 @@ export class MediaService
                     params = {
                         track,
                         appData: { source },
-                        codec: this.device.rtpCapabilities.codecs.find(codec => codec.mimeType === 'video/H264')
+                        encodings: SIMULCASTENCODING,
+                        codecOptions: { videoGoogleStartBitrate : 1000 },
+                        // codec: this.device.rtpCapabilities.codecs.find(codec => codec.mimeType === 'video/H264')
                     }
                 } else {
                     source = `Audio_from_${this.userToken}_track${++audioTrackCount}`;
@@ -440,9 +459,9 @@ export class MediaService
         }
     }
 
-    public async sendSpeechText(speechText: SpeechText)
+    public async createDataProducer()
     {
-        if (!this.dataProducer || this.dataProducer.closed) {
+        if (this.dataProducer == null || this.dataProducer.closed) {
             this.dataProducer = await this.sendTransport.produceData({
                 ordered: true,
             });
@@ -465,10 +484,16 @@ export class MediaService
                 this.dataProducer = null;
             });
         }
+    }
+
+    public sendSpeechText(speechText: SpeechText)
+    {
         speechText.fromMyself = false;
         speechText.fromPeerId = this.myId;
         this.dataProducer.send(JSON.stringify(speechText));
-        console.log(JSON.stringify(await this.getStatus()));
+        setTimeout(async () => {
+            console.log(JSON.stringify(await this.getStatus()));
+        }, 5000)
     }
 
     // tell server and clear all meeting-related variables
@@ -691,6 +716,7 @@ export class MediaService
                         label                : parameters.label,
                         protocol             : parameters.protocol
                     }) as { id: string };
+                console.log('created data producer, id = ' + id);
                 callback({ id });
             }
             catch (error)
@@ -703,12 +729,14 @@ export class MediaService
     private async createRecvTransport()
     {
         try {
-            this.recvTransport = this.device.createRecvTransport(
-                await this.signaling.sendRequest(SignalMethod.createTransport, {
-                    transportType: TransportType.consumer,
-                    sctpCapabilities: this.device.sctpCapabilities,
-                } as types.CreateTransportRequest) as mediasoupTypes.TransportOptions
-            );
+            const transportOptions = await this.signaling.sendRequest(SignalMethod.createTransport, {
+                transportType: TransportType.consumer,
+                sctpCapabilities: this.device.sctpCapabilities,
+            } as types.CreateTransportRequest) as mediasoupTypes.TransportOptions;
+
+            console.log("RecvTransport options: %s", transportOptions);
+
+            this.recvTransport = this.device.createRecvTransport(transportOptions);
         } catch (err) {
             console.error('[Error]  Fail when sending createTransport (recv) request', err);
             return Promise.reject('Fail when sending createTransport (recv) request');
@@ -758,6 +786,18 @@ export class MediaService
                 rtpParameters : data.rtpParameters
             });
             consumer.pause();
+            consumer.emit('pause');
+
+            consumer.on('pause', async () => {
+                console.log('[Consumer]  Pause consumer id = ' + consumer.id);
+                await this.signaling.sendRequest(SignalMethod.pauseConsumer, {consumerId: consumer.id});
+            });
+
+            consumer.on('resume', async () => {
+                console.log('[Consumer]  Resume consumer id = ' + consumer.id);
+                await this.signaling.sendRequest(SignalMethod.resumeConsumer, {consumerId: consumer.id});
+            });
+
             this.peerMedia.addConsumer(data.producerPeerId, consumer);
 
             this.updatePeerCallbacks.forEach((callback) => {
