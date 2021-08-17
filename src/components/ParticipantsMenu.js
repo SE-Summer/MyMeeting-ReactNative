@@ -9,10 +9,22 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 const participantsMenuStyles = StyleSheet.create({
     iconContainer: {
         justifyContent: 'flex-end',
-        flexDirection: 'row', flex: 1
+        flexDirection: 'row',
+        flex: 2,
     },
     icon: {
         marginLeft: 5,
+    },
+    avatarContainer: {
+        flex: 2,
+    },
+    nameContainer: {
+        flex: 5,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    hostIcon: {
+        marginLeft: 8,
     }
 })
 
@@ -21,18 +33,22 @@ export const ParticipantsMenu = ({myCamStat, myMicStat}) => {
         const peerInfo = item.getPeerInfo();
         return (
             <View style={{flexDirection: 'row', alignItems: 'center', padding: 20}}>
-                <Avatar
-                    rounded
-                    size={50}
-                    source={{
-                        uri: peerInfo.avatar
-                    }}
-                />
-                <Text style={{marginLeft: 30, marginRight: 10}}>{peerInfo.displayName}</Text>
-                {
-                    MeetingVariable.hostId === peerInfo.id &&
-                    <FontAwesome5 name={'crown'} color={'gold'}/>
-                }
+                <View style={participantsMenuStyles.avatarContainer}>
+                    <Avatar
+                        rounded
+                        size={50}
+                        source={{
+                            uri: peerInfo.avatar
+                        }}
+                    />
+                </View>
+                <View style={participantsMenuStyles.nameContainer}>
+                    <Text numberOfLines={1}>{peerInfo.displayName}</Text>
+                    {
+                        MeetingVariable.hostId === peerInfo.id &&
+                        <FontAwesome5 name={'crown'} color={'gold'} style={participantsMenuStyles.hostIcon}/>
+                    }
+                </View>
                 <View style={participantsMenuStyles.iconContainer}>
                     <Ionicons name={'mic'} size={20} style={participantsMenuStyles.icon} color={item.hasAudio() ? '#9be3b1' : '#aaaaaa'}/>
                     <Ionicons name={'videocam'} size={20}  style={participantsMenuStyles.icon} color={item.hasVideo() ? '#9be3b1' : '#aaaaaa'}/>
@@ -52,18 +68,22 @@ export const ParticipantsMenu = ({myCamStat, myMicStat}) => {
     return (
         <View style={{flex: 2, backgroundColor: '#f1f3f5'}}>
             <View style={{flexDirection: 'row', alignItems: 'center', padding: 20}}>
-                <Avatar
-                    rounded
-                    size={50}
-                    source={{
-                        uri: config_key.avatarUri
-                    }}
-                />
-                <Text style={{marginLeft: 30, marginRight: 10}}>{MeetingVariable.myName}</Text>
-                {
-                    MeetingVariable.hostId === config_key.token &&
-                    <FontAwesome5 name={'crown'} color={'gold'}/>
-                }
+                <View style={participantsMenuStyles.avatarContainer}>
+                    <Avatar
+                        rounded
+                        size={50}
+                        source={{
+                            uri: config_key.avatarUri
+                        }}
+                    />
+                </View>
+                <View style={participantsMenuStyles.nameContainer}>
+                    <Text numberOfLines={1}>{MeetingVariable.myName}</Text>
+                    {
+                        MeetingVariable.hostId === config_key.token &&
+                        <FontAwesome5 name={'crown'} color={'gold'} style={participantsMenuStyles.hostIcon}/>
+                    }
+                </View>
                 <View style={participantsMenuStyles.iconContainer}>
                     <Ionicons name={'mic'} size={20} style={participantsMenuStyles.icon} color={myMicStat ? '#9be3b1' : '#aaaaaa'}/>
                     <Ionicons name={'videocam'} size={20}  style={participantsMenuStyles.icon} color={myCamStat ? '#9be3b1' : '#aaaaaa'}/>
@@ -87,14 +107,18 @@ export const HostMenu = () => {
         const peerInfo = item.getPeerInfo();
         return (
             <View style={{flexDirection: 'row', alignItems: 'center', padding: 20}}>
-                <Avatar
-                    rounded
-                    size={50}
-                    source={{
-                        uri: peerInfo.avatar
-                    }}
-                />
-                <Text style={{marginLeft: 30, marginRight: 10}}>{peerInfo.displayName}</Text>
+                <View style={participantsMenuStyles.avatarContainer}>
+                    <Avatar
+                        rounded
+                        size={50}
+                        source={{
+                            uri: peerInfo.avatar
+                        }}
+                    />
+                </View>
+                <View style={participantsMenuStyles.nameContainer}>
+                    <Text numberOfLines={1}>{peerInfo.displayName}</Text>
+                </View>
                 <View style={participantsMenuStyles.iconContainer}>
                     <Ionicons
                         name={'mic'}
@@ -146,28 +170,29 @@ export const HostMenu = () => {
     }
 
     return (
-        <View style={{flex: 2, backgroundColor: '#f1f3f5', alignItems: 'center'}}>
+        <View style={{flex: 2, backgroundColor: '#f1f3f5'}}>
             {
                 MeetingVariable.mediaService.getPeerDetails().length !== 0 &&
-                <TouchableOpacity
-                    style={{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: 7,
-                        backgroundColor: '#ff585e',
-                        borderRadius: 5,
-                        margin: 10,
-                    }}
-                    onPress={() => {
-                        MeetingVariable.mediaService.mutePeer(null).then(
-                            toast.show('已全体静音', {type: 'normal', duration: 1000, placement: 'top'})
-                        )
-                    }}
-                >
-                    <Text style={{color: 'white'}}>全体静音</Text>
-                </TouchableOpacity>
+                <View style={{alignItems: 'center'}}>
+                    <TouchableOpacity
+                        style={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: 7,
+                            backgroundColor: '#ff585e',
+                            borderRadius: 5,
+                            margin: 10,
+                        }}
+                        onPress={() => {
+                            MeetingVariable.mediaService.mutePeer(null).then(
+                                toast.show('已全体静音', {type: 'normal', duration: 1000, placement: 'top'})
+                            )
+                        }}
+                    >
+                        <Text style={{color: 'white'}}>全体静音</Text>
+                    </TouchableOpacity>
+                </View>
             }
-
             <FlatList
                 data={MeetingVariable.mediaService.getPeerDetails()}
                 renderItem={renderItem}

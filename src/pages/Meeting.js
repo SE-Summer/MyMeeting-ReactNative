@@ -330,7 +330,7 @@ export default class Meeting extends Component
     }
 
     async mutedByHost() {
-        toast.show('房主已将您静音', {type: 'warning', duration: 1000, placement: 'bottom'})
+        toast.show('房主已将您静音', {type: 'warning', duration: 1000, placement: 'top'})
         if (this.state.microStat !== 'off')
             await this.closeMicrophone();
     }
@@ -725,7 +725,7 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
     const animateBottom =  useRef(new Animated.Value(10)).current;
     const animateRight = useRef(new Animated.Value(10)).current;
 
-    useEffect(async () => {
+    useEffect( () => {
         if (showSmall === 'toShow') {
             showSmallWindow();
         } else if (showSmall === 'toHide') {
@@ -734,6 +734,9 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
     }, [showSmall])
 
     const showSmallWindow = () => {
+        if (!peerBig) {
+            peerToShow.subscribe();
+        }
         Animated.sequence(
             [
                 Animated.parallel(
@@ -769,6 +772,10 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
     }
 
     const hideSmallWindow = () => {
+        if (!peerBig) {
+            peerToShow.unsubscribeVideo();
+        }
+
         Animated.sequence(
             [
                 Animated.parallel(
@@ -806,7 +813,12 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
     const SmallWindow =  () => {
         if (showSmall === 'show') {
             return (
-                <TouchableOpacity style={portraitStyle.smallWindow} onPress={() => {setPeerBig(!peerBig)}}>
+                <TouchableOpacity
+                    style={portraitStyle.smallWindow}
+                    onPress={() => {
+                        setPeerBig(!peerBig);
+                    }}
+                >
                     <View style={{flex: 1}}>
                         <TouchableOpacity activeOpacity={0.5} style={portraitStyle.cancelButton} onPress={() => {setShowSmall('toHide');}}>
                             <Ionicons name={'close-circle-outline'} color={'white'} size={20}/>
