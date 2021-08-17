@@ -285,8 +285,8 @@ export default class MeetingChat extends Component {
             <View style={[style.listItem, {justifyContent: item.fromMyself ? 'flex-end' : 'flex-start'}]}>
                 {
                     item.fromMyself && !item.broadcast &&
-                    <View style={{marginTop: 10,}}>
-                        <Text style={{color: '#aaaaaa'}}>此消息仅{item.toPeerInfo.displayName}可见</Text>
+                    <View style={[style.privateTip, {marginRight: 3}]}>
+                        <Text style={style.tipFont} numberOfLines={1}>仅{item.toPeerInfo.displayName}可见</Text>
                     </View>
                 }
                 {
@@ -318,8 +318,8 @@ export default class MeetingChat extends Component {
                 }
                 {
                     !item.fromMyself && !item.broadcast &&
-                    <View style={{marginTop: 10,}}>
-                        <Text style={{color: '#aaaaaa'}}>此消息仅您可见</Text>
+                    <View style={[style.privateTip, {marginLeft: 3}]}>
+                        <Text style={style.tipFont} numberOfLines={1}>仅您可见</Text>
                     </View>
                 }
             </View>
@@ -432,8 +432,8 @@ export default class MeetingChat extends Component {
                 </View>
                 <Animated.View style={{flex: toolsBarFlex}}>
                     <View style={style.toolContainer}>
-                        <TouchableOpacity style={style.iconContainer} onPress={this.uploadFile}>
-                            <Ionicons name={'folder-outline'} size={40}/>
+                        <TouchableOpacity style={[style.iconContainer]} onPress={this.uploadFile} disabled={this.state.selected}>
+                            <Ionicons name={'folder-outline'} size={40} color={this.state.selected ? '#aaaaaa' : 'black'}/>
                         </TouchableOpacity>
                     </View>
                 </Animated.View>
@@ -489,10 +489,9 @@ const MemberSelector = ({selected, setSelected, name, setName, closeModal}) => {
                         }}
                     />
                 </View>
-                <View style={{flex: 1, alignItems: "center"}}>
-                    <Text style={{color: meSelected ? 'white' : 'black', fontSize: 17}}>{inf.displayName}</Text>
+                <View style={{alignItems: "center", marginLeft: 20}}>
+                    <Text style={{color: meSelected ? 'white' : 'black', fontSize: 16}}>{inf.displayName}</Text>
                 </View>
-                <View style={{flex: 1}}/>
             </TouchableOpacity>
         )
     }
@@ -553,7 +552,7 @@ const selectorStyle = StyleSheet.create({
         fontSize: 16,
     },
     selectedUser: {
-        fontSize: 16,
+        fontSize: 14,
     },
     selectedUserContainer: {
         flex: 1,
@@ -563,10 +562,10 @@ const selectorStyle = StyleSheet.create({
     },
     listItem: {
         backgroundColor: "white",
-        padding: 8,
+        padding: 6,
         elevation: 1,
         flexDirection: 'row',
-        alignItems:'center'
+        alignItems:'center',
     },
     itemText: {
         textAlign: 'center',
@@ -650,5 +649,13 @@ const style = StyleSheet.create({
         flex: 2,
         backgroundColor: 'white',
         elevation: 5,
+    },
+    privateTip: {
+        flex: 1,
+        marginTop: 10,
+    },
+    tipFont: {
+        color: '#aaaaaa',
+        fontSize: 12,
     }
 })

@@ -5,8 +5,16 @@ import {RTCView} from "react-native-webrtc";
 import {DefaultPic, DefaultWithAudioPic} from "./DefaultPic";
 import {MeetingVariable} from "../MeetingVariable";
 import {config_key} from "../Constants";
+import {useEffect} from "react";
 
 export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
+    useEffect(() => {
+        peerToShow.subscribe();
+        return () => {
+            peerToShow.unsubscribeVideo();
+        }
+    }, [])
+
     return (
         <View style={{flex: 1, borderWidth: 1, borderColor: peerToShow.hasAudio() ? '#44CE55' : '#f1f3f5'}}>
             <UserLabel text={peerToShow.getPeerInfo().displayName}/>
@@ -84,28 +92,35 @@ export const GridMyWindow = ({mirror, rtcViewStyle, myStream, microStat, pressEv
     )
 }
 
-export const GridPeerWindow = ({rtcViewStyle, item, pressEvent}) => {
-    const peerInfo = item.getPeerInfo();
+export const GridPeerWindow = ({rtcViewStyle, peerToShow, pressEvent}) => {
+    useEffect(() => {
+        peerToShow.subscribe();
+        return () => {
+            peerToShow.unsubscribeVideo();
+        }
+    }, [])
+
+    const peerInfo = peerToShow.getPeerInfo();
     return (
         <TouchableOpacity
             style={{
                 borderWidth: 1,
-                borderColor: (item.hasAudio() ? '#44CE55' : '#f1f3f5'),
+                borderColor: (peerToShow.hasAudio() ? '#44CE55' : '#f1f3f5'),
             }}
             onPress={pressEvent}
         >
             <View>
                 <UserLabel text={peerInfo.displayName}/>
                 {
-                    item.hasVideo() ?
+                    peerToShow.hasVideo() ?
                         <RTCView
                             zOrder={0}
                             mirror={false}
                             style={rtcViewStyle}
-                            streamURL={new MediaStream(item.getTracks()).toURL()}
+                            streamURL={new MediaStream(peerToShow.getTracks()).toURL()}
                         />
                         :
-                        item.hasAudio() ?
+                        peerToShow.hasAudio() ?
                             <DefaultWithAudioPic style={rtcViewStyle} imgSrc={peerInfo.avatar}/>
                             :
                             <DefaultPic style={rtcViewStyle} imgSrc={peerInfo.avatar}/>

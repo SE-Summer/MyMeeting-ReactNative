@@ -5,10 +5,10 @@ import {
     Text,
     TouchableHighlight,
     Modal,
-    FlatList,Animated,
+    FlatList, Animated,
 } from "react-native";
 import * as React from "react";
-import {Component, useState} from "react";
+import {Component, useEffect, useRef, useState} from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config, config_key} from "../Constants";
 import {IconWithLabel} from "../components/IconWithLabel";
@@ -25,6 +25,8 @@ import CheckBox from '@react-native-community/checkbox';
 import {HostMenu, ParticipantsMenu} from "../components/ParticipantsMenu";
 import {PanResponderSubtitle} from "../components/PanResponderSubtitle";
 import Orientation, {useOrientationChange} from "react-native-orientation-locker";
+import RNSwitchAudioOutput from 'react-native-switch-audio-output';
+import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 
 const microInf = {
     isCalled: false,
@@ -78,6 +80,7 @@ export default class Meeting extends Component
             leaveAndClose: false,
             subtitle: false,
             hideHeadAndFoot: false,
+            audioRoute: 'Speaker',
         };
     }
 
@@ -300,6 +303,22 @@ export default class Meeting extends Component
         }
     }
 
+    switchAudioRoute = () => {
+        if (this.state.audioRoute === 'Speaker') {
+            this.setState({
+                audioRoute: 'Headphone',
+            }, () => {
+                RNSwitchAudioOutput.selectAudioOutput(RNSwitchAudioOutput.AUDIO_HEADPHONE);
+            })
+        } else {
+            this.setState({
+                audioRoute: 'Speaker',
+            }, () => {
+                RNSwitchAudioOutput.selectAudioOutput(RNSwitchAudioOutput.AUDIO_SPEAKER);
+            })
+        }
+    }
+
     updatePeerDetails() {
         MeetingVariable.hostId = MeetingVariable.mediaService.getHostPeerId();
         this.setState({
@@ -403,9 +422,13 @@ export default class Meeting extends Component
     onSwipeLeft() {
         if (this.state.view === 'portrait' && this.state.peerDetails) {
             if (this.state.portraitIndex < this.state.peerDetails.length - 1) {
+                const oldIndex = this.state.portraitIndex;
+                this.state.peerDetails[oldIndex + 1].subscribe();
                 this.setState({
-                    portraitIndex: ++this.state.portraitIndex,
-                }, )
+                    portraitIndex: oldIndex + 1,
+                }, () => {
+                    this.state.peerDetails[oldIndex].unsubscribeVideo();
+                })
             }
         }
     }
@@ -413,8 +436,12 @@ export default class Meeting extends Component
     onSwipeRight() {
         if (this.state.view === 'portrait' && this.state.peerDetails) {
             if (this.state.portraitIndex > 0) {
+                const oldIndex = this.state.portraitIndex;
+                this.state.peerDetails[oldIndex - 1].subscribe();
                 this.setState({
-                    portraitIndex: --this.state.portraitIndex,
+                    portraitIndex: oldIndex - 1,
+                }, () => {
+                    this.state.peerDetails[oldIndex].unsubscribeVideo();
                 })
             }
         }
@@ -447,7 +474,7 @@ export default class Meeting extends Component
         const {width, height, myCameraStream, myDisplayStream,
             camStat, microStat, newMessage, frontCam,
             shareScreen, alertError, leaveAndClose,
-            subtitle} = this.state;
+            subtitle, audioRoute} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <MyAlert
@@ -480,7 +507,7 @@ export default class Meeting extends Component
                     visible={this.state.modalVisible}
                     setVisible={(value) => {this.setState({modalVisible: value})}}
                     otherComponent={
-                        alertError || roomInf.host !== parseInt(config_key.userId) ? null
+                        alertError || MeetingVariable.hostId !== config_key.token ? null
                             :
                         <View style={{alignItems: 'center', flexDirection: 'row', justifyContent: 'center'}}>
                             <Text>离开并结束会议</Text>
@@ -561,6 +588,9 @@ export default class Meeting extends Component
                             newMessage={newMessage}
                             setView={(type) => { this.setState({ view: type, }); }}
                             subtitle={subtitle}
+                            setSubtitle={(value) => {this.setState({subtitle: value})}}
+                            audioStatus={audioRoute}
+                            switchAudioRoute={this.switchAudioRoute}
                         />
                     </Animated.View>
 
@@ -616,7 +646,7 @@ const GridView = ({myStream, peerDetails, turnPortrait, myFrontCam, shareScreen,
             return (
                 <GridPeerWindow
                     rtcViewStyle={gridStyle.rtcView}
-                    item={item}
+                    peerToShow={item}
                     pressEvent={() => {turnPortrait(index-1)}}
                 />
             )
@@ -666,9 +696,163 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
             width: width - 3,
             height: height - 3,
         },
+        cancelButton: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            zIndex: 15,
+        },
+        showButton: {
+            position: 'absolute',
+            bottom: 0,
+            right: width / 5,
+            width: 40,
+            height: 20,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            backgroundColor: '#f1f3f5',
+            alignItems: 'center',
+            justifyContent: 'flex-end'
+        }
     })
 
     const [peerBig, setPeerBig] = useState(true);
+    const [showSmall, setShowSmall] = useState('show');
+    const animateWidth = useRef(new Animated.Value(smallWindowWidth)).current;
+    const animateHeight = useRef(new Animated.Value(smallWindowHeight)).current;
+    const animateBottom =  useRef(new Animated.Value(10)).current;
+    const animateRight = useRef(new Animated.Value(10)).current;
+
+    useEffect(async () => {
+        if (showSmall === 'toShow') {
+            showSmallWindow();
+        } else if (showSmall === 'toHide') {
+            hideSmallWindow();
+        }
+    }, [showSmall])
+
+    const showSmallWindow = () => {
+        Animated.sequence(
+            [
+                Animated.parallel(
+                    [
+                        Animated.timing(animateHeight, {
+                            toValue: smallWindowHeight,
+                            useNativeDriver: false,
+                            duration: 200,
+                        }),
+                        Animated.timing(animateBottom,{
+                            toValue: 10,
+                            useNativeDriver: false,
+                            duration: 200,
+                        })
+                    ]
+                ),
+                Animated.parallel(
+                    [
+                        Animated.timing(animateWidth, {
+                            toValue: smallWindowWidth,
+                            useNativeDriver: false,
+                            duration: 200,
+                        }),
+                        Animated.timing(animateRight, {
+                            toValue: 10,
+                            useNativeDriver: false,
+                            duration: 200
+                        })
+                    ]
+                ),
+            ]
+        ).start(() => {setShowSmall('show')});
+    }
+
+    const hideSmallWindow = () => {
+        Animated.sequence(
+            [
+                Animated.parallel(
+                    [
+                        Animated.timing(animateWidth, {
+                            toValue: 0,
+                            useNativeDriver: false,
+                            duration: 200,
+                        }),
+                        Animated.timing(animateRight, {
+                            toValue: width / 5 + 20,
+                            useNativeDriver: false,
+                            duration: 200
+                        })
+                    ]
+                ),
+                Animated.parallel(
+                    [
+                        Animated.timing(animateHeight, {
+                            toValue: 0,
+                            useNativeDriver: false,
+                            duration: 200,
+                        }),
+                        Animated.timing(animateBottom,{
+                            toValue: 0,
+                            useNativeDriver: false,
+                            duration: 200,
+                        })
+                    ]
+                )
+            ]
+        ).start(() => {setShowSmall('hide')});
+    }
+
+    const SmallWindow =  () => {
+        if (showSmall === 'show') {
+            return (
+                <TouchableOpacity style={portraitStyle.smallWindow} onPress={() => {setPeerBig(!peerBig)}}>
+                    <View style={{flex: 1}}>
+                        <TouchableOpacity activeOpacity={0.5} style={portraitStyle.cancelButton} onPress={() => {setShowSmall('toHide');}}>
+                            <Ionicons name={'close-circle-outline'} color={'white'} size={20}/>
+                        </TouchableOpacity>
+                        {
+                            peerBig ?
+                                <MyStreamWindow
+                                    rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
+                                    myStream={myStream}
+                                    zOrder={1}
+                                    microStat={microStat}
+                                    frontCam={myFrontCam}
+                                    shareScreen={shareScreen}
+                                />
+                                :
+                                <PeerWindow
+                                    rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
+                                    peerToShow={peerToShow}
+                                    zOrder={1}
+                                />
+                        }
+                    </View>
+                </TouchableOpacity>
+            )
+        } else if (showSmall === 'hide') {
+            return (
+                <TouchableOpacity style={portraitStyle.showButton}  onPress={() => {setShowSmall('toShow');}}>
+                    <FontAwesome5 name={'window-maximize'} color={'black'} size={15}/>
+                </TouchableOpacity>
+            )
+        } else {
+            return (
+                <Animated.View style={{
+                    position: 'absolute',
+                    width: animateWidth,
+                    height: animateHeight,
+                    backgroundColor: 'black',
+                    bottom: animateBottom,
+                    right: animateRight,
+                    borderWidth: 1,
+                    borderColor: '#f1f3f5'
+                }}
+                />
+            )
+        }
+    }
 
     if (peerToShow) {
         return (
@@ -690,25 +874,7 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
                             shareScreen={shareScreen}
                         />
                 }
-                <TouchableOpacity style={portraitStyle.smallWindow} onPress={() => {setPeerBig(!peerBig)}}>
-                    {
-                        peerBig ?
-                            <MyStreamWindow
-                                rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
-                                myStream={myStream}
-                                zOrder={1}
-                                microStat={microStat}
-                                frontCam={myFrontCam}
-                                shareScreen={shareScreen}
-                            />
-                            :
-                            <PeerWindow
-                                rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
-                                peerToShow={peerToShow}
-                                zOrder={1}
-                            />
-                    }
-                </TouchableOpacity>
+                <SmallWindow />
             </TouchableOpacity>
         )
     } else {
@@ -730,7 +896,7 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
 const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
                     openCamera, closeCamera, openMicro, closeMicro, frontCam,
                     camStat, microStat, newMessage, openScreenShare , closeScreenShare,
-                    subtitle, setSubtitle}) => {
+                    subtitle, setSubtitle, audioStatus, switchAudioRoute}) => {
     const footerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -885,6 +1051,12 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
                                 iconName={'people'}
                                 pressEvent={() => {setParticipantsVisible(true);}}
                                 color={'black'}
+                            />
+                            <IconWithLabel
+                                text={audioStatus === 'Speaker' ? '扬声器开' : '扬声器关'}
+                                color={'black'}
+                                iconName={audioStatus === 'Speaker' ? 'volume-high' : 'volume-mute'}
+                                pressEvent={switchAudioRoute}
                             />
                         </View>
                         <View style={[menuStyle.container]}>
