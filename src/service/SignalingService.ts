@@ -139,6 +139,11 @@ export class SignalingService
         });
     }
 
+    public sendNotify(method: SignalMethod, data = null)
+    {
+        this.socket.emit(SignalType.notify, { method, data });
+    }
+
     public connected()
     {
         return (this.socket && this.socket.connected);

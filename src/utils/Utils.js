@@ -63,6 +63,7 @@ const instance = axios.create({
     timeout: 1000,
 });
 
+
 export const postRequest = async (url, data) => {
     try {
         return await instance.post(url, data);

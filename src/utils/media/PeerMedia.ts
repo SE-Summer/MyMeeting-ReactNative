@@ -65,8 +65,11 @@ class PeerDetail
     {
         if (this.peerInfo)
             return this.peerInfo;
-        else
-            return defaultPeerInfo;
+        else {
+            const peerInfo = defaultPeerInfo;
+            peerInfo.id = this.peerId;
+            return peerInfo;
+        }
     }
 
     public getTracks()

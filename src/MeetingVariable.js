@@ -2,7 +2,7 @@ import {config_key} from "./Constants";
 import {FileService} from "./service/FileService";
 import {MediaService} from "./service/MediaService";
 import {MediaStreamFactory} from "./utils/media/MediaStreamFactory";
-import {SpeechRecognition} from "./utils/media/SpeechRecognition";
+import {SpeechRecognition} from "./utils/SpeechRecognition";
 
 export const MeetingVariable = {
     mediaService: new MediaService(),
