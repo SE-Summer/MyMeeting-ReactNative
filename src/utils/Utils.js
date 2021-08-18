@@ -49,7 +49,6 @@ export const judgeFileType = (fileMIME, filename) => {
 
 export const preventDoubleClick = (func, inf, interval = 500) => {
     if (!inf.isCalled) {
-        console.log('called')
         inf.isCalled = true
         setTimeout(() => {
             inf.isCalled = false
