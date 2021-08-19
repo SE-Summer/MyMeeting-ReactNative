@@ -98,7 +98,7 @@ export class SpeechRecognition
 
     public recvPeerSpeech(speechText: SpeechText)
     {
-        if (speechText.fromPeerId !== MeetingVariable.myId) {
+        if (speechText.fromPeerId !== config_key.userId.toString()) {
             speechText.fromMyself = false;
             this.newSpeechText(speechText);
         }
@@ -120,13 +120,16 @@ export class SpeechRecognition
                     const previous = this.displaySpeechTexts.get(speechText.fromPeerId);
                     this.speechTextStorage.push(previous);
                     this.displaySpeechTexts.delete(speechText.fromPeerId);
+
+                    const displayText = this.generateDisplayText();
+                    this.speechCallbacks.forEach((callback) => {
+                        callback(displayText);
+                    });
                 }
             }, 2000);
         }
 
         const displayText = this.generateDisplayText();
-        console.log(displayText);
-
         this.speechCallbacks.forEach((callback) => {
             callback(displayText);
         });
