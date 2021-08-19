@@ -20,13 +20,13 @@ export class SpeechRecognition
     private speechCallbacks: Map<string, (text: string) => void> = null;
     private speechTextStorage: SpeechText[] = null;
     // fromPeerId ==> SpeechText
-    private displaySpeechTexts: Map<string, SpeechText> = null;
+    private speakingSpeechTexts: Map<string, SpeechText> = null;
 
     constructor()
     {
         this.speechCallbacks = new Map<string, (text: string) => void>();
         this.speechTextStorage = [];
-        this.displaySpeechTexts = new Map<string, SpeechText>();
+        this.speakingSpeechTexts = new Map<string, SpeechText>();
         this.recognizerEventEmitter.addListener('onRecognizerResult', this.onRecognizerResult);
         this.recognizerEventEmitter.addListener('onRecognizerError', (err) => {console.error(err)});
         this.working = false;
@@ -45,49 +45,35 @@ export class SpeechRecognition
 
     private onRecognizerResult = (recognized) => {
         const pendingText = recognized.text.trim();
+        if (pendingText.length === 0)
+            return;
+
+        console.log(`[Recognizer]  Recognized speech: ${pendingText}`);
+
+        let updateTime = moment();
+        if (this.sentenceEnded) {
+            this.currentSpeechTimestamp = updateTime;
+        }
+        const speechText: SpeechText = {
+            fromPeerId: config_key.userId.toString(),
+            displayName: MeetingVariable.myName,
+            fromMyself: true,
+            newSentence: this.sentenceEnded,
+            sentenceEnded: recognized.isLast,
+            text: recognized.result,
+            startTime: this.currentSpeechTimestamp,
+            updateTime: updateTime,
+        }
+        this.sentenceEnded = recognized.isLast;
+
+        SpeechRecognition.sendSpeechText(speechText);
+        this.newSpeechText(speechText);
+
         if (recognized.isLast) {
-            console.log(`[Recognizer]  Recognized speech: ${pendingText}`);
             console.log('[Recognizer]  Sentence ended');
-            if (this.sentenceEnded) {
-                this.currentSpeechTimestamp = moment();
-            }
-            const speechText: SpeechText = {
-                fromPeerId: config_key.userId.toString(),
-                displayName: MeetingVariable.myName,
-                fromMyself: true,
-                newSentence: this.sentenceEnded,
-                sentenceEnded: true,
-                text: recognized.result,
-                timestamp: this.currentSpeechTimestamp,
-            }
-            this.sentenceEnded = true;
-
-            SpeechRecognition.sendSpeechText(speechText);
-            this.newSpeechText(speechText);
-
             if (this.working) {
                 Recognizer.start();
             }
-        } else if (pendingText == '') {
-            return;
-        } else {
-            console.log(`[Recognizer]  Recognized speech: ${pendingText}`);
-            if (this.sentenceEnded) {
-                this.currentSpeechTimestamp = moment();
-            }
-            let speechText: SpeechText = {
-                fromPeerId: config_key.userId.toString(),
-                displayName: MeetingVariable.myName,
-                fromMyself: true,
-                newSentence: this.sentenceEnded,
-                sentenceEnded: false,
-                text: recognized.result,
-                timestamp: this.currentSpeechTimestamp,
-            }
-            this.sentenceEnded = false;
-
-            SpeechRecognition.sendSpeechText(speechText);
-            this.newSpeechText(speechText);
         }
     }
 
@@ -107,19 +93,19 @@ export class SpeechRecognition
     private newSpeechText(speechText: SpeechText)
     {
         if (speechText.newSentence) {
-            if (this.displaySpeechTexts.has(speechText.fromPeerId)) {
-                const previous = this.displaySpeechTexts.get(speechText.fromPeerId);
+            if (this.speakingSpeechTexts.has(speechText.fromPeerId)) {
+                const previous = this.speakingSpeechTexts.get(speechText.fromPeerId);
                 this.speechTextStorage.push(previous);
             }
         }
-        this.displaySpeechTexts.set(speechText.fromPeerId, speechText);
+        this.speakingSpeechTexts.set(speechText.fromPeerId, speechText);
         if (speechText.sentenceEnded) {
             setTimeout(() => {
-                if (this.displaySpeechTexts.has(speechText.fromPeerId)
-                    && this.displaySpeechTexts.get(speechText.fromPeerId).timestamp === speechText.timestamp) {
-                    const previous = this.displaySpeechTexts.get(speechText.fromPeerId);
+                if (this.speakingSpeechTexts.has(speechText.fromPeerId)
+                    && this.speakingSpeechTexts.get(speechText.fromPeerId).startTime === speechText.startTime) {
+                    const previous = this.speakingSpeechTexts.get(speechText.fromPeerId);
                     this.speechTextStorage.push(previous);
-                    this.displaySpeechTexts.delete(speechText.fromPeerId);
+                    this.speakingSpeechTexts.delete(speechText.fromPeerId);
 
                     const displayText = this.generateDisplayText();
                     this.speechCallbacks.forEach((callback) => {
@@ -138,10 +124,33 @@ export class SpeechRecognition
     private generateDisplayText()
     {
         let displayText = '';
-        this.displaySpeechTexts.forEach((speechText) => {
-            displayText += `${speechText.fromMyself ? me : speechText.displayName}: ${speechText.text}\n`;
+        const currentTime = moment();
+        this.speakingSpeechTexts.forEach((speechText) => {
+            if (currentTime.diff(speechText.updateTime) <= 6000) {
+                displayText += `${speechText.fromMyself ? me : speechText.displayName}: ${speechText.text}\n`;
+            }
         });
+        console.log('[Recognizer]  Subtitles updated:\n' + displayText);
         return displayText;
+    }
+
+    public exportMeme()
+    {
+        let speechTexts: SpeechText[] = [];
+        let meme = '';
+        this.speechTextStorage.forEach((speechText) => {
+            speechTexts.push(speechText);
+        });
+        this.speakingSpeechTexts.forEach((speechText) => {
+            speechTexts.push(speechText);
+        });
+        speechTexts.sort((a, b) => {
+            return a.startTime.diff(b.startTime);
+        });
+        speechTexts.forEach((speechText) => {
+            meme += `${speechText.startTime.format('hh:mm:ss a')}  ${speechText.displayName}: ${speechText.text}\n`;
+        });
+        return meme;
     }
 
     public start()

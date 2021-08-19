@@ -130,7 +130,8 @@ export declare type Message = {
 export declare type SpeechText = {
     newSentence: boolean,
     sentenceEnded: boolean,
-    timestamp: Moment,
+    startTime: Moment,
+    updateTime: Moment,
     fromMyself: boolean,
     fromPeerId: string,
     displayName: string,
