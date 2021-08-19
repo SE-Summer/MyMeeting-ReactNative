@@ -330,7 +330,7 @@ export default class Meeting extends Component
     }
 
     async mutedByHost() {
-        toast.show('房主已将您静音', {type: 'warning', duration: 1000, placement: 'bottom'})
+        toast.show('房主已将您静音', {type: 'warning', duration: 1000, placement: 'top'})
         if (this.state.microStat !== 'off')
             await this.closeMicrophone();
     }
@@ -725,7 +725,7 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
     const animateBottom =  useRef(new Animated.Value(10)).current;
     const animateRight = useRef(new Animated.Value(10)).current;
 
-    useEffect(async () => {
+    useEffect( () => {
         if (showSmall === 'toShow') {
             showSmallWindow();
         } else if (showSmall === 'toHide') {
@@ -734,6 +734,9 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
     }, [showSmall])
 
     const showSmallWindow = () => {
+        if (!peerBig) {
+            peerToShow.subscribe();
+        }
         Animated.sequence(
             [
                 Animated.parallel(
@@ -769,6 +772,10 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
     }
 
     const hideSmallWindow = () => {
+        if (!peerBig) {
+            peerToShow.unsubscribeVideo();
+        }
+
         Animated.sequence(
             [
                 Animated.parallel(
@@ -806,7 +813,12 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
     const SmallWindow =  () => {
         if (showSmall === 'show') {
             return (
-                <TouchableOpacity style={portraitStyle.smallWindow} onPress={() => {setPeerBig(!peerBig)}}>
+                <TouchableOpacity
+                    style={portraitStyle.smallWindow}
+                    onPress={() => {
+                        setPeerBig(!peerBig);
+                    }}
+                >
                     <View style={{flex: 1}}>
                         <TouchableOpacity activeOpacity={0.5} style={portraitStyle.cancelButton} onPress={() => {setShowSmall('toHide');}}>
                             <Ionicons name={'close-circle-outline'} color={'white'} size={20}/>
@@ -1107,13 +1119,9 @@ const Header = ({roomInf, exit}) => {
         wholeContainer: {
             flex: 1,
             flexDirection: 'row',
-            paddingLeft: 10,
-            paddingRight: 10,
-            paddingTop: 15,
-            paddingBottom: 15,
         },
         headerIconContainer: {
-            flex: 1,
+            flex: 2,
             alignItems: 'center',
             justifyContent: 'center',
         },
@@ -1126,12 +1134,18 @@ const Header = ({roomInf, exit}) => {
             fontSize: 18,
             color: config.qGreen,
         },
+        buttonContainer: {
+            flex: 2,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
         exitButton: {
-            flex: 1,
             backgroundColor: '#e00000',
             borderRadius: 10,
             alignItems: 'center',
             justifyContent: 'center',
+            paddingLeft: 9,
+            paddingRight: 9,
         },
         exitText: {
             color: 'white',
@@ -1162,9 +1176,11 @@ const Header = ({roomInf, exit}) => {
             <View style={headerStyle.titleContainer}>
                 <Text style={headerStyle.title}>MyMeeting</Text>
             </View>
-            <TouchableHighlight style={headerStyle.exitButton} onPress={exit}>
-                <Text style={headerStyle.exitText}>离开</Text>
-            </TouchableHighlight>
+            <View style={headerStyle.buttonContainer}>
+                <TouchableHighlight style={headerStyle.exitButton} onPress={exit}>
+                    <Text style={headerStyle.exitText}>离开</Text>
+                </TouchableHighlight>
+            </View>
             <Modal
                 animationType={'slide'}
                 visible={showInf}

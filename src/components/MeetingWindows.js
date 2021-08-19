@@ -10,9 +10,6 @@ import {useEffect} from "react";
 export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
     useEffect(() => {
         peerToShow.subscribe();
-        return () => {
-            peerToShow.unsubscribeVideo();
-        }
     }, [])
 
     return (
