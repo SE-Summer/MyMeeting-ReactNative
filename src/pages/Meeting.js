@@ -107,7 +107,7 @@ export default class Meeting extends Component
         Orientation.unlockAllOrientations();
 
         try {
-            await MeetingVariable.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token, config_key.token, // config_key.userId.toString(),
+            await MeetingVariable.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token, config_key.userId, // config_key.userId.toString(),
                 MeetingVariable.myName, `${MeetingVariable.myName}'s mobile device`, config_key.avatarUri);
 
             await MeetingVariable.mediaStreamFactory.waitForUpdate();

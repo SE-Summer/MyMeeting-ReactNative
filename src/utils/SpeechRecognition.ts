@@ -20,13 +20,13 @@ export class SpeechRecognition
     private speechCallbacks: Map<string, (text: string) => void> = null;
     private speechTextStorage: SpeechText[] = null;
     // fromPeerId ==> SpeechText
-    private speakingSpeechTexts: Map<string, SpeechText> = null;
+    private speakingSpeechTexts: Map<number, SpeechText> = null;
 
     constructor()
     {
         this.speechCallbacks = new Map<string, (text: string) => void>();
         this.speechTextStorage = [];
-        this.speakingSpeechTexts = new Map<string, SpeechText>();
+        this.speakingSpeechTexts = new Map<number, SpeechText>();
         this.recognizerEventEmitter.addListener('onRecognizerResult', this.onRecognizerResult);
         this.recognizerEventEmitter.addListener('onRecognizerError', (err) => {console.error(err)});
         this.working = false;
@@ -55,7 +55,7 @@ export class SpeechRecognition
             this.currentSpeechTimestamp = updateTime;
         }
         const speechText: SpeechText = {
-            fromPeerId: config_key.userId.toString(),
+            fromPeerId: config_key.userId,
             displayName: MeetingVariable.myName,
             fromMyself: true,
             newSentence: this.sentenceEnded,
@@ -84,7 +84,7 @@ export class SpeechRecognition
 
     public recvPeerSpeech(speechText: SpeechText)
     {
-        if (speechText.fromPeerId !== config_key.userId.toString()) {
+        if (speechText.fromPeerId !== config_key.userId) {
             speechText.fromMyself = false;
             this.newSpeechText(speechText);
         }

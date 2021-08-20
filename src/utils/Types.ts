@@ -21,14 +21,14 @@ export declare type ConnectTransportRequest = {
 };
 
 export declare type PeerInfo = {
-    id: string,
+    id: number,
     avatar: string,
     displayName: string,
     device: string,
 };
 
 export declare type ConsumerInfo = {
-    producerPeerId: string,
+    producerPeerId: number,
     consumerId: string,
     producerId: string,
     kind: MediaKind,
@@ -42,7 +42,7 @@ export declare type ConsumerDetail = {
 }
 
 export declare type DataConsumerInfo = {
-    producerPeerId: string,
+    producerPeerId: number,
     dataProducerId: string,
     dataConsumerId: string,
     sctpParameters: SctpStreamParameters,
@@ -51,13 +51,13 @@ export declare type DataConsumerInfo = {
 }
 
 export declare type SendText = {
-    toPeerId: string,
+    toPeerId: number,
     text: string,
     timestamp: Moment,
 }
 
 export declare type RecvText = {
-    fromPeerId: string,
+    fromPeerId: number,
     broadcast: boolean,
     text: string,
     timestamp: Moment,
@@ -71,7 +71,7 @@ export declare type SendFile = {
 }
 
 export declare type RecvFile = {
-    fromPeerId: string,
+    fromPeerId: number,
     fileURL: string,
     timestamp: Moment,
     filename: string,
@@ -114,7 +114,7 @@ export declare type Message = {
     type: MessageType,
     timestamp: Moment,
     fromMyself: boolean,
-    fromPeerId?: string,
+    fromPeerId?: number,
     broadcast?: boolean,
     text?: string,
     fileJobType?: FileJobType,
@@ -133,7 +133,7 @@ export declare type SpeechText = {
     startTime: Moment,
     updateTime: Moment,
     fromMyself: boolean,
-    fromPeerId: string,
+    fromPeerId: number,
     displayName: string,
     text: string,
 }

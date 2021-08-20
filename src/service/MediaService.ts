@@ -24,7 +24,7 @@ export class MediaService
     private roomToken: string = null;
     private userToken: string = null;
     private meetingURL: string = null;
-    private myId: string = null;
+    private myId: number = null;
     private displayName: string = null;
     private deviceName: string = null;
     private avatar: string = null;
@@ -42,7 +42,7 @@ export class MediaService
     private readonly producers: Map<string, mediasoupTypes.Producer> = null;
     private readonly peerMedia: PeerMedia = null;
 
-    private hostPeerId: string = null;
+    private hostPeerId: number = null;
 
     private sendTransportOpt: mediasoupTypes.TransportOptions = null;
     private joined: boolean = null;
@@ -125,7 +125,7 @@ export class MediaService
         return this.peerMedia.getPeerDetails();
     }
 
-    public getPeerDetailByPeerId(peerId: string)
+    public getPeerDetailByPeerId(peerId: number)
     {
         return this.peerMedia.getPeerDetailByPeerId(peerId);
     }
@@ -166,7 +166,7 @@ export class MediaService
     }
 
 
-    public joinMeeting(roomToken: string, userToken: string, myUserId: string,
+    public joinMeeting(roomToken: string, userToken: string, myUserId: number,
                        displayName: string, deviceName: string, avatar: string)
     {
         return this._joinMeeting(false, roomToken, userToken, myUserId, displayName, deviceName, avatar);
@@ -178,7 +178,7 @@ export class MediaService
     // send request to get routerRtpCapabilities from server
     // load the routerRtpCapabilities into device
     //
-    private async _joinMeeting(reenter: boolean, roomToken?: string, userToken?: string, myUserId?: string,
+    private async _joinMeeting(reenter: boolean, roomToken?: string, userToken?: string, myUserId?: number,
                                displayName?: string, deviceName?: string, avatar?: string): Promise<void>
     {
         if (this.joined) {
@@ -240,7 +240,7 @@ export class MediaService
                 joined: this.joined,
                 device: this.deviceName,
                 rtpCapabilities: this.device.rtpCapabilities,
-            } as types.JoinRequest) as { host: string, peerInfos: types.PeerInfo[] };
+            } as types.JoinRequest) as { host: number, peerInfos: types.PeerInfo[] };
 
             this.hostPeerId = host;
 
@@ -393,7 +393,7 @@ export class MediaService
     }
 
     // if _toPeerId == null, it means broadcast to everyone in the meetings
-    public async sendText(_toPeerId: string, _text: string, _timestamp): Promise<void>
+    public async sendText(_toPeerId: number, _text: string, _timestamp): Promise<void>
     {
         try {
             const sendText: types.SendText = {
@@ -536,7 +536,7 @@ export class MediaService
 
     // if peerId is not passed, (or = null), it means mute all peers in the room
     // return Promise.reject('Fail to mute peer') if you are not a host or an error occurs
-    public async mutePeer(peerId: string = null)
+    public async mutePeer(peerId: number = null)
     {
         if (this.hostPeerId && this.hostPeerId !== this.myId) {
             return Promise.reject('Fail to mute peer: Unauthorized');
@@ -549,7 +549,7 @@ export class MediaService
         }
     }
 
-    public async transferHost(toPeerId: string)
+    public async transferHost(toPeerId: number)
     {
         if (this.hostPeerId && this.hostPeerId !== this.myId) {
             return Promise.reject('Fail to transfer host: Unauthorized');
@@ -563,7 +563,7 @@ export class MediaService
         }
     }
 
-    public async kickPeer(peerId: string)
+    public async kickPeer(peerId: number)
     {
         if (this.hostPeerId && this.hostPeerId !== this.myId) {
             return Promise.reject('Fail to kick peer: Unauthorized');
