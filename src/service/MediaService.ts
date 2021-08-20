@@ -190,7 +190,6 @@ export class MediaService
             this.roomToken = roomToken;
             this.userToken = userToken;
             this.myId = myUserId;
-            console.log(myUserId);
             this.meetingURL = meetingURL(roomToken, userToken, myUserId);
             this.displayName = displayName;
             this.deviceName = deviceName;
