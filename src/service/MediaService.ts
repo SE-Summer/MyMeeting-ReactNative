@@ -53,7 +53,6 @@ export class MediaService
     private newMessageCallbacks: Map<string, (message: types.Message) => void> = null;
     private meetingEndCallbacks: Map<string, (reason: MeetingEndReason) => void> = null;
     private beMutedCallbacks: Map<string, () => void> = null;
-    private newSpeechCallbacks: Map<string, (speech: types.SpeechText) => void> = null;
 
     constructor()
     {
@@ -75,7 +74,6 @@ export class MediaService
             this.newMessageCallbacks = new Map<string, (message: types.Message) => void>();
             this.meetingEndCallbacks = new Map<string, (reason: MeetingEndReason) => void>();
             this.beMutedCallbacks = new Map<string, () => void>();
-            this.newSpeechCallbacks = new Map<string, (speech: types.SpeechText) => void>();
 
         } catch (err) {
             console.error('[Error]  Fail to construct MediaService instance', err);
@@ -120,16 +118,6 @@ export class MediaService
     public deleteBeMutedListener(key: string)
     {
         this.beMutedCallbacks.delete(key);
-    }
-
-    public registerNewSpeechListener(key: string, newSpeechCallback: (speechText: types.SpeechText) => void)
-    {
-        this.newSpeechCallbacks.set(key, newSpeechCallback);
-    }
-
-    public deleteNewSpeechListener(key: string)
-    {
-        this.newSpeechCallbacks.delete(key);
     }
 
     public getPeerDetails()
