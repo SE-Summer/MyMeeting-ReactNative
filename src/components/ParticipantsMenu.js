@@ -80,7 +80,7 @@ export const ParticipantsMenu = ({myCamStat, myMicStat}) => {
                 <View style={participantsMenuStyles.nameContainer}>
                     <Text numberOfLines={1}>{MeetingVariable.myName}</Text>
                     {
-                        MeetingVariable.hostId === config_key.token &&
+                        MeetingVariable.hostId === config_key.userId &&
                         <FontAwesome5 name={'crown'} color={'gold'} style={participantsMenuStyles.hostIcon}/>
                     }
                 </View>

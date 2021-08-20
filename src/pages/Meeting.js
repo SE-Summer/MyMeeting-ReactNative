@@ -507,7 +507,7 @@ export default class Meeting extends Component
                     visible={this.state.modalVisible}
                     setVisible={(value) => {this.setState({modalVisible: value})}}
                     otherComponent={
-                        alertError || MeetingVariable.hostId !== config_key.token ? null
+                        alertError || MeetingVariable.hostId !== config_key.userId ? null
                             :
                         <View style={{alignItems: 'center', flexDirection: 'row', justifyContent: 'center'}}>
                             <Text>离开并结束会议</Text>
@@ -1050,7 +1050,7 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
                                 }}
                             />
                             {
-                                MeetingVariable.hostId === config_key.token &&
+                                MeetingVariable.hostId === config_key.userId &&
                                 <IconWithLabel
                                     iconName={'build'}
                                     color={'black'}
