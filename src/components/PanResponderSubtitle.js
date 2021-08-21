@@ -2,7 +2,7 @@ import React, {useRef, useState} from "react";
 import { Animated, View, StyleSheet, PanResponder, Text } from "react-native";
 import {rgbaColor} from "react-native-reanimated/src/reanimated2/Colors";
 
-export const PanResponderSubtitle = ({maxHeight, maxWidth}) => {
+export const PanResponderSubtitle = ({maxWidth, text}) => {
     const pan = useRef(new Animated.ValueXY()).current;
     const [opacity, setOpacity] = useState(0);
 
@@ -42,7 +42,7 @@ export const PanResponderSubtitle = ({maxHeight, maxWidth}) => {
             {...panResponder.panHandlers}
         >
             <View style={[styles.box, {backgroundColor: rgbaColor(255, 255, 255, opacity), maxWidth: maxWidth * 0.7}]} >
-                <Text style={styles.text}>这里是字幕</Text>
+                <Text style={styles.text}>{text}</Text>
             </View>
         </Animated.View>
     );

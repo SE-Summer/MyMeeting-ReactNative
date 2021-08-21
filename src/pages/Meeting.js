@@ -27,6 +27,7 @@ import {PanResponderSubtitle} from "../components/PanResponderSubtitle";
 import Orientation, {useOrientationChange} from "react-native-orientation-locker";
 import RNSwitchAudioOutput from 'react-native-switch-audio-output';
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import {clearMeetingVariable} from "../service/MeetingService";
 
 const microInf = {
     isCalled: false,
@@ -41,12 +42,12 @@ const microInf = {
 
 const screenStyle = StyleSheet.create({
     header: {
-        backgroundColor: '#202020',
+        backgroundColor: '#272727',
         flexDirection: 'row',
     },
     footer: {
         height: null,
-        backgroundColor: '#202020',
+        backgroundColor: '#272727',
         flexDirection: 'row',
         alignSelf: 'flex-end',
     }
@@ -60,6 +61,7 @@ export default class Meeting extends Component
         MeetingVariable.mediaService.registerNewMessageListener('messagesInMeetingPage', this.recvMessage.bind(this));
         MeetingVariable.mediaService.registerMeetingEndListener('meetingEnd', this.recvEndSignal.bind(this));
         MeetingVariable.mediaService.registerBeMutedListener('muted', this.mutedByHost.bind(this));
+        MeetingVariable.speechRecognition.registerSpeechListener('speech', this.updateSubtitle.bind(this));
         this.barHeight = new Animated.Value(60);
         this.state = {
             view: 'portrait',
@@ -78,9 +80,10 @@ export default class Meeting extends Component
             modalVisible: false,
             alertError: false,
             leaveAndClose: false,
-            subtitle: false,
+            showSubtitle: false,
             hideHeadAndFoot: false,
             audioRoute: 'Speaker',
+            subtitleContents: null,
         };
     }
 
@@ -329,6 +332,12 @@ export default class Meeting extends Component
         })
     }
 
+    updateSubtitle(string) {
+        this.setState({
+            subtitleContents: string,
+        })
+    }
+
     async mutedByHost() {
         toast.show('房主已将您静音', {type: 'warning', duration: 1000, placement: 'top'})
         if (this.state.microStat !== 'off')
@@ -359,6 +368,10 @@ export default class Meeting extends Component
         this.props.navigation.navigate('MeetingChat');
     }
 
+    openDocuments = () => {
+        this.props.navigation.navigate('MeetingDocument');
+    }
+
     getMainContainerScale = event => {
         let {width,height} = event.nativeEvent.layout;
         this.setState({
@@ -379,14 +392,20 @@ export default class Meeting extends Component
                 await this.closeScreenShare();
             }
             if (MeetingVariable.mediaService) {
+                //delete all listeners
+                MeetingVariable.mediaService.deletePeerUpdateListener('peer');
+                MeetingVariable.mediaService.deleteNewMessageListener('messagesInMeetingPage');
+                MeetingVariable.mediaService.deleteMeetingEndListener('meetingEnd');
+                MeetingVariable.mediaService.deleteBeMutedListener('muted');
+                MeetingVariable.speechRecognition.deleteSpeechListener('speech');
+
                 if (this.state.leaveAndClose) {
                     await MeetingVariable.mediaService.closeRoom();
                 } else {
                     await MeetingVariable.mediaService.leaveMeeting();
                 }
             }
-            MeetingVariable.messages = [];
-            MeetingVariable.room = [];
+            clearMeetingVariable();
             this.props.navigation.navigate('Tab');
         } catch (e) {
             // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
@@ -474,7 +493,7 @@ export default class Meeting extends Component
         const {width, height, myCameraStream, myDisplayStream,
             camStat, microStat, newMessage, frontCam,
             shareScreen, alertError, leaveAndClose,
-            subtitle, audioRoute} = this.state;
+            showSubtitle, audioRoute, subtitleContents} = this.state;
         return (
             <View style={{ flex: 1, backgroundColor: '#111111', flexDirection: 'column'}}>
                 <MyAlert
@@ -532,8 +551,8 @@ export default class Meeting extends Component
                 }
                 <View style={{flex: 1}} onLayout={this.getMainContainerScale}>
                     {
-                        subtitle &&
-                        <PanResponderSubtitle maxWidth={width} maxHeight={height}/>
+                        showSubtitle &&
+                        <PanResponderSubtitle maxWidth={width} maxHeight={height} text={subtitleContents}/>
                     }
                     <GestureRecognizer
                         onSwipeLeft={() => this.onSwipeLeft()}
@@ -579,6 +598,7 @@ export default class Meeting extends Component
                             openScreenShare={this.openScreenShare}
                             closeScreenShare={this.closeScreenShare}
                             openChatRoom={this.openChatRoom}
+                            openDocuments={this.openDocuments}
                             frontCam={frontCam}
                             shareScreen={shareScreen}
                             swapCam={this.swapCam}
@@ -587,8 +607,8 @@ export default class Meeting extends Component
                             view={this.state.view}
                             newMessage={newMessage}
                             setView={(type) => { this.setState({ view: type, }); }}
-                            subtitle={subtitle}
-                            setSubtitle={(value) => {this.setState({subtitle: value})}}
+                            showSubtitle={showSubtitle}
+                            setShowSubtitle={(value) => {this.setState({showSubtitle: value})}}
                             audioStatus={audioRoute}
                             switchAudioRoute={this.switchAudioRoute}
                         />
@@ -906,9 +926,9 @@ const PortraitView = ({width, height, peerToShow, myStream, microStat, myFrontCa
 }
 
 const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
-                    openCamera, closeCamera, openMicro, closeMicro, frontCam,
+                    openCamera, openDocuments, closeCamera, openMicro, closeMicro, frontCam,
                     camStat, microStat, newMessage, openScreenShare , closeScreenShare,
-                    subtitle, setSubtitle, audioStatus, switchAudioRoute}) => {
+                    showSubtitle, setShowSubtitle, audioStatus, switchAudioRoute}) => {
     const footerStyle = StyleSheet.create({
         wholeContainer: {
             flex: 1,
@@ -998,7 +1018,7 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
                 color={newMessage ? '#9be3b1': 'white'}
             />
             <IconWithLabel
-                text={'通用设置'}
+                text={'更多选项'}
                 iconName={settingsVisible ? 'settings':'settings-outline'}
                 pressEvent={() => {
                     setSettingsVisible(true);
@@ -1075,8 +1095,14 @@ const Footer = ({view, setView, swapCam, openChatRoom, shareScreen,
                             <IconWithLabel
                                 iconName={'text'}
                                 color={'black'}
-                                text={subtitle ? '关闭字幕' : '开启字幕'}
-                                pressEvent={() => {setSubtitle(!subtitle);}}
+                                text={showSubtitle ? '关闭字幕' : '开启字幕'}
+                                pressEvent={() => {setShowSubtitle(!showSubtitle);}}
+                            />
+                            <IconWithLabel
+                                iconName={'document-text'}
+                                color={'black'}
+                                text={'会议纪要'}
+                                pressEvent={() => {setSettingsVisible(false); openDocuments();}}
                             />
                             <IconWithLabel
                                 iconName={frontCam ? 'camera-reverse' : 'camera-reverse-outline'}

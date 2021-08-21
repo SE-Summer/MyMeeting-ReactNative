@@ -5,12 +5,11 @@ import {
     TextInput,
     ImageBackground,
     Image,
-    Text,
+    Text, ScrollView,
 } from "react-native";
 import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import {config_key} from "../Constants";
 import {validateEmail, windowHeight, windowWidth} from "../utils/Utils";
 import {loginService} from "../service/UserService";
@@ -157,7 +156,7 @@ export default class LoginScreen extends Component {
     render() {
         return (
             <SafeAreaView style={{flex: 1}}>
-                <KeyboardAwareScrollView style={{backgroundColor: "white", flex: 1}}>
+                <ScrollView style={{backgroundColor: "white", flex: 1}}>
                     <View style={styles.topFillContainer}>
                         <View style={styles.topContainer}>
                             <Image source={require('../resources/image/triAngle.png')} style={styles.triAngleImg}/>
@@ -211,7 +210,7 @@ export default class LoginScreen extends Component {
                         <MyButton pressEvent={this.log} text={"登录"}/>
                         <MyButton pressEvent={this.register} text={"注册"}/>
                     </View>
-                </KeyboardAwareScrollView>
+                </ScrollView>
             </SafeAreaView>
         )
     }

@@ -21,6 +21,7 @@ import { ToastProvider } from 'react-native-toast-notifications'
 import Toast from "react-native-toast-notifications";
 import VIForegroundService from "@voximplant/react-native-foreground-service";
 import Orientation from 'react-native-orientation-locker';
+import MeetingDocument from "./pages/MeetingDocument";
 
 const forFade = ({ current }) => ({
     cardStyle: {
@@ -85,6 +86,16 @@ export default function App() {
                             headerTitleAlign: 'center',
                             title: '聊天',
                         }} />
+                        <Stack.Screen name={"MeetingDocument"} component={MeetingDocument} options={({navigation}) => ({
+                            cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                            headerTitleAlign: 'center',
+                            headerLeft: () => {
+                                return (
+                                    <TextButton text={"返回"} pressEvent={() => {navigation.pop()}}/>
+                                )
+                            },
+                            title: '会议纪要',
+                        })} />
                         <Stack.Screen name={"MeetingSetting"} component={MeetingSettingScreen} options={({navigation}) => ({
                             title: '会议设置',
                             headerTitleAlign: 'center',

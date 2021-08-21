@@ -1,6 +1,7 @@
 import {postRequest} from "../utils/Utils";
 import moment from "moment";
-import {config, config_key} from "../Constants";
+import {config_key} from "../Constants";
+import {MeetingVariable} from "../MeetingVariable";
 
 export const create = async (roomname, password) => {
     const inf = {
@@ -15,10 +16,19 @@ export const create = async (roomname, password) => {
     return await reserve(inf);
 }
 
+export const clearMeetingVariable = () => {
+    MeetingVariable.messages = [];
+    MeetingVariable.room = [];
+    MeetingVariable.notes = null;
+    MeetingVariable.room = null;
+    MeetingVariable.hostId = null;
+}
+
 export const join = async (roomId, password) => {
     const url = '/getRoom';
     const data = {
         id: roomId,
+        token: config_key.token,
         password: password,
     }
 
