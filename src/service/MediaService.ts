@@ -169,6 +169,7 @@ export class MediaService
     public joinMeeting(roomToken: string, userToken: string, myUserId: number,
                        displayName: string, deviceName: string, avatar: string)
     {
+        MeetingVariable.speechRecognition.clear();
         return this._joinMeeting(false, roomToken, userToken, myUserId, displayName, deviceName, avatar);
     }
 

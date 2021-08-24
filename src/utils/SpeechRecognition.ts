@@ -104,7 +104,7 @@ export class SpeechRecognition
         if (speechText.sentenceEnded) {
             setTimeout(() => {
                 if (this.speakingSpeechTexts.has(speechText.fromPeerId)
-                    && this.speakingSpeechTexts.get(speechText.fromPeerId).startTime === speechText.startTime) {
+                    && this.speakingSpeechTexts.get(speechText.fromPeerId).startTime.diff(speechText.startTime) === 0) {
                     const previous = this.speakingSpeechTexts.get(speechText.fromPeerId);
                     this.speechTextStorage.push(previous);
                     this.speakingSpeechTexts.delete(speechText.fromPeerId);
@@ -167,5 +167,14 @@ export class SpeechRecognition
         this.working = false;
         Recognizer.stop();
         console.log('[Recognizer]  Stopped');
+    }
+
+    public clear()
+    {
+        if (this.working) {
+            Recognizer.stop();
+        }
+        this.speakingSpeechTexts.clear();
+        this.speechTextStorage = [];
     }
 }
