@@ -37,7 +37,6 @@ export class FileService
     public getPathByURI(uri: string): string
     {
         let realPath = null;
-        console.log(Platform.OS);
         if (Platform.OS == 'android') {
             realPath = getPath(uri);
         } else if (Platform.OS == 'ios') {
