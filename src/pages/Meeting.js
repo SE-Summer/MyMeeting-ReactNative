@@ -88,7 +88,6 @@ export default class Meeting extends Component
             hideHeadAndFoot: false,
             audioRoute: 'Speaker',
             subtitleContents: null,
-            needUpdate: false,
         };
     }
 
@@ -171,8 +170,6 @@ export default class Meeting extends Component
                 myMicrophoneStream: null,
                 microStat: 'off'
             });
-
-            this.forceUpdate()
         } catch (e) {
             // toast.show(e, {type: 'danger', duration: 1300, placement: 'top'});
         }
@@ -328,9 +325,9 @@ export default class Meeting extends Component
     updatePeerDetails() {
         MeetingVariable.hostId = MeetingVariable.mediaService.getHostPeerId();
         this.setState({
-            needUpdate: true,
             peerDetails: MeetingVariable.mediaService.getPeerDetails().length === 0 ? null : MeetingVariable.mediaService.getPeerDetails(),
         }, () => {
+            this.forceUpdate()
             console.log('[React]  state.peerDetails of Meeting updated : ' + JSON.stringify(this.state.peerDetails));
         })
     }
@@ -475,7 +472,7 @@ export default class Meeting extends Component
     render() {
         const {roomInf} = this.props.route.params;
         const {width, height, myCameraStream, myDisplayStream,
-            camStat, microStat, frontCam, needUpdate,
+            camStat, microStat, frontCam,
             shareScreen, alertError, leaveAndClose,
             showSubtitle, audioRoute} = this.state;
         return (
@@ -555,7 +552,6 @@ export default class Meeting extends Component
                                     micStat={microStat}
                                     turnPortrait={this.turnGridToPortrait}
                                     setHideBar={this.setHideBar}
-                                    needUpdate={needUpdate}
                                 />
                                 :
                                 <PortraitView
@@ -812,79 +808,12 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, microS
         ).start(() => {setShowSmall('hide')});
     }
 
-    const SmallWindow = useCallback(() => {
-        const smallMic = peerBig ? microStat === 'on' : peerAudio;
-        if (showSmall === 'show') {
-            return (
-                <Pressable
-                    style={[portraitStyle.smallWindow,
-                        {
-                            borderColor: smallMic ? '#44CE55' : '#f1f3f5'
-                        }]}
-                    onPress={() => {
-                        setPeerBig(!peerBig);
-                    }}
-                >
-                    <View style={{flex: 1}}>
-                        <Pressable style={portraitStyle.cancelButton} onPress={() => {setShowSmall('toHide');}}>
-                            <Ionicons name={'close-circle-outline'} color={'white'} size={20}/>
-                        </Pressable>
-                        {
-                            peerBig ?
-                                <MyStreamWindow
-                                    rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
-                                    myStream={myStream}
-                                    zOrder={1}
-                                    microStat={microStat}
-                                    frontCam={myFrontCam}
-                                    shareScreen={shareScreen}
-                                />
-                                :
-                                <PeerWindow
-                                    rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
-                                    peerToShow={peerToShow}
-                                    peerInfo={peerToShow.getPeerInfo()}
-                                    trackUrl={new MediaStream(peerToShow.getTracks()).toURL()}
-                                    peerAudio={peerAudio}
-                                    peerVideo={peerVideo}
-                                    zOrder={1}
-                                />
-                        }
-                    </View>
-                </Pressable>
-            )
-        } else if (showSmall === 'hide') {
+    if (peerToShow) {
+        if (showSmall === 'hide') {
             peerToShow.subscribe();
             peerToShow.unsubscribeVideo();
-            return (
-                <TouchableOpacity
-                    style={[portraitStyle.showButton, {
-                        backgroundColor: smallMic ? '#44CE55' : '#f1f3f5'
-                    }]}
-                    onPress={() => {setShowSmall('toShow');}}
-                >
-                    <FontAwesome5 name={'window-maximize'} color={smallMic ? 'white' : 'black'} size={15}/>
-                </TouchableOpacity>
-            )
-        } else {
-            return (
-                <Animated.View
-                    style={{
-                        position: 'absolute',
-                        width: animateWidth,
-                        height: animateHeight,
-                        backgroundColor: 'black',
-                        bottom: animateBottom,
-                        right: animateRight,
-                        borderWidth: 1,
-                        borderColor: '#f1f3f5'
-                    }}
-                />
-            )
         }
-    })
-
-    if (peerToShow) {
+        const smallMic = peerBig ? microStat === 'on' : peerAudio;
         return (
             <View style={{flex: 1}}>
                 <Pressable style={{flex: 1}} onPress={() => {setHideBar();}}>
@@ -909,7 +838,70 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, microS
                             />
                     }
                 </Pressable>
-                <SmallWindow />
+                {
+                    showSmall === 'show' ?
+                        <Pressable
+                            style={[portraitStyle.smallWindow,
+                                {
+                                    borderColor: smallMic ? '#44CE55' : '#f1f3f5'
+                                }]}
+                            onPress={() => {
+                                setPeerBig(!peerBig);
+                            }}
+                        >
+                            <View style={{flex: 1}}>
+                                <Pressable style={portraitStyle.cancelButton} onPress={() => {setShowSmall('toHide');}}>
+                                    <Ionicons name={'close-circle-outline'} color={'white'} size={20}/>
+                                </Pressable>
+                                {
+                                    peerBig ?
+                                        <MyStreamWindow
+                                            rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
+                                            myStream={myStream}
+                                            zOrder={1}
+                                            microStat={microStat}
+                                            frontCam={myFrontCam}
+                                            shareScreen={shareScreen}
+                                        />
+                                        :
+                                        <PeerWindow
+                                            rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
+                                            peerToShow={peerToShow}
+                                            peerInfo={peerToShow.getPeerInfo()}
+                                            trackUrl={new MediaStream(peerToShow.getTracks()).toURL()}
+                                            peerAudio={peerAudio}
+                                            peerVideo={peerVideo}
+                                            zOrder={1}
+                                        />
+                                }
+                            </View>
+                        </Pressable>
+                        :
+                        (
+                            showSmall === 'hide' ?
+                                <TouchableOpacity
+                                    style={[portraitStyle.showButton, {
+                                        backgroundColor: smallMic ? '#44CE55' : '#f1f3f5'
+                                    }]}
+                                    onPress={() => {setShowSmall('toShow');}}
+                                >
+                                    <FontAwesome5 name={'window-maximize'} color={smallMic ? 'white' : 'black'} size={15} style={{transform: [{ rotate: "90deg" }]}}/>
+                                </TouchableOpacity>
+                            :
+                                <Animated.View
+                                    style={{
+                                        position: 'absolute',
+                                        width: animateWidth,
+                                        height: animateHeight,
+                                        backgroundColor: 'black',
+                                        bottom: animateBottom,
+                                        right: animateRight,
+                                        borderWidth: 1,
+                                        borderColor: '#f1f3f5'
+                                    }}
+                                />
+                        )
+                }
             </View>
         )
     } else {
