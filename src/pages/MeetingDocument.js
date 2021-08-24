@@ -134,14 +134,14 @@ export default class MeetingDocument extends Component {
                                     })
                                 }}
                             />
-                            <Animated.View style={{height: fillHeight}}>
+                            <View style={{height: fillHeight}}>
                                 <TouchableOpacity
                                     style={{flex: 1}}
                                     onPress={() => {
                                         this.textInput.current.focus();
                                     }}
                                 />
-                            </Animated.View>
+                            </View>
                         </View>
                     </View>
                 </ScrollView>

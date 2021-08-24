@@ -41,7 +41,7 @@ export const PanResponderSubtitle = ({maxWidth, text}) => {
             }}
             {...panResponder.panHandlers}
         >
-            <View style={[styles.box, {backgroundColor: rgbaColor(255, 255, 255, opacity), maxWidth: maxWidth * 0.7}]} >
+            <View style={[styles.box, {backgroundColor: rgbaColor(255, 255, 255, opacity), maxWidth: maxWidth}]} >
                 <Text style={styles.text}>{text}</Text>
             </View>
         </Animated.View>

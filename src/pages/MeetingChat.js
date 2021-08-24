@@ -46,6 +46,7 @@ export default class MeetingChat extends Component {
             headerLeft: () => {return (<TextButton text={'返回'} pressEvent={() => {navigation.pop();}}/>)},
         })
         Keyboard.addListener('keyboardDidShow', this.keyboardWillShow);
+        this.listRef.current.scrollToEnd();
     }
 
     componentWillUnmount() {

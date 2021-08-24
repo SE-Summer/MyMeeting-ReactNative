@@ -1,42 +1,38 @@
 import * as React from 'react';
+import {useEffect} from 'react';
 import {TouchableHighlight, TouchableOpacity, View} from "react-native";
 import {UserLabel} from "./UserLabel";
 import {RTCView} from "react-native-webrtc";
 import {DefaultPic, DefaultWithAudioPic} from "./DefaultPic";
 import {MeetingVariable} from "../MeetingVariable";
 import {config_key} from "../Constants";
-import {useEffect} from "react";
 
-export const PeerWindow = ({rtcViewStyle, peerToShow, zOrder}) => {
-    useEffect(() => {
-        peerToShow.subscribe();
-    }, [])
-
+const PeerWindow = ({rtcViewStyle, peerInfo, trackUrl, peerAudio, peerVideo, zOrder}) => {
     return (
-        <View style={{flex: 1, borderWidth: 1, borderColor: peerToShow.hasAudio() ? '#44CE55' : '#f1f3f5'}}>
-            <UserLabel text={peerToShow.getPeerInfo().displayName}/>
+        <View style={{flex: 1}}>
+            <UserLabel text={peerInfo.displayName}/>
             {
-                peerToShow.hasVideo() ?
+                peerVideo ?
                     <RTCView
                         zOrder={zOrder}
                         style={[rtcViewStyle]}
-                        streamURL={(new MediaStream(peerToShow.getTracks())).toURL()}
+                        streamURL={trackUrl}
                     />
                      :
                     (
-                        peerToShow.hasAudio() ?
-                            <DefaultWithAudioPic style={rtcViewStyle} imgSrc={peerToShow.getPeerInfo().avatar}/>
+                        peerAudio ?
+                            <DefaultWithAudioPic style={rtcViewStyle} imgSrc={peerInfo.avatar}/>
                             :
-                            <DefaultPic style={rtcViewStyle} imgSrc={peerToShow.getPeerInfo().avatar}/>
+                            <DefaultPic style={rtcViewStyle} imgSrc={peerInfo.avatar}/>
                     )
             }
         </View>
     )
 }
 
-export const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, microStat, frontCam, shareScreen}) => {
+const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, microStat, frontCam, shareScreen}) => {
     return (
-        <View style={{flex: 1, borderWidth: 1, borderColor: microStat === 'on' ? '#44CE55' : '#f1f3f5'}}>
+        <View style={{flex: 1}}>
             <UserLabel text={MeetingVariable.myName} />
             {
                 myStream ?
@@ -58,7 +54,7 @@ export const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, microStat, front
     )
 }
 
-export const GridMyWindow = ({mirror, rtcViewStyle, myStream, microStat, pressEvent}) => {
+const GridMyWindow = ({mirror, rtcViewStyle, myStream, microStat, pressEvent}) => {
     return (
         <TouchableHighlight
             style={{
@@ -89,7 +85,7 @@ export const GridMyWindow = ({mirror, rtcViewStyle, myStream, microStat, pressEv
     )
 }
 
-export const GridPeerWindow = ({rtcViewStyle, peerToShow, pressEvent}) => {
+const GridPeerWindow = ({rtcViewStyle, peerToShow, trackUrl, peerAudio, peerVideo, pressEvent}) => {
     useEffect(() => {
         peerToShow.subscribe();
         return () => {
@@ -102,22 +98,22 @@ export const GridPeerWindow = ({rtcViewStyle, peerToShow, pressEvent}) => {
         <TouchableOpacity
             style={{
                 borderWidth: 1,
-                borderColor: (peerToShow.hasAudio() ? '#44CE55' : '#f1f3f5'),
+                borderColor: (peerAudio ? '#44CE55' : '#f1f3f5'),
             }}
             onPress={pressEvent}
         >
             <View>
                 <UserLabel text={peerInfo.displayName}/>
                 {
-                    peerToShow.hasVideo() ?
+                    peerVideo ?
                         <RTCView
                             zOrder={0}
                             mirror={false}
                             style={rtcViewStyle}
-                            streamURL={new MediaStream(peerToShow.getTracks()).toURL()}
+                            streamURL={trackUrl}
                         />
                         :
-                        peerToShow.hasAudio() ?
+                        peerAudio ?
                             <DefaultWithAudioPic style={rtcViewStyle} imgSrc={peerInfo.avatar}/>
                             :
                             <DefaultPic style={rtcViewStyle} imgSrc={peerInfo.avatar}/>
@@ -126,3 +122,5 @@ export const GridPeerWindow = ({rtcViewStyle, peerToShow, pressEvent}) => {
         </TouchableOpacity>
     )
 }
+
+export {MyStreamWindow, PeerWindow, GridPeerWindow, GridMyWindow}
