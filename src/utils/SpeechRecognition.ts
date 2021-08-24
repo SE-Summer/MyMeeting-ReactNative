@@ -86,6 +86,8 @@ export class SpeechRecognition
     {
         if (speechText.fromPeerId !== config_key.userId) {
             speechText.fromMyself = false;
+            speechText.startTime = moment(speechText.startTime);
+            speechText.updateTime = moment(speechText.updateTime);
             this.newSpeechText(speechText);
         }
     }

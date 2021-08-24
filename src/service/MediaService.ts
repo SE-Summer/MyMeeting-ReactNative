@@ -429,7 +429,9 @@ export class MediaService
 
     public sendSpeechText(speechText: types.SpeechText)
     {
-        this.signaling.sendNotify(SignalMethod.sendSpeechText, { speechText });
+        if (this.signaling && this.signaling.connected()) {
+            this.signaling.sendNotify(SignalMethod.sendSpeechText, { speechText });
+        }
     }
 
     // tell server and clear all meeting-related variables

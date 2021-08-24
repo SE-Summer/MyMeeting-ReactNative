@@ -37,6 +37,7 @@ export class FileService
     public getPathByURI(uri: string): string
     {
         let realPath = null;
+        console.log(Platform.OS);
         if (Platform.OS == 'android') {
             realPath = getPath(uri);
         } else if (Platform.OS == 'ios') {
@@ -54,7 +55,7 @@ export class FileService
 
     public async pickFile(): Promise<FileInfo>
     {
-        const picked = await DocumentPicker.pick({
+        const picked = await DocumentPicker.pickSingle({
             type: [DocumentPicker.types.allFiles],
         });
         console.log(`[Log]  File picked: URI: ${picked.uri}, Type: ${picked.type}, Name: ${picked.name}, Size: ${picked.size}`);
