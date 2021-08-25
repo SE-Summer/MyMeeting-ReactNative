@@ -3,7 +3,7 @@ import {useEffect} from 'react';
 import {TouchableHighlight, TouchableOpacity, View} from "react-native";
 import {UserLabel} from "./UserLabel";
 import {RTCView} from "react-native-webrtc";
-import {DefaultPic, DefaultWithAudioPic} from "./DefaultPic";
+import {DefaultPic, DefaultWithAudioPic, MyPic} from "./DefaultPic";
 import {MeetingVariable} from "../MeetingVariable";
 import {config_key} from "../Constants";
 
@@ -30,7 +30,7 @@ const PeerWindow = ({rtcViewStyle, peerInfo, trackUrl, peerAudio, peerVideo, zOr
     )
 }
 
-const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, microStat, frontCam, shareScreen}) => {
+const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, frontCam, shareScreen}) => {
     return (
         <View style={{flex: 1}}>
             <UserLabel text={MeetingVariable.myName} />
@@ -42,24 +42,18 @@ const MyStreamWindow = ({rtcViewStyle, myStream, zOrder, microStat, frontCam, sh
                         style={rtcViewStyle}
                         streamURL={myStream.toURL()}
                     /> :
-                    (
-                        microStat === 'on' ?
-                            <DefaultWithAudioPic style={rtcViewStyle} imgSrc={config_key.avatarUri}/>
-                            :
-                            <DefaultPic style={rtcViewStyle} imgSrc={config_key.avatarUri}/>
-                    )
-
+                    <MyPic style={rtcViewStyle} imgSrc={config_key.avatarUri}/>
             }
         </View>
     )
 }
 
-const GridMyWindow = ({mirror, rtcViewStyle, myStream, microStat, pressEvent}) => {
+const GridMyWindow = ({mirror, rtcViewStyle, myStream, pressEvent}) => {
     return (
         <TouchableHighlight
             style={{
                 borderWidth: 1,
-                borderColor: (microStat === 'on' ? '#44CE55' : '#f1f3f5')
+                borderColor: 'white'
             }}
             onPress={pressEvent}
         >
@@ -74,10 +68,7 @@ const GridMyWindow = ({mirror, rtcViewStyle, myStream, microStat, pressEvent}) =
                             streamURL={myStream.toURL()}
                         />
                         :
-                        microStat === 'on' ?
-                            <DefaultWithAudioPic style={rtcViewStyle} imgSrc={config_key.avatarUri}/>
-                            :
-                            <DefaultPic style={rtcViewStyle} imgSrc={config_key.avatarUri}/>
+                        <MyPic style={rtcViewStyle} imgSrc={config_key.avatarUri}/>
                 }
             </View>
 

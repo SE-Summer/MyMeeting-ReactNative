@@ -8,7 +8,7 @@ import {
     FlatList, Animated, Pressable,
 } from "react-native";
 import * as React from "react";
-import {Component, memo, useCallback, useEffect, useRef, useState} from "react";
+import {Component, memo, useEffect, useRef, useState} from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {config, config_key} from "../Constants";
 import {IconWithLabel} from "../components/IconWithLabel";
@@ -327,7 +327,6 @@ export default class Meeting extends Component
         this.setState({
             peerDetails: MeetingVariable.mediaService.getPeerDetails().length === 0 ? null : MeetingVariable.mediaService.getPeerDetails(),
         }, () => {
-            this.forceUpdate()
             console.log('[React]  state.peerDetails of Meeting updated : ' + JSON.stringify(this.state.peerDetails));
         })
     }
@@ -472,7 +471,7 @@ export default class Meeting extends Component
     render() {
         const {roomInf} = this.props.route.params;
         const {width, height, myCameraStream, myDisplayStream,
-            camStat, microStat, frontCam,
+            camStat, microStat, frontCam, peerDetails, portraitIndex,
             shareScreen, alertError, leaveAndClose,
             showSubtitle, audioRoute} = this.state;
         return (
@@ -549,7 +548,6 @@ export default class Meeting extends Component
                                     myFrontCam={frontCam}
                                     shareScreen={shareScreen}
                                     peerDetails={this.state.peerDetails}
-                                    micStat={microStat}
                                     turnPortrait={this.turnGridToPortrait}
                                     setHideBar={this.setHideBar}
                                 />
@@ -560,10 +558,9 @@ export default class Meeting extends Component
                                     myStream={shareScreen ? myDisplayStream : myCameraStream}
                                     myFrontCam={frontCam}
                                     shareScreen={shareScreen}
-                                    microStat={microStat}
-                                    peerToShow={this.state.peerDetails ? this.state.peerDetails[this.state.portraitIndex] : null}
-                                    peerAudio={this.state.peerDetails ? this.state.peerDetails[this.state.portraitIndex].hasAudio() : false}
-                                    peerVideo={this.state.peerDetails ? this.state.peerDetails[this.state.portraitIndex].hasVideo() : false}
+                                    peerToShow={peerDetails ? peerDetails[portraitIndex] : null}
+                                    peerAudio={peerDetails ? peerDetails[portraitIndex].hasAudio() : false}
+                                    peerVideo={peerDetails ? peerDetails[portraitIndex].hasVideo() : false}
                                     setHideBar={this.setHideBar}
                                 />
                         }
@@ -597,7 +594,7 @@ export default class Meeting extends Component
     }
 }
 
-const GridView = memo(function ({myStream, peerDetails, turnPortrait, myFrontCam, shareScreen, micStat, setHideBar}) {
+const GridView = memo(function ({myStream, peerDetails, turnPortrait, myFrontCam, shareScreen, setHideBar}) {
     const [gridWidth, setGridWidth] = useState(windowWidth / 3);
     const [gridHeight, setGridHeight] = useState(windowWidth * 4 / 9);
     const [column, setColumn] = useState(3);
@@ -633,7 +630,6 @@ const GridView = memo(function ({myStream, peerDetails, turnPortrait, myFrontCam
                     mirror={myFrontCam && !shareScreen}
                     rtcViewStyle={gridStyle.rtcView}
                     myStream={myStream}
-                    microStat={micStat}
                     pressEvent={() => {turnPortrait(0)}}
                 />
             )
@@ -664,7 +660,7 @@ const GridView = memo(function ({myStream, peerDetails, turnPortrait, myFrontCam
     )
 })
 
-const PortraitView = memo(function ({width, height, peerToShow, myStream, microStat, myFrontCam, shareScreen, setHideBar, peerAudio, peerVideo}) {
+const PortraitView = memo(function ({width, height, peerToShow, myStream, myFrontCam, shareScreen, setHideBar, peerAudio, peerVideo}) {
     const [smallWindowWidth, setSmallWidth] = useState(windowWidth / 3);
     const [smallWindowHeight, setSmallHeight]= useState(windowWidth * 4 / 9);
 
@@ -813,7 +809,8 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, microS
             peerToShow.subscribe();
             peerToShow.unsubscribeVideo();
         }
-        const smallMic = peerBig ? microStat === 'on' : peerAudio;
+        const smallMic = !peerBig && peerAudio;
+        const trackUrl = new MediaStream(peerToShow.getTracks()).toURL();
         return (
             <View style={{flex: 1}}>
                 <Pressable style={{flex: 1}} onPress={() => {setHideBar();}}>
@@ -822,7 +819,7 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, microS
                             <PeerWindow
                                 rtcViewStyle={portraitStyle.bigWindow}
                                 peerInfo={peerToShow.getPeerInfo()}
-                                trackUrl={new MediaStream(peerToShow.getTracks()).toURL()}
+                                trackUrl={trackUrl}
                                 peerVideo={peerVideo}
                                 peerAudio={peerAudio}
                                 zOrder={0}
@@ -832,7 +829,6 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, microS
                                 rtcViewStyle={portraitStyle.bigWindow}
                                 myStream={myStream}
                                 zOrder={0}
-                                microStat={microStat}
                                 frontCam={myFrontCam}
                                 shareScreen={shareScreen}
                             />
@@ -843,7 +839,7 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, microS
                         <Pressable
                             style={[portraitStyle.smallWindow,
                                 {
-                                    borderColor: smallMic ? '#44CE55' : '#f1f3f5'
+                                    borderColor: peerBig ? 'white' : (smallMic  ? '#44CE55' : '#f1f3f5')
                                 }]}
                             onPress={() => {
                                 setPeerBig(!peerBig);
@@ -859,7 +855,6 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, microS
                                             rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
                                             myStream={myStream}
                                             zOrder={1}
-                                            microStat={microStat}
                                             frontCam={myFrontCam}
                                             shareScreen={shareScreen}
                                         />
@@ -868,7 +863,7 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, microS
                                             rtcViewStyle={{width: smallWindowWidth - 3, height: smallWindowHeight - 3, backgroundColor: 'black'}}
                                             peerToShow={peerToShow}
                                             peerInfo={peerToShow.getPeerInfo()}
-                                            trackUrl={new MediaStream(peerToShow.getTracks()).toURL()}
+                                            trackUrl={trackUrl}
                                             peerAudio={peerAudio}
                                             peerVideo={peerVideo}
                                             zOrder={1}
@@ -881,11 +876,11 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, microS
                             showSmall === 'hide' ?
                                 <TouchableOpacity
                                     style={[portraitStyle.showButton, {
-                                        backgroundColor: smallMic ? '#44CE55' : '#f1f3f5'
+                                        backgroundColor: peerBig ? 'white' : (smallMic  ? '#44CE55' : '#f1f3f5')
                                     }]}
                                     onPress={() => {setShowSmall('toShow');}}
                                 >
-                                    <FontAwesome5 name={'window-maximize'} color={smallMic ? 'white' : 'black'} size={15} style={{transform: [{ rotate: "90deg" }]}}/>
+                                    <FontAwesome5 name={'window-maximize'} color={smallMic ? 'white' : 'black'} size={15} style={{transform: [{ rotate: "270deg" }]}}/>
                                 </TouchableOpacity>
                             :
                                 <Animated.View
@@ -911,7 +906,6 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, microS
                     rtcViewStyle={portraitStyle.bigWindow}
                     myStream={myStream}
                     zOrder={0}
-                    microStat={microStat}
                     frontCam={myFrontCam}
                     shareScreen={shareScreen}
                 />

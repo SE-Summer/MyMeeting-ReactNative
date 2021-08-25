@@ -84,6 +84,13 @@ export default class UserSettingScreen extends Component {
                 </View>
                 <View style={{height: 30}}/>
                 <View style={styles.itemContainer}>
+                    <View style={{flexDirection: "row", padding: 15, alignItems: "center"}}>
+                        <Text style={{fontSize:16, textAlign: "left", marginLeft: 10}}>邮箱</Text>
+                        <View style={{alignItems: 'flex-end', flex: 1}}>
+                            <Text>{config_key.email}</Text>
+                        </View>
+                    </View>
+                    <Divider style={styles.divider}/>
                     <TouchableItem text={'用户名'} pressEvent={() => {this.usernameSettings('name')}} rightComponent={
                         <Text>{this.state.username}</Text>
                     }/>
