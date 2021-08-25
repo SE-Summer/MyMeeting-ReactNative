@@ -8,10 +8,11 @@ import {
     TextInput,
     TouchableOpacity,
     Animated,
-    SafeAreaView
+    Keyboard
 } from "react-native";
 import {MeetingVariable} from "../MeetingVariable";
 import {TextButton} from "../components/MyButton";
+import {windowHeight} from "../utils/Utils";
 
 export default class MeetingDocument extends Component {
     constructor(props) {
@@ -21,9 +22,6 @@ export default class MeetingDocument extends Component {
         this.state = {
             showSubtitleContents: false,
             notes: MeetingVariable.notes,
-            pageHeight: 0,
-            titleHeight: 0,
-            inputHeight: 0,
         }
     }
 
@@ -39,16 +37,26 @@ export default class MeetingDocument extends Component {
                 )
             }
         })
+        Keyboard.addListener('keyboardDidShow', this.keyboardWillShow);
+    }
+
+    componentWillUnmount() {
+        Keyboard.removeAllListeners('keyboardDidShow')
+    }
+
+    keyboardWillShow = () => {
+        if (this.state.showSubtitleContents) {
+            this.hideContents();
+        }
     }
 
     showContents = () => {
         this.setState({
             showSubtitleContents: true,
-            viewHeight: 350,
         })
         Animated.timing(this.viewHeight,
             {
-                toValue: 350,
+                toValue: windowHeight * 0.4,
                 duration: 200,
                 useNativeDriver: false,
             }
@@ -58,7 +66,6 @@ export default class MeetingDocument extends Component {
     hideContents = () => {
         this.setState({
             showSubtitleContents: false,
-            viewHeight: 0,
         })
         Animated.timing(this.viewHeight,
             {
@@ -77,75 +84,47 @@ export default class MeetingDocument extends Component {
     }
 
     render () {
-        const {inputHeight, pageHeight, titleHeight} = this.state;
-        let fillHeight = pageHeight - 2 * titleHeight - inputHeight - 30;
-        fillHeight = fillHeight > 0 ? fillHeight : 0;
         return (
-            <SafeAreaView style={{flex: 1}} onLayout={ event => {
-                const {height} = event.nativeEvent.layout;
-                this.setState({
-                    pageHeight: height,
-                })
-            }}>
-                <ScrollView style={{flex: 1, padding: 8}}>
-                    <View>
-                        <TouchableOpacity
-                            style={styles.titleContainer}
-                            onPress={() => {
-                                if (this.state.showSubtitleContents) {
-                                    this.hideContents();
-                                } else {
-                                    this.showContents();
-                                }
-                            }}
-                            onLayout={ event => {
-                                const {height} = event.nativeEvent.layout;
-                                this.setState({
-                                    titleHeight: height,
-                                })
-                            }}
+            <View style={{flex: 1, padding: 5}}>
+                <View style={{flex: 1}}>
+                    <View style={styles.titleContainer}>
+                        <Text style={styles.title}>我的笔记</Text>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            ref={this.textInput}
+                            style={{color: 'black'}}
+                            multiline
+                            value={this.state.notes}
+                            onChangeText={this.textChange}
+                        />
+                    </View>
+                </View>
+                <View style={{marginTop: 5}}>
+                    <TouchableOpacity
+                        style={styles.titleContainer}
+                        onPress={() => {
+                            if (this.state.showSubtitleContents) {
+                                this.hideContents();
+                            } else {
+                                this.showContents();
+                            }
+                        }}
+                    >
+                        <Text style={styles.title}>字幕</Text>
+                    </TouchableOpacity>
+                    <Animated.View style={[styles.animatedView, {height: this.viewHeight}]}>
+                        <View style={{alignItems: 'center'}}>
+                            <Text style={{color: '#f56066'}}>该内容仅作为参考</Text>
+                        </View>
+                        <ScrollView
+                            style={styles.scrollView}
                         >
-                            <Text style={styles.title}>字幕</Text>
-                        </TouchableOpacity>
-                        <Animated.View style={[styles.animatedView, {height: this.viewHeight }]}>
-                            <View style={{alignItems: 'center'}}>
-                                <Text style={{color: '#f56066'}}>该内容仅作为参考</Text>
-                            </View>
-                            <ScrollView style={styles.scrollView}>
-                                <Text>{MeetingVariable.speechRecognition.exportMeme()}</Text>
-                            </ScrollView>
-                        </Animated.View>
-                    </View>
-                    <View style={{flex: 1}}>
-                        <View style={styles.titleContainer}>
-                            <Text style={styles.title}>我的笔记</Text>
-                        </View>
-                        <View style={styles.inputContainer}>
-                            <TextInput
-                                ref={this.textInput}
-                                style={{color: 'black'}}
-                                multiline
-                                value={this.state.notes}
-                                onChangeText={this.textChange}
-                                onLayout={ event => {
-                                    const {height} = event.nativeEvent.layout;
-                                    this.setState({
-                                        inputHeight: height,
-                                    })
-                                }}
-                            />
-                            <View style={{height: fillHeight}}>
-                                <TouchableOpacity
-                                    style={{flex: 1}}
-                                    onPress={() => {
-                                        this.textInput.current.focus();
-                                    }}
-                                />
-                            </View>
-                        </View>
-                    </View>
-                </ScrollView>
-            </SafeAreaView>
+                            <Text>{MeetingVariable.speechRecognition.exportMeme()}</Text>
+                        </ScrollView>
+                    </Animated.View>
+                </View>
+            </View>
         )
     }
 }
