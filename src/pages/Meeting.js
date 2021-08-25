@@ -327,6 +327,7 @@ export default class Meeting extends Component
         this.setState({
             peerDetails: MeetingVariable.mediaService.getPeerDetails().length === 0 ? null : MeetingVariable.mediaService.getPeerDetails(),
         }, () => {
+            this.forceUpdate();
             console.log('[React]  state.peerDetails of Meeting updated : ' + JSON.stringify(this.state.peerDetails));
         })
     }
@@ -805,12 +806,14 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, myFron
     }
 
     if (peerToShow) {
+        peerToShow.subscribe();
         if (showSmall === 'hide') {
-            peerToShow.subscribe();
             peerToShow.unsubscribeVideo();
         }
+
         const smallMic = !peerBig && peerAudio;
         const trackUrl = new MediaStream(peerToShow.getTracks()).toURL();
+
         return (
             <View style={{flex: 1}}>
                 <Pressable style={{flex: 1}} onPress={() => {setHideBar();}}>
