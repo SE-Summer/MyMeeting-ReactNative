@@ -13,6 +13,22 @@ export const validateEmail = (email) => {
     return re.test(String(email).toLowerCase());
 }
 
+export const clearDupRoom = (roomArray) => {
+    let hash = {};
+    let array = [];
+    const length = roomArray.length;
+
+    for (let i = 0; i < length; i++) {
+        const roomId = roomArray[i].id;
+        if (hash[roomId] == null) {
+            hash[roomId] = true;
+            array.push(roomArray[i]);
+        }
+    }
+
+    return array;
+}
+
 export const judgeFileType = (fileMIME, filename) => {
     if (fileMIME.indexOf('image') !== -1) {
         return myFileType.image;

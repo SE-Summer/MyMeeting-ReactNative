@@ -57,3 +57,11 @@ export const meetingsInf = async () => {
     };
     return await postRequest(url, data);
 }
+
+export const meetingHistory = async () => {
+    const url = '/getHistory';
+    const data = {
+        token: config_key.token,
+    };
+    return await postRequest(url, data);
+}
