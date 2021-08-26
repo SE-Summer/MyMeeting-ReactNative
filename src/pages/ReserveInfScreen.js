@@ -1,15 +1,19 @@
 import * as React from 'react';
 import {Component} from "react";
-import {FlatList, RefreshControl, Text, View} from "react-native";
-import {meetingsInf} from "../service/MeetingService";
+import {FlatList, RefreshControl, Text, View, StyleSheet} from "react-native";
+import {meetingHistory, meetingsInf} from "../service/MeetingService";
 import {ListItem} from "../components/ListItem";
 import {config_key} from "../Constants";
 import {MeetingVariable} from "../MeetingVariable";
+import PagerView from "react-native-pager-view";
+import moment from "moment";
+import {clearDupRoom} from "../utils/Utils";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
-const Empty = ({}) => {
+const Empty = ({text}) => {
     return (
         <View style={{flex: 1, alignItems: "center", justifyContent: "center"}}>
-            <Text style={{color: '#aaaaaa'}}>-没有预约会议-</Text>
+            <Text style={{color: '#aaaaaa'}}>-{text}-</Text>
         </View>
     )
 }
@@ -18,9 +22,11 @@ export default class ReserveInfScreen extends Component {
     constructor() {
         super();
         this.state = {
-            data: [],
+            reserveData: [],
+            historyData: [],
             count: 0,
             refreshing: false,
+            refreshing1: false,
         }
     }
 
@@ -33,19 +39,47 @@ export default class ReserveInfScreen extends Component {
     }
 
     fetch = async () => {
+        await this.fetchReserve();
+        await this.fetchHistory();
+    }
+
+    fetchReserve = async () => {
         await this.setState({
             refreshing: true,
         })
-        const response = await meetingsInf();
 
-        if (response == null || response.status !== 200) {
+        const reserveResponse = await meetingsInf();
+
+        if (reserveResponse == null || reserveResponse.status !== 200) {
             toast.show('获取预约信息失败', {type: 'warning', duration: 1300, placement: 'top'})
             return;
         }
 
+        const reserveData = reserveResponse.data.rooms.filter((room) => moment().isSameOrBefore(room.end_time))
+
         this.setState({
-            data: response.data.rooms,
+            reserveData: reserveData,
             refreshing: false,
+        })
+    }
+
+    fetchHistory = async () => {
+        await this.setState({
+            refreshing1: true,
+        })
+
+        const historyResponse = await meetingHistory();
+
+        if (historyResponse == null || historyResponse.status !== 200) {
+            toast.show('获取历史记录失败', {type: 'warning', duration: 1300, placement: 'top'})
+            return;
+        }
+
+        const historyData = clearDupRoom(historyResponse.data.history);
+
+        this.setState({
+            historyData: historyData,
+            refreshing1: false,
         })
     }
 
@@ -68,19 +102,70 @@ export default class ReserveInfScreen extends Component {
 
     render() {
         return (
-            <View style={{flex: 1, paddingTop: 10}}>
-                <FlatList
-                    data={this.state.data}
-                    keyExtractor={(item) => item.id}
-                    renderItem={this.renderItem}
-                    refreshControl={
-                        <RefreshControl refreshing={this.state.refreshing} onRefresh={this.fetch} colors={[
-                            '#05783d','#069b49', '#06b45f', '#87e0a5', '#9be3b1aa',
-                        ]}/>
-                    }
-                    ListEmptyComponent={<Empty />}
-                />
+            <View style={{flex: 1}}>
+                <PagerView style={{flex: 1}} initialPage={0} onPageScroll={this.onPageScroll}>
+                    <View key='1' style={{flex: 1}}>
+                        <View style={style.titleContainer}>
+                            <View style={{flex: 1}}/>
+                            <View style={{flex: 1}}>
+                                <Text style={style.title}>预约信息</Text>
+                            </View>
+                            <View style={{flex: 1, alignItems: 'flex-end'}}>
+                                <Ionicons name={'caret-forward'} color={'white'} size={18}/>
+                            </View>
+                        </View>
+                        <FlatList
+                            data={this.state.reserveData}
+                            keyExtractor={(item) => item.id}
+                            renderItem={this.renderItem}
+                            refreshControl={
+                                <RefreshControl refreshing={this.state.refreshing} onRefresh={this.fetchReserve} colors={[
+                                    '#05783d','#069b49', '#06b45f', '#87e0a5', '#9be3b1aa',
+                                ]}/>
+                            }
+                            ListEmptyComponent={<Empty text={'没有预约会议'}/>}
+                        />
+                    </View>
+                    <View key='2'>
+                        <View style={style.titleContainer}>
+                            <View style={{flex: 1, alignItems: 'flex-start'}}>
+                                <Ionicons name={'caret-back'} color={'white'} size={18}/>
+                            </View>
+                            <View style={{flex: 1}}>
+                                <Text style={style.title}>历史会议</Text>
+                            </View>
+                            <View style={{flex: 1}}/>
+                        </View>
+                        <FlatList
+                            data={this.state.historyData}
+                            keyExtractor={(item, index) => index}
+                            renderItem={this.renderItem}
+                            refreshControl={
+                                <RefreshControl refreshing={this.state.refreshing} onRefresh={this.fetchHistory} colors={[
+                                    '#05783d','#069b49', '#06b45f', '#87e0a5', '#9be3b1aa',
+                                ]}/>
+                            }
+                            ListEmptyComponent={<Empty text={'没有历史记录'}/>}
+                        />
+                    </View>
+                </PagerView>
             </View>
         );
     }
 }
+
+const style = StyleSheet.create({
+    titleContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        backgroundColor: '#06b45f',
+        padding: 10,
+    },
+    title: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 18,
+        textAlign: 'center',
+    }
+})
