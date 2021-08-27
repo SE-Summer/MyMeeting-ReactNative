@@ -9,6 +9,7 @@ import PagerView from "react-native-pager-view";
 import moment from "moment";
 import {clearDupRoom} from "../utils/Utils";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import LinearGradient from "react-native-linear-gradient";
 
 const Empty = ({text}) => {
     return (
@@ -105,7 +106,12 @@ export default class ReserveInfScreen extends Component {
             <View style={{flex: 1}}>
                 <PagerView style={{flex: 1}} initialPage={0} onPageScroll={this.onPageScroll}>
                     <View key='1' style={{flex: 1}}>
-                        <View style={style.titleContainer}>
+                        <LinearGradient
+                            start={{x: 0, y: 0}}
+                            end={{x: 1, y: 0}}
+                            colors={['#05783d','#069b49', '#41c266']}
+                            style={style.titleContainer}
+                        >
                             <View style={{flex: 1}}/>
                             <View style={{flex: 1}}>
                                 <Text style={style.title}>预约信息</Text>
@@ -113,8 +119,9 @@ export default class ReserveInfScreen extends Component {
                             <View style={{flex: 1, alignItems: 'flex-end'}}>
                                 <Ionicons name={'caret-forward'} color={'white'} size={18}/>
                             </View>
-                        </View>
+                        </LinearGradient>
                         <FlatList
+                            style={style.flatlist}
                             data={this.state.reserveData}
                             keyExtractor={(item) => item.id}
                             renderItem={this.renderItem}
@@ -127,7 +134,11 @@ export default class ReserveInfScreen extends Component {
                         />
                     </View>
                     <View key='2'>
-                        <View style={style.titleContainer}>
+                        <LinearGradient
+                            start={{x: 0, y: 0}}
+                            end={{x: 1, y: 0}}
+                            colors={['#41c266', '#84e49f', '#b1f3c4']}
+                            style={style.titleContainer}>
                             <View style={{flex: 1, alignItems: 'flex-start'}}>
                                 <Ionicons name={'caret-back'} color={'white'} size={18}/>
                             </View>
@@ -135,8 +146,9 @@ export default class ReserveInfScreen extends Component {
                                 <Text style={style.title}>历史会议</Text>
                             </View>
                             <View style={{flex: 1}}/>
-                        </View>
+                        </LinearGradient>
                         <FlatList
+                            style={style.flatlist}
                             data={this.state.historyData}
                             keyExtractor={(item, index) => index}
                             renderItem={this.renderItem}
@@ -167,5 +179,8 @@ const style = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 18,
         textAlign: 'center',
+    },
+    flatlist: {
+        marginTop: 5,
     }
 })
