@@ -253,7 +253,7 @@ export default class MeetingChat extends Component {
     // @Param message: reference of a message in MeetingVariable.messages
     downloadFile = async (message) => {
         try {
-            const filePath = `${MeetingVariable.fileService.getDefaultDownloadPath()}/${message.filename}`;
+            const filePath = `${MeetingVariable.fileService.getBundlePath()}/${message.filename}`;
             await MeetingVariable.fileService.download(message.fileURL, filePath,
                 (bytesSent, totalBytes) => {
                     message.bytesSent = bytesSent;

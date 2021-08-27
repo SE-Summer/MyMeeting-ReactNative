@@ -54,7 +54,7 @@ export class FileService
 
     public async pickFile(): Promise<FileInfo>
     {
-        const picked = await DocumentPicker.pickSingle({
+        const picked = await DocumentPicker.pick({
             type: [DocumentPicker.types.allFiles],
         });
         console.log(`[Log]  File picked: URI: ${picked.uri}, Type: ${picked.type}, Name: ${picked.name}, Size: ${picked.size}`);
