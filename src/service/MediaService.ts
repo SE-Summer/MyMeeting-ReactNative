@@ -713,7 +713,6 @@ export class MediaService
             });
 
             consumer.pause();
-            consumer.emit('pause');
 
             this.peerMedia.addConsumer(data.producerPeerId, consumer);
 

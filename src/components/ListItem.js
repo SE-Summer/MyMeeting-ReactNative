@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Text, TouchableOpacity, View, StyleSheet, Animated} from "react-native";
+import {Text, View, StyleSheet, Animated, Pressable} from "react-native";
 import moment from "moment";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import {join} from "../service/MeetingService";
@@ -25,6 +25,8 @@ export const ListItem = ({date, item, index, pressEvent}) => {
     const [containerWidth, setContainerWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
     const [labelWidth, setLabelWidth] = useState(0);
+    const [large, setLarge] = useState(false);
+    const [cardScale, setCardScale] = useState(1);
     const radius = useRef(new Animated.Value(0)).current;
     const overlayWidth = useRef(new Animated.Value(0)).current;
 
@@ -115,58 +117,142 @@ export const ListItem = ({date, item, index, pressEvent}) => {
                 }, 500);
             });
         }
-
     }
 
-    return (
-        <View style={styles.itemContainer} onLayout={getWidthHeight}>
-            <Animated.View style={[styles.overLay, {width: overlayWidth, backgroundColor: theColor, height: containerHeight, left: 0, borderTopRightRadius: radius, borderBottomRightRadius: radius}]}>
-                <Text style={styles.indexFont}>{index + 1}</Text>
-            </Animated.View>
-            <View style={{flex: 0.5}} onLayout={getLabelWidth}/>
-            <View style={styles.contentContainer}>
-                <View style={styles.titleContainer}>
-                    <View style={styles.topicContainer}>
-                        <Text style={styles.topicStyle}>{item.topic}</Text>
-                        {
-                            item.host === parseInt(config_key.userId) &&
+    const scaleSmall = () => {
+        setCardScale(0.97)
+    }
+
+    const scaleLarge = () => {
+        setCardScale(1)
+    }
+
+    const getLarge = () => {
+        setLarge(true);
+    }
+
+    const getSmall = () => {
+        setLarge(false);
+    }
+
+    const historyTime = (timeArray) => {
+        return (
+            <View style={{}}>
+                <Text style={{textAlign: 'center'}}>历史参会时间：</Text>
+                <View style={{alignItems: 'center'}}>
+                    {
+                        timeArray.map((time, index) => {
+                            if (index % 2 === 1) {
+                                return (
+                                    <View style={{flexDirection: 'row', paddingLeft: 6, paddingRight: 6}}>
+                                        <View style={{flex: 1, alignItems: 'center'}}>
+                                            <Text key={index-1}>{moment(timeArray[index-1]).format('MM-DD HH:mm')}</Text>
+                                        </View>
+                                        <View style={{flex: 1, alignItems: 'center'}}>
+                                            <Text key={index}>{moment(time).format('MM-DD HH:mm')}</Text>
+                                        </View>
+                                    </View>
+                                )
+                            }
+                        })
+                    }
+                </View>
+            </View>
+        )
+    }
+
+    if (!large) {
+        return (
+            <Pressable
+                onPress={getLarge}
+                onPressOut={scaleLarge}
+                onPressIn={scaleSmall}
+                style={[styles.itemContainer, {flexDirection: 'row', transform: [{scale: cardScale}]}]}
+                onLayout={getWidthHeight}
+            >
+                <Animated.View style={[styles.overLay, {width: overlayWidth, backgroundColor: theColor, height: containerHeight, left: 0, borderTopRightRadius: radius, borderBottomRightRadius: radius}]}>
+                    <Text style={styles.indexFont}>{index + 1}</Text>
+                </Animated.View>
+                <View style={{flex: 0.5}} onLayout={getLabelWidth}/>
+                <View style={styles.contentContainer}>
+                    <View style={styles.titleContainer}>
+                        <View style={styles.topicContainer}>
+                            <Text style={styles.topicStyle}>{item.topic}</Text>
+                            {
+                                item.host === parseInt(config_key.userId) &&
                                 <FontAwesome5 name={'crown'} color={'gold'} style={{marginLeft: 10}}/>
+                            }
+                        </View>
+                    </View>
+                    <View style={styles.timeContainer}>
+                        <Text style={styles.timeFont}>时间: {moment(item.start_time).format('MM-DD HH:mm')} ~ {moment(item.end_time).format('MM-DD HH:mm')}</Text>
+                    </View>
+                    <View style={styles.idContainer}>
+                        <View style={styles.idInnerContainer}>
+                            <Text style={styles.idFont}>会议号: </Text>
+                            <Text style={styles.idFont}>{item.id}</Text>
+                        </View>
+                        <View style={styles.idInnerContainer}>
+                            <View style={{flex: 1}}>
+                                <Text style={styles.idFont}>密码: {passwordVisible ? item.password : '--'}</Text>
+                            </View>
+                            <FontAwesome5 name={passwordVisible ? 'eye' : 'eye-slash'} color={'#aaaaaa'} onPress={() => {
+                                setPasswordVisible(!passwordVisible);
+                            }}/>
+                        </View>
+                    </View>
+                </View>
+                <View style={styles.iconContainer}>
+                    <Pressable hitSlop={10} onPress={slideRight}>
+                        <FontAwesome5 name={icon} size={20} color={iconColor} />
+                    </Pressable>
+                    {
+                        sharable &&
+                        <Pressable hitSlop={10} onPress={() => {
+                            shareMeeting();
+                        }}>
+                            <FontAwesome5 name={'share-alt'} size={20} color={shareColor}/>
+                        </Pressable>
+                    }
+                </View>
+            </Pressable>
+        )
+    } else {
+        return (
+            <Pressable
+                onPress={getSmall}
+                onPressOut={scaleLarge}
+                onPressIn={scaleSmall}
+                style={[styles.itemContainer, {flexDirection: 'column' , transform: [{scale: cardScale}]}]}
+            >
+                <View style={styles.contentContainer}>
+                    <View style={styles.titleContainer}>
+                        <View style={styles.topicContainer}>
+                            <Text style={styles.topicStyle}>{item.topic}</Text>
+                            {
+                                item.host === parseInt(config_key.userId) &&
+                                <FontAwesome5 name={'crown'} color={'gold'} style={{marginLeft: 10}}/>
+                            }
+                        </View>
+                    </View>
+                    <View style={[styles.timeContainer, {alignItems: 'center'}]}>
+                        <Text style={styles.timeFont}>时间: {moment(item.start_time).format('MM-DD HH:mm')} ~ {moment(item.end_time).format('MM-DD HH:mm')}</Text>
+                    </View>
+                    <View style={[styles.idContainer, {justifyContent: 'center'}]}>
+                        <Text style={{fontSize: 13, color: 'black', textAlign: 'center'}}>会议号: {item.id}{'\t\t'}密码: {item.password}</Text>
+                    </View>
+                </View>
+                {
+                    item.time &&
+                    <View style={{marginLeft: 10, marginRight: 10, marginBottom: 10}}>
+                        {
+                            historyTime(item.time)
                         }
                     </View>
-                </View>
-                <View style={styles.timeContainer}>
-                    <Text style={styles.timeFont}>时间: {moment(item.start_time).format('MM-DD HH:mm')} ~ {moment(item.end_time).format('MM-DD HH:mm')}</Text>
-                </View>
-                <View style={styles.idContainer}>
-                    <View style={styles.idInnerContainer}>
-                        <Text style={styles.idFont}>会议号: </Text>
-                        <Text style={styles.idFont}>{item.id}</Text>
-                    </View>
-                    <View style={styles.idInnerContainer}>
-                        <View style={{flex: 1}}>
-                            <Text style={styles.idFont}>密码: {passwordVisible ? item.password : '--'}</Text>
-                        </View>
-                        <FontAwesome5 name={passwordVisible ? 'eye' : 'eye-slash'} color={'#aaaaaa'} onPress={() => {
-                            setPasswordVisible(!passwordVisible);
-                        }}/>
-                    </View>
-                </View>
-            </View>
-            <View style={styles.iconContainer}>
-                <TouchableOpacity onPress={slideRight}>
-                    <FontAwesome5 name={icon} size={20} color={iconColor} />
-                </TouchableOpacity>
-                {
-                    sharable &&
-                    <TouchableOpacity onPress={() => {
-                        shareMeeting();
-                    }}>
-                        <FontAwesome5 name={'share-alt'} size={20} color={shareColor}/>
-                    </TouchableOpacity>
                 }
-            </View>
-        </View>
-    )
+            </Pressable>
+        )
+    }
 }
 
 const styles = StyleSheet.create({
@@ -188,7 +274,6 @@ const styles = StyleSheet.create({
         marginTop: 7.5,
         marginBottom: 7.5,
         elevation: 3,
-        flexDirection: 'row'
     },
     contentContainer: {
         flex: 5,
@@ -235,7 +320,7 @@ const styles = StyleSheet.create({
     },
     idContainer: {
         margin: 3,
-        flexDirection: 'row'
+        flexDirection: 'row',
     },
     idInnerContainer: {
         flex: 1,
@@ -245,5 +330,8 @@ const styles = StyleSheet.create({
     idFont: {
         fontSize: 12,
         color: 'black',
+    },
+    container1: {
+        padding: 10,
     }
 })

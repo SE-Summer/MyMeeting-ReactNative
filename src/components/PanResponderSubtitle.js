@@ -1,17 +1,13 @@
-import React, {useRef, useState} from "react";
+import React, {useRef} from "react";
 import { Animated, View, StyleSheet, PanResponder, Text } from "react-native";
-import {rgbaColor} from "react-native-reanimated/src/reanimated2/Colors";
 
 export const PanResponderSubtitle = ({maxWidth, text}) => {
     const pan = useRef(new Animated.ValueXY()).current;
-    const [opacity, setOpacity] = useState(0);
 
     const panResponder = useRef(
         PanResponder.create({
             onMoveShouldSetPanResponder: () => true,
-            onPanResponderGrant: () => {
-                setOpacity(0.2);
-            },
+            onPanResponderGrant: () => {},
             onPanResponderMove: Animated.event(
                     [
                         null,
@@ -21,7 +17,6 @@ export const PanResponderSubtitle = ({maxWidth, text}) => {
                 )
             ,
             onPanResponderRelease: () => {
-                setOpacity(0)
                 Animated.spring(
                     pan, // Auto-multiplexed
                     { toValue: { x: 0, y: 0 }, useNativeDriver: false } // Back to zero
@@ -41,7 +36,7 @@ export const PanResponderSubtitle = ({maxWidth, text}) => {
             }}
             {...panResponder.panHandlers}
         >
-            <View style={[styles.box, {backgroundColor: rgbaColor(255, 255, 255, opacity), maxWidth: maxWidth}]} >
+            <View style={[styles.box, {maxWidth: maxWidth}]} >
                 <Text style={styles.text}>{text}</Text>
             </View>
         </Animated.View>

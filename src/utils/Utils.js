@@ -17,13 +17,24 @@ export const clearDupRoom = (roomArray) => {
     let hash = {};
     let array = [];
     const length = roomArray.length;
+    let newLength = 0;
 
     for (let i = 0; i < length; i++) {
         const roomId = roomArray[i].id;
         if (hash[roomId] == null) {
-            hash[roomId] = true;
+            const joinTime = [roomArray[i].time];
+            hash[roomId] = roomArray[i];
+            hash[roomId].time = joinTime;
+            newLength++;
             array.push(roomArray[i]);
+        } else {
+            hash[roomId].time.push(roomArray[i].time);
         }
+    }
+
+    let index = newLength - 1;
+    for (let item in hash) {
+        array[index--] = hash[item];
     }
 
     return array;
