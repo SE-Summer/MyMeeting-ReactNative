@@ -13,7 +13,7 @@ export default class UserInf extends Component {
 
     render() {
         return (
-            <View style={this.props.style}>
+            <View style={[this.props.style]}>
                 <ImageBackground source={require('../resources/image/headerBg.png')} style={styles.rowContainer}>
                     <Avatar
                         rounded
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     titleText: {
         marginLeft: 15,
         textAlignVertical: "center",
-        fontSize: 18,
+        fontSize: 17,
         fontWeight: "bold",
     },
 })

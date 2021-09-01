@@ -75,11 +75,13 @@ export default class UserScreen extends Component{
 
 const userScreenStyles = StyleSheet.create({
     inf: {
-        elevation: 5,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        margin: 10,
     },
     optionsContainer: {
-        marginRight: 10,
-        marginLeft: 10,
+        marginRight: 13,
+        marginLeft: 13,
         marginTop: 10,
         backgroundColor:"white",
         borderRadius: 10

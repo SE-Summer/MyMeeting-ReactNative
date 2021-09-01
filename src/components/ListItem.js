@@ -137,14 +137,14 @@ export const ListItem = ({date, item, index, pressEvent}) => {
 
     const historyTime = (timeArray) => {
         return (
-            <View style={{}}>
+            <View>
                 <Text style={{textAlign: 'center'}}>历史参会时间：</Text>
                 <View style={{alignItems: 'center'}}>
                     {
                         timeArray.map((time, index) => {
                             if (index % 2 === 1) {
                                 return (
-                                    <View style={{flexDirection: 'row', paddingLeft: 6, paddingRight: 6}}>
+                                    <View style={{flexDirection: 'row', paddingLeft: 6, paddingRight: 6}} key={index}>
                                         <View style={{flex: 1, alignItems: 'center'}}>
                                             <Text key={index-1}>{moment(timeArray[index-1]).format('MM-DD HH:mm')}</Text>
                                         </View>
@@ -269,11 +269,10 @@ const styles = StyleSheet.create({
     itemContainer: {
         backgroundColor: "white",
         borderRadius: 10,
-        marginLeft: 15,
-        marginRight: 15,
+        marginLeft: 13,
+        marginRight: 13,
         marginTop: 7.5,
         marginBottom: 7.5,
-        elevation: 3,
     },
     contentContainer: {
         flex: 5,
