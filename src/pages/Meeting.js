@@ -448,6 +448,7 @@ export default class Meeting extends Component
     }
 
     turnGridToPortrait = (index) => {
+        this.state.peerDetails[index].subscribe();
         this.setState({
             portraitIndex: index,
             view: 'portrait',
