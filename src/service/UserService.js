@@ -95,8 +95,19 @@ export const getAvatar = async () => {
 }
 
 export const changeUsername = async (value) => {
-    await setInStorage(config.usernameIndex, value);
-    config_key.username = value;
+    const url = '/nickname';
+    const data = {
+        token: config_key.token,
+        nickname: value,
+    }
+    const response = await postRequest(url, data);
+    if (response.status === 200) {
+        await setInStorage(config.usernameIndex, value);
+        config_key.username = value;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 

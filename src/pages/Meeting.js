@@ -112,6 +112,7 @@ export default class Meeting extends Component
         const {cameraStatus, microphoneStatus} = this.props.route.params;
         this.handleBack();
         Orientation.unlockAllOrientations();
+        RNSwitchAudioOutput.selectAudioOutput(RNSwitchAudioOutput.AUDIO_SPEAKER);
 
         try {
             await MeetingVariable.mediaService.joinMeeting(this.props.route.params.roomInf.token, config_key.token, config_key.userId, // config_key.userId.toString(),

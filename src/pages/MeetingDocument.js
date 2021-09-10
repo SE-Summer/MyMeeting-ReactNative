@@ -13,6 +13,7 @@ import {
 import {MeetingVariable} from "../MeetingVariable";
 import {TextButton} from "../components/MyButton";
 import {windowHeight} from "../utils/Utils";
+import Clipboard from '@react-native-clipboard/clipboard';
 
 export default class MeetingDocument extends Component {
     constructor(props) {
@@ -32,7 +33,12 @@ export default class MeetingDocument extends Component {
                 return (
                     <TextButton
                         text={'导出'}
-                        pressEvent={() => {}}
+                        pressEvent={() => {
+                            const string = '会议笔记：\n' + this.state.notes +
+                                '\n' + '字幕内容（仅作为参考）：\n' + MeetingVariable.speechRecognition.exportMeme();
+                            Clipboard.setString(string);
+                            toast.show('已复制到剪贴板', {type: 'success', duration: 1000, placement: 'top'})
+                        }}
                     />
                 )
             }

@@ -8,13 +8,9 @@ import {changeUsername} from "../service/UserService";
 
 const changeFunctions = [
     async (value) => {
-        //todo: fulfill this
-        await changeUsername(value);
-        return true;
+        return await changeUsername(value);
     },
     async (value) => {
-        //todo: fulfill this, change password
-
         return true;
     },
 ]
@@ -68,7 +64,7 @@ export default class EditProfileScreen extends Component {
             if (await changeFunctions[contentsCount](text)) {
                 this.props.navigation.pop();
             } else {
-
+                toast.show('修改失败',  {type: 'danger', duration: 1000, placement: 'top'})
             }
         }
     }

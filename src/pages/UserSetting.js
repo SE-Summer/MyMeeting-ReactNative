@@ -94,8 +94,6 @@ export default class UserSettingScreen extends Component {
                     <TouchableItem text={'用户名'} pressEvent={() => {this.usernameSettings('name')}} rightComponent={
                         <Text>{this.state.username}</Text>
                     }/>
-                    <Divider style={styles.divider}/>
-                    <TouchableItem text={'修改密码'} pressEvent={() => {}} />
                 </View>
             </View>
         );
