@@ -449,7 +449,6 @@ export default class Meeting extends Component
     }
 
     turnGridToPortrait = (index) => {
-        this.state.peerDetails[index].subscribe();
         this.setState({
             portraitIndex: index,
             view: 'portrait',
@@ -731,9 +730,6 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, myFron
     }, [showSmall])
 
     const showSmallWindow = () => {
-        if (!peerBig) {
-            peerToShow.subscribe();
-        }
         Animated.sequence(
             [
                 Animated.parallel(
@@ -769,10 +765,6 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, myFron
     }
 
     const hideSmallWindow = () => {
-        if (!peerBig) {
-            peerToShow.unsubscribeVideo();
-        }
-
         Animated.sequence(
             [
                 Animated.parallel(
@@ -808,11 +800,6 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, myFron
     }
 
     if (peerToShow) {
-        peerToShow.subscribe();
-        if (showSmall === 'hide') {
-            peerToShow.unsubscribeVideo();
-        }
-
         const smallMic = !peerBig && peerAudio;
         const trackUrl = new MediaStream(peerToShow.getTracks()).toURL();
 
@@ -822,6 +809,7 @@ const PortraitView = memo(function ({width, height, peerToShow, myStream, myFron
                     {
                         peerBig ?
                             <PeerWindow
+                                peerToShow={peerToShow}
                                 rtcViewStyle={portraitStyle.bigWindow}
                                 peerInfo={peerToShow.getPeerInfo()}
                                 trackUrl={trackUrl}

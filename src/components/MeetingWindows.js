@@ -7,7 +7,14 @@ import {DefaultPic, DefaultWithAudioPic, MyPic} from "./DefaultPic";
 import {MeetingVariable} from "../MeetingVariable";
 import {config_key} from "../Constants";
 
-const PeerWindow = ({rtcViewStyle, peerInfo, trackUrl, peerAudio, peerVideo, zOrder}) => {
+const PeerWindow = ({peerToShow, rtcViewStyle, peerInfo, trackUrl, peerAudio, peerVideo, zOrder}) => {
+    useEffect(() => {
+        peerToShow.subscribe();
+        return () => {
+            peerToShow.unsubscribeVideo();
+        }
+    })
+    
     return (
         <View style={{flex: 1}}>
             <UserLabel text={peerInfo.displayName}/>
