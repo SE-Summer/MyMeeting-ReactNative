@@ -348,8 +348,8 @@ export class MediaService
                     params = {
                         track,
                         appData: { source },
-                        encodings: SIMULCASTENCODING,
-                        codecOptions: { videoGoogleStartBitrate : 1000 },
+                        // encodings: SIMULCASTENCODING,
+                        // codecOptions: { videoGoogleStartBitrate : 1000 },
                         // codec: this.device.rtpCapabilities.codecs.find(codec => codec.mimeType === 'video/H264')
                     }
                 } else {
