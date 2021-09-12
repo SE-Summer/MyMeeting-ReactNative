@@ -325,8 +325,11 @@ export default class Meeting extends Component
 
     updatePeerDetails() {
         MeetingVariable.hostId = MeetingVariable.mediaService.getHostPeerId();
+        const newLength = MeetingVariable.mediaService.getPeerDetails().length;
+        const newPortraitIndex = this.state.portraitIndex >= newLength ? 0 : this.state.portraitIndex;
         this.setState({
-            peerDetails: MeetingVariable.mediaService.getPeerDetails().length === 0 ? null : MeetingVariable.mediaService.getPeerDetails(),
+            peerDetails: newLength === 0 ? null : MeetingVariable.mediaService.getPeerDetails(),
+            portraitIndex: newPortraitIndex,
         }, () => {
             this.forceUpdate();
             console.log('[React]  state.peerDetails of Meeting updated : ' + JSON.stringify(this.state.peerDetails));
