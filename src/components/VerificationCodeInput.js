@@ -67,6 +67,7 @@ export default class VerificationCodeInput extends Component {
                         autoFocus={true}
                         keyboardType={"visible-password"}
                         selectionColor="transparent"
+
                     />
                 </View>
             </View>

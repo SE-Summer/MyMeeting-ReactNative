@@ -1,17 +1,20 @@
 import {io, Socket} from 'socket.io-client';
 import {serviceConfig, SignalMethod, SignalType} from "../ServiceConfig";
+import {timeoutCallback} from "../utils/media/MediaUtils";
 
 export class SignalingService
 {
     private readonly URL: string = null;
     private readonly socket: Socket = null;
     private callbackMap: Map<SignalType ,Map<SignalMethod, object>> = null;
+    private readonly disconnectCallback: () => Promise<void> = null;
 
-    constructor(URL: string, opts)
+    constructor(URL: string, opts, onDisconnect: () => Promise<void>)
     {
         this.URL = URL;
         this.socket = io(URL, opts);
-        console.log('[Socket]  Socket start to connect');
+        this.disconnectCallback = onDisconnect;
+        console.log('[Socket]  Start to connect');
 
         this.callbackMap = new Map<SignalType ,Map<SignalMethod, (data) => void>>();
         this.callbackMap.set(SignalType.request, new Map<SignalMethod, (data) => void>());
@@ -25,17 +28,15 @@ export class SignalingService
             this.handleSignal(SignalType.notify, method, data);
         });
 
-        this.socket.on('disconnect', () => {
-            console.log('[Socket]  Socket disconnected');
-            this.socket.disconnect();
-        })
+        this.socket.on('disconnect', this.disconnectCallback);
     }
 
     private handleSignal(type: SignalType, method: SignalMethod, data)
     {
+        console.log(`[Socket]  Received signal (${type} , ${method})`);
         let callback = this.callbackMap.get(type).get(method) as (data) => void;
         if (callback == undefined) {
-            console.log(`[Socket]  Undefined signal (${type} , ${method})`);
+            console.warn(`[Socket]  Undefined signal (${type} , ${method})`);
         } else {
             callback(data);
             console.log(`[Socket]  Signal handled (${type} , ${method})`);
@@ -47,45 +48,75 @@ export class SignalingService
         this.callbackMap.get(type).set(method, callback);
     }
 
-    private timeoutCallback(callback, timeout: number)
+    public removeAllListeners()
     {
-        let called = false;
-
-        const interval = setTimeout(() => {
-            if (called) {
-                return;
-            }
-            called = true;
-            callback(new Error('Request timeout.'), null);
-        }, timeout);
-
-        return (...args) => {
-            if (called) {
-                return;
-            }
-            called = true;
-            clearTimeout(interval);
-
-            callback(...args);
-        };
+        this.socket.off('disconnect', this.disconnectCallback);
+        this.callbackMap.get(SignalType.notify).clear();
+        this.callbackMap.get(SignalType.request).clear();
     }
 
     public waitForConnection()
     {
+        this.socket.connect();
         return new Promise<void>((resolve, reject) => {
             console.log('[Socket]  Waiting for connection to ' + this.URL + '...');
-            this.socket.on('connect', this.timeoutCallback(() => {
-                console.log('[Socket]  Socket connected');
-                if (this.socket && this.socket.connected)
+            let returned: boolean = false;
+            this.socket.once('connect', timeoutCallback(() => {
+                if (returned)
+                    return;
+
+                returned = true;
+                if (this.socket && this.socket.connected) {
+                    console.log('[Socket]  Connected');
                     resolve();
-                else
+                }
+                else {
                     reject('Socket connection failed');
+                }
             }, serviceConfig.connectTimeout));
+
+            if (!returned && this.socket && this.socket.connected) {
+                returned = true;
+                console.log('[Socket]  Connected');
+                resolve();
+            }
             // this.socket.on('connect_error', this.timeoutCallback(() => {
             //     console.log('Socket connection failed!!!')
             //     reject();
             //     }, serviceConfig.connectTimeout));
         });
+    }
+
+    public waitForReconnection()
+    {
+        return new Promise<void>((resolve, reject) => {
+            console.log('[Socket]  Waiting for reconnection to ' + this.URL + '...');
+            let returned: boolean = false;
+            this.socket.once('connect', timeoutCallback(() => {
+                if (returned)
+                    return;
+
+                returned = true;
+                if (this.socket && this.socket.connected) {
+                    console.log('[Socket]  Reconnected');
+                    resolve();
+                }
+                else {
+                    reject('Socket reconnection failed');
+                }
+            }, serviceConfig.reconnectTimeout));
+
+            if (!returned && this.socket && this.socket.connected) {
+                returned = true;
+                console.log('[Socket]  Reconnected');
+                resolve();
+            }
+        })
+    }
+
+    public disconnect()
+    {
+        this.socket.disconnect();
     }
 
     public sendRequest(method: SignalMethod, data = null)
@@ -95,9 +126,9 @@ export class SignalingService
                 reject('No socket connection.');
             } else {
                 this.socket.emit(SignalType.request, { method, data },
-                    this.timeoutCallback((err, response) => {
+                    timeoutCallback((err, response) => {
                         if (err) {
-                            console.log('[Socket]  sendRequest ' + method + ' error! socket:\n', method, this.socket);
+                            console.error('[Socket]  sendRequest ' + method + ' error!', err);
                             reject(err);
                         } else {
                             resolve(response);
@@ -106,5 +137,15 @@ export class SignalingService
                 );
             }
         });
+    }
+
+    public sendNotify(method: SignalMethod, data = null)
+    {
+        this.socket.emit(SignalType.notify, { method, data });
+    }
+
+    public connected()
+    {
+        return (this.socket && this.socket.connected);
     }
 }

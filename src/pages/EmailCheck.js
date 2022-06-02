@@ -1,14 +1,11 @@
 import * as React from "react";
 import {Component} from "react";
-import {Text, TextInput, View, StyleSheet, Dimensions, ToastAndroid} from "react-native";
-import {validateEmail} from "../utils/Utils";
+import {Text, TextInput, View, StyleSheet} from "react-native";
+import {validateEmail, windowHeight, windowWidth} from "../utils/Utils";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
 import VerificationCodeInput from "../components/VerificationCodeInput";
 import {emailCheck, verifyCode} from "../service/UserService";
-
-const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
 
 const emailStyles = StyleSheet.create({
     title1: {
@@ -25,6 +22,8 @@ const emailStyles = StyleSheet.create({
     },
     input: {
         backgroundColor: 'white',
+        fontSize: 16,
+        color: 'black',
     },
     titleContainer: {
         height: windowHeight / 3,
@@ -110,18 +109,10 @@ export class ValidatePage extends Component {
         const {navigation, route} = this.props;
         const response = await verifyCode(route.params.email, value);
         if (response.status === 200) {
-            ToastAndroid.showWithGravity(
-                '验证成功',
-                500,
-                ToastAndroid.CENTER
-            )
+            toast.show('验证成功', {type: 'success', duration: 1000, placement: 'top'})
             navigation.navigate('Register', {'token': response.data.token});
         } else {
-            ToastAndroid.showWithGravity(
-                '验证码错误',
-                500,
-                ToastAndroid.CENTER
-            )
+            toast.show('验证码错误', {type: 'danger', duration: 1000, placement: 'top'})
         }
     }
 

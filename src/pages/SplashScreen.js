@@ -1,9 +1,10 @@
 import React, {Component} from 'react';
 import {Animated, Dimensions, View,} from 'react-native';
 import {MaskedMyMeeting} from "../components/MaskedText";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {getFromStorage} from "../utils/StorageUtils";
-import {autoLogin} from "../service/UserService";
+import {autoLogin, getAvatar} from "../service/UserService";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const windowHeight = Dimensions.get('window').height;
 
@@ -24,12 +25,19 @@ class Splash extends Component {
             return false;
         }
 
+        const avatarResponse = await getAvatar();
+        if (avatarResponse == null || avatarResponse.status !== 200) {
+            // toast.show('获取头像失败', {type: 'warning', duration: 1300, placement: 'top'})
+            console.log('获取头像失败')
+        } else {
+            config_key.avatarUri = config.baseURL + avatarResponse.data.path;
+        }
+
+        config_key.token = await getFromStorage(config.tokenIndex);
+
         config_key.username = await getFromStorage(config.usernameIndex);
 
-        config_key.userId = await getFromStorage(config.userIdIndex);
-
-        config_key.nickname = await getFromStorage(config.nicknameIndex);
-
+        config_key.userId = Number.parseInt(await getFromStorage(config.userIdIndex));
 
         const camera = await getFromStorage(config.cameraIndex);
         config_key.camera = camera === 'true';
@@ -63,7 +71,7 @@ class Splash extends Component {
                 <Animated.View style={{height: windowHeight * 0.31, justifyContent: "center", alignItems: "center" ,opacity: this.state.fadeAnim}}>
                     <MaskedMyMeeting />
                 </Animated.View>
-                <View style={{height: windowHeight * 0.58}}/>
+                <View style={{height: windowHeight * 0.52}}/>
             </View>
         );
     }
@@ -79,7 +87,9 @@ export default class SplashScreen extends Component {
 
     render() {
         return (
-            <Splash animateEnd={this._animateEnd}/>
+            <SafeAreaView style={{flex: 1}}>
+                <Splash animateEnd={this._animateEnd}/>
+            </SafeAreaView>
         );
     }
 }

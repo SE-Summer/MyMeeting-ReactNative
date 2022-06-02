@@ -1,20 +1,23 @@
-import {View, StyleSheet, TextInput, ToastAndroid} from "react-native";
+import {View, StyleSheet, TextInput, Text} from "react-native";
 import * as React from "react";
 import {Component} from "react";
 import {SwitchItem} from "../components/Item";
 import {Divider} from "react-native-elements";
 import {TextButton} from "../components/MyButton";
-import {config_key} from "../utils/Constants";
-import {create, join} from "../service/MeetingService";
+import {config_key} from "../Constants";
+import {create} from "../service/MeetingService";
 import * as Progress from 'react-native-progress';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {MeetingVariable} from "../MeetingVariable";
 
 const style = StyleSheet.create({
     input: {
-        transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }]
+        fontSize: 17,
+        color: 'black',
     },
     divider: {
-        marginLeft: 5,
-        marginRight: 5,
+        marginLeft: 20,
+        marginRight: 20,
     },
     itemText: {
         fontSize: 16,
@@ -24,6 +27,9 @@ const style = StyleSheet.create({
 export default class CreateMeetingScreen extends Component{
     constructor() {
         super();
+        this.meetingTopicInput = React.createRef();
+        this.meetingPasswordInput = React.createRef();
+        this.joinName = React.createRef();
         this.state={
             name: null,
             id: null,
@@ -31,6 +37,7 @@ export default class CreateMeetingScreen extends Component{
             cameraStatus: config_key.camera,
             microphoneStatus: config_key.microphone,
             loading: false,
+            joinName: config_key.username,
         }
     }
 
@@ -51,15 +58,12 @@ export default class CreateMeetingScreen extends Component{
                 return (
                     <TextButton text={"完成"} pressEvent={
                         () => {
-                            this.refs.textInput1.blur();
-                            this.refs.textInput2.blur();
-                            const {name, password} = this.state;
-                            if (name == null || name.length === 0 || password == null || password.length !== 8) {
-                                ToastAndroid.showWithGravity(
-                                    '输入信息格式有误',
-                                    ToastAndroid.SHORT,
-                                    ToastAndroid.CENTER,
-                                )
+                            this.meetingTopicInput.current.blur();
+                            this.meetingPasswordInput.current.blur();
+                            this.joinName.current.blur();
+                            const {name, password, joinName} = this.state;
+                            if (name == null || name.length === 0 || password == null || password.length !== 8 || joinName == null || joinName.length === 0) {
+                                toast.show('输入信息格式有误', {type: 'warning', duration: 1300, placement: 'top'})
                                 return;
                             }
 
@@ -68,11 +72,7 @@ export default class CreateMeetingScreen extends Component{
                             }, async () => {
                                 const response = await create(this.state.name, this.state.password);
                                 if (response == null) {
-                                    ToastAndroid.showWithGravity(
-                                        '创建失败',
-                                        ToastAndroid.SHORT,
-                                        ToastAndroid.CENTER,
-                                    )
+                                    toast.show('创建失败', {type: 'danger', duration: 1300, placement: 'top'})
                                 } else {
                                     switch (response.status) {
                                         case 200: {
@@ -80,11 +80,7 @@ export default class CreateMeetingScreen extends Component{
                                             break;
                                         }
                                         case 401: {
-                                            ToastAndroid.showWithGravity(
-                                                response.data.error,
-                                                ToastAndroid.SHORT,
-                                                ToastAndroid.CENTER,
-                                            )
+                                            toast.show(response.data.error, {type: 'danger', duration: 1300, placement: 'top'});
                                         }
                                     }
                                 }
@@ -97,27 +93,18 @@ export default class CreateMeetingScreen extends Component{
     }
 
     joinAfterCreate = async (room) => {
-        const response = await join(room.id, room.password);
-        if (response.status === 200) {
-            this.setState({
-                loading: false
-            }, () => {
-                this.props.navigation.navigate('Meeting');
-            })
-        } else {
-            ToastAndroid.showWithGravity(
-                response.data.error,
-                ToastAndroid.SHORT,
-                ToastAndroid.CENTER,
-            )
-            this.setState({
-                loading: false,
-            })
-        }
-    }
-
-    navigate = () => {
-        this.props.navigation.navigate('Meeting', {'id': this.state.id, 'password': this.state.password})
+        this.setState({
+            loading: false
+        }, () => {
+            const params = {
+                roomInf: room,
+                cameraStatus: this.state.cameraStatus,
+                microphoneStatus: this.state.microphoneStatus,
+            }
+            MeetingVariable.room = room;
+            MeetingVariable.myName = this.state.joinName;
+            this.props.navigation.navigate('Meeting', params);
+        })
     }
 
     cameraSwitch = (value) => {
@@ -144,12 +131,18 @@ export default class CreateMeetingScreen extends Component{
         })
     }
 
+    joinNameChange = (value) => {
+        this.setState({
+            joinName: value,
+        })
+    }
+
     render() {
         return (
-            <View style={{backgroundColor: "#EDEDED", flex: 1}}>
+            <SafeAreaView style={{backgroundColor: "#EDEDED", flex: 1}}>
                 <View style={{borderRadius: 10, marginTop: 20, marginRight: 10, marginLeft: 10, backgroundColor: "white"}}>
                     <TextInput
-                        ref={"textInput1"}
+                        ref={this.meetingTopicInput}
                         value={this.state.name}
                         style={style.input}
                         placeholder={"会议标题"}
@@ -159,7 +152,7 @@ export default class CreateMeetingScreen extends Component{
                     />
                     <Divider />
                     <TextInput
-                        ref={"textInput2"}
+                        ref={this.meetingPasswordInput}
                         value={this.state.password}
                         style={style.input}
                         placeholder={"会议密码(8位数字)"}
@@ -171,12 +164,23 @@ export default class CreateMeetingScreen extends Component{
                         onChangeText={this.meetingPasswordChange}
                     />
                 </View>
-                <View style={{marginTop: 60, marginLeft: 10, marginRight: 10, borderRadius: 10, backgroundColor: "white"}}>
+                <View style={{marginTop: 60, marginRight: 10, marginLeft: 10, }}>
+                    <Text style={{fontSize: 13, color: '#999999', marginLeft: 10}}>入会名称</Text>
+                    <TextInput
+                        ref={this.joinName}
+                        value={this.state.joinName}
+                        style={[style.input, {borderRadius: 10, backgroundColor: "white"}]}
+                        textAlign={'center'}
+                        numberOfLines={1}
+                        onChangeText={this.joinNameChange}
+                    />
+                </View>
+                <View style={{marginTop: 20, marginLeft: 10, marginRight: 10, borderRadius: 10, backgroundColor: "white"}}>
                     <SwitchItem text={"摄像头"} status={this.state.cameraStatus} switchEvent={this.cameraSwitch}/>
                     <Divider style={style.divider}/>
                     <SwitchItem text={"麦克风"} status={this.state.microphoneStatus} switchEvent={this.microphoneSwitch}/>
                 </View>
-            </View>
+            </SafeAreaView>
         );
     }
 }

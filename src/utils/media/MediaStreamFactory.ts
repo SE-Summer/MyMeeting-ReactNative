@@ -1,7 +1,10 @@
-import {printError} from "../PrintError";
-import {mediaDevices} from "react-native-webrtc";
+import {
+    MediaStream,
+    mediaDevices,
+} from 'react-native-webrtc';
 import {serviceConfig} from "../../ServiceConfig";
 import * as events from "events"
+import {timeoutCallback} from "./MediaUtils";
 
 
 export class MediaStreamFactory
@@ -24,43 +27,33 @@ export class MediaStreamFactory
         }
     }
 
-    private timeoutCallback(callback, timeout: number)
-    {
-        let called = false;
-
-        const interval = setTimeout(() => {
-            if (called) {
-                return;
-            }
-            called = true;
-            callback(new Error('Update device timeout.'), null);
-        }, timeout);
-
-        return (...args) => {
-            if (called) {
-                return;
-            }
-            called = true;
-            clearTimeout(interval);
-
-            callback(...args);
-        };
-    }
-
     public waitForUpdate()
     {
         return new Promise<void>((resolve, reject) => {
-            console.log('Waiting for MediaStreamFactory to update device info...');
-            this.eventEmitter.on('localDeviceUpdated', this.timeoutCallback(() => {
-                if (this.updated)
+            console.log('[Log]  Waiting for MediaStreamFactory to update device info...');
+            let returned: boolean = false;
+            this.eventEmitter.once('localDeviceUpdated', timeoutCallback(() => {
+                if (returned)
+                    return;
+
+                returned = true;
+                if (this.updated) {
+                    console.log('[Log]  Device info updated');
                     resolve();
-                else
+                } else {
                     reject('Device info update failed');
+                }
             }, serviceConfig.mediaTimeout));
+
+            if (!returned && this.updated) {
+                returned = true;
+                console.log('[Log]  Device info updated');
+                resolve();
+            }
         });
     }
 
-    private async updateLocalDeviceInfos()
+    private async updateLocalDeviceInfos(): Promise<void>
     {
         try {
             this.camEnvDeviceId = null;
@@ -89,10 +82,10 @@ export class MediaStreamFactory
                         break;
                 }
             });
-            this.eventEmitter.emit('localDeviceUpdated');
             this.updated = true;
+            this.eventEmitter.emit('localDeviceUpdated');
         } catch (err) {
-            printError(err);
+            console.error(err);
         }
     }
 
@@ -116,52 +109,51 @@ export class MediaStreamFactory
         return this.speakerDeviceId;
     }
 
-    public async getCamEnvStream(_width: number, _height: number, _frameRate: number)
+    public async getCamEnvStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
     {
-        let stream = null;
-        let constraints = {
+        const constraints = {
             audio: false,
             video: {
+                width: _width,
+                height: _height,
+                frameRate: _frameRate,
+                aspectRatio: _width/_height,
                 deviceId: this.camEnvDeviceId,
-                frameRate: {ideal: _frameRate},
-                width: _width,
-                height: _height,
             },
         };
 
         try {
-            stream = await mediaDevices.getUserMedia(constraints)
+            return await mediaDevices.getUserMedia(constraints)
         } catch (err) {
-            printError(err);
+            console.error(err);
+            return Promise.reject("Fail to get camera env stream.");
         }
-        return stream;
     }
 
-    public async getCamFrontStream(_width: number, _height: number, _frameRate: number)
+    public async getCamFrontStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
     {
-        let stream: MediaStream = null;
-        let constraints = {
+        const constraints = {
             audio: false,
             video: {
-                deviceId: this.camFrontDeviceId,
-                frameRate: {ideal: _frameRate},
                 width: _width,
                 height: _height,
+                frameRate: _frameRate,
+                aspectRatio: _width/_height,
+                deviceId: this.camFrontDeviceId,
             },
         };
 
         try {
-            stream = await mediaDevices.getUserMedia(constraints);
+            return await mediaDevices.getUserMedia(constraints);
         } catch (err) {
-            printError(err);
+            console.error(err);
+            return Promise.reject("Fail to get camera front stream.");
         }
-        return stream;
     }
 
-    public async getMicStream()
+    public async getMicStream(): Promise<MediaStream>
     {
-        let stream = null;
-        let constraints = {
+        const constraints = {
             audio: {
                 deviceId: this.micDeviceId,
                 autoGainControl: true,
@@ -172,31 +164,29 @@ export class MediaStreamFactory
         };
 
         try {
-            stream = await mediaDevices.getUserMedia(constraints)
+            return await mediaDevices.getUserMedia(constraints)
         } catch (err) {
-            printError(err);
+            console.error(err);
+            return Promise.reject("Fail to get camera front stream.");
         }
-
-        return stream;
     }
 
-    public async getDisplayStream(_width: number, _height: number, _frameRate: number)
+    public async getDisplayStream(_width: number, _height: number, _frameRate: number): Promise<MediaStream>
     {
-        let stream = null;
-        let constraints = {
+        const constraints = {
             audio: true,
             video: {
-                frameRate: {ideal: _frameRate},
                 width: _width,
                 height: _height,
-            },
+                frameRate: _frameRate,
+                aspectRatio: _width/_height,
+            }
         };
         try {
-            stream = await mediaDevices.getDisplayMedia(constraints);
+            return await mediaDevices.getDisplayMedia(constraints);
         } catch (err) {
-            printError(err);
+            console.error(err);
+            return Promise.reject("Fail to get display stream.");
         }
-
-        return stream;
     }
 }

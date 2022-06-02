@@ -1,5 +1,5 @@
 import {getFromStorage, removeFromStorage, setInStorage} from "../utils/StorageUtils";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {getRequest, postFormData, postRequest} from "../utils/Utils";
 
 export const loginService = async (email, password) => {
@@ -14,14 +14,24 @@ export const loginService = async (email, password) => {
 
     if (response.status === 200) {
         const user = response.data.user;
+        //后端用户名保存叫nickname
         await setInStorage(config.usernameIndex, user.nickname);
         await setInStorage(config.emailIndex, user.email);
         await setInStorage(config.userIdIndex, JSON.stringify(user.id));
         await setInStorage(config.tokenIndex, user.token);
         config_key.username = user.nickname;
-        config_key.nickname = user.nickname;
         config_key.userId = user.id;
         config_key.email = user.email;
+        config_key.token = user.token;
+
+        const avatarResponse = await getAvatar();
+        if (avatarResponse == null || avatarResponse.status !== 200) {
+            // toast.show('获取头像失败', {type: 'warning', duration: 1300, placement: 'top'})
+            console.log('获取头像失败');
+        } else {
+            config_key.avatarUri = config.baseURL + avatarResponse.data.path;
+        }
+
         return true;
     } else {
         return false;
@@ -35,6 +45,10 @@ export const autoLogin = async () => {
 }
 
 export const logout = async () => {
+    config_key.token = null;
+    config_key.username = null;
+    config_key.userId = null;
+    config_key.avatarUri = null;
     await removeFromStorage(config.usernameIndex);
     await removeFromStorage(config.userIdIndex);
     await removeFromStorage(config.tokenIndex);
@@ -81,13 +95,19 @@ export const getAvatar = async () => {
 }
 
 export const changeUsername = async (value) => {
-    await setInStorage(config.usernameIndex, value);
-    config_key.username = value;
-}
-
-export const changeNickname = async (value) => {
-    await setInStorage(config.nicknameIndex, value);
-    config_key.nickname = value;
+    const url = '/nickname';
+    const data = {
+        token: config_key.token,
+        nickname: value,
+    }
+    const response = await postRequest(url, data);
+    if (response.status === 200) {
+        await setInStorage(config.usernameIndex, value);
+        config_key.username = value;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 

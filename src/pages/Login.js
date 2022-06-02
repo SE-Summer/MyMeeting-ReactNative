@@ -1,16 +1,24 @@
 import * as React from "react";
-import {View, StyleSheet, TextInput, ImageBackground, Image, BackHandler, ToastAndroid, Text, Dimensions } from "react-native";
+import {
+    View,
+    StyleSheet,
+    TextInput,
+    ImageBackground,
+    Image,
+    Text, ScrollView,
+} from "react-native";
 import {FlashButton, MyButton} from "../components/MyButton";
 import {Component} from "react";
 import {MaskedMyMeeting} from "../components/MaskedText";
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import {config, config_key, utils} from "../utils/Constants";
-import {validateEmail} from "../utils/Utils";
+import {config_key} from "../Constants";
+import {validateEmail, windowHeight, windowWidth} from "../utils/Utils";
 import {loginService} from "../service/UserService";
-import {setInStorage} from "../utils/StorageUtils";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import RNExitApp from 'react-native-exit-app';
 
-const windowHeight = Dimensions.get('window').height;
-const windowWidth = Dimensions.get('window').width;
+const smallUtils = {
+    buttonOutline: [require('../resources/image/myButton_Outlined.png'), require('../resources/image/myButton_Outline_error.png')],
+}
 
 const InputLabel = ({text}) => {
     if (text == null) {
@@ -40,13 +48,9 @@ export default class LoginScreen extends Component {
 
     backAction = () => {
         if (this.state.backTimes === 1) {
-            BackHandler.exitApp();
+            RNExitApp.exitApp();
         } else {
-            ToastAndroid.showWithGravity(
-                "再按一次退出MyMeeting",
-                ToastAndroid.SHORT,
-                ToastAndroid.CENTER,
-            )
+            toast.show('再按一次退出MyMeeting', {type: 'normal', duration: 1300, placement: 'top'})
             this.setState({
                 backTimes: 1,
             })
@@ -65,22 +69,17 @@ export default class LoginScreen extends Component {
                 EmailTip: null,
                 passwordTip: null,
             });
-            BackHandler.addEventListener("hardwareBackPress", this.backAction);
         })
-        this.props.navigation.addListener('blur', () => {
-            BackHandler.removeEventListener("hardwareBackPress", this.backAction);
+        this.props.navigation.addListener('beforeRemove', e => {
+            if (e.data.action.type === 'GO_BACK') {
+                e.preventDefault();
+                this.backAction();
+            }
         })
     }
 
     log = async () => {
         const {userEmail, password} = this.state;
-
-        /*delete this after test*/
-        if (userEmail != null && userEmail === 'dev') {
-            await setInStorage(config.tokenIndex, password);
-            config_key.username = 'test';
-            this.props.navigation.navigate('Meeting', {token: 12});
-        }
 
         const EmailFilled = userEmail != null && userEmail.length !== 0;
         if (!EmailFilled) {
@@ -156,63 +155,63 @@ export default class LoginScreen extends Component {
 
     render() {
         return (
-            <KeyboardAwareScrollView style={{backgroundColor: "white", flex: 1}}>
-                <View style={styles.topFillContainer}>
-                    <View style={styles.topContainer}>
-                        <Image source={require('../assets/triAngle.png')} style={styles.triAngleImg}/>
-                        <View style={{flex: 1, alignItems: "center"}}>
-                            <FlashButton pressEvent={this.flashStart}/>
+            <SafeAreaView style={{flex: 1}}>
+                <ScrollView style={{backgroundColor: "white", flex: 1}}>
+                    <View style={styles.topFillContainer}>
+                        <View style={styles.topContainer}>
+                            <Image source={require('../resources/image/triAngle.png')} style={styles.triAngleImg}/>
+                            <View style={{flex: 1, alignItems: "center"}}>
+                                <FlashButton pressEvent={this.flashStart}/>
+                            </View>
                         </View>
                     </View>
-                </View>
-                <View style={styles.titleContainer}>
-                    <MaskedMyMeeting />
-                </View>
-                <View style={styles.imgFillContainer}>
-                    <ImageBackground source={require('../assets/greyBg.png')} style={styles.imageView}>
-                        <View style={styles.inputContainer}>
-                            <View style={styles.labelContainer}>
-                                <InputLabel text={this.state.EmailTip}/>
+                    <View style={styles.titleContainer}>
+                        <MaskedMyMeeting />
+                    </View>
+                    <View style={styles.imgFillContainer}>
+                        <ImageBackground source={require('../resources/image/greyBg.png')} style={styles.imageView}>
+                            <View style={styles.inputContainer}>
+                                <View style={styles.labelContainer}>
+                                    <InputLabel text={this.state.EmailTip}/>
+                                </View>
+                                <ImageBackground source={smallUtils.buttonOutline[this.state.userInput]} style={styles.imgBg}>
+                                    <TextInput
+                                        value={this.state.userEmail}
+                                        style={styles.input}
+                                        placeholder={"邮箱"}
+                                        numberOfLines={1}
+                                        placeholderTextColor={'#aaaaaa'}
+                                        selectionColor={"green"}
+                                        keyboardType={"email-address"}
+                                        textContentType={'emailAddress'}
+                                        onChangeText={this.onUserEmailChange}
+                                    />
+                                </ImageBackground>
+                                <View style={styles.labelContainer}>
+                                    <InputLabel text={this.state.passwordTip}/>
+                                </View>
+                                <ImageBackground source={smallUtils.buttonOutline[this.state.passwordInput]} style={styles.imgBg}>
+                                    <TextInput
+                                        value={this.state.password}
+                                        style={styles.input}
+                                        placeholder={"密码"}
+                                        numberOfLines={1}
+                                        secureTextEntry={true}
+                                        maxLength={20}
+                                        placeholderTextColor={'#aaaaaa'}
+                                        selectionColor={"green"}
+                                        onChangeText={this.onPasswordChange}
+                                    />
+                                </ImageBackground>
                             </View>
-                            <ImageBackground source={utils.buttonOutline[this.state.userInput]} style={styles.imgBg}>
-                                <TextInput
-                                    value={this.state.userEmail}
-                                    style={styles.input}
-                                    placeholder={"邮箱"}
-                                    numberOfLines={1}
-                                    placeholderTextColor={'#aaaaaa'}
-                                    selectionColor={"green"}
-                                    keyboardType={"email-address"}
-                                    textContentType={'emailAddress'}
-                                    onChangeText={this.onUserEmailChange}
-                                />
-                            </ImageBackground>
-                            <View style={styles.labelContainer}>
-                                <InputLabel text={this.state.passwordTip}/>
-                            </View>
-                            <ImageBackground source={utils.buttonOutline[this.state.passwordInput]} style={styles.imgBg}>
-                                <TextInput
-                                    value={this.state.password}
-                                    style={styles.input}
-                                    placeholder={"密码"}
-                                    numberOfLines={1}
-                                    secureTextEntry={true}
-                                    maxLength={20}
-                                    placeholderTextColor={'#aaaaaa'}
-                                    selectionColor={"green"}
-                                    onChangeText={this.onPasswordChange}
-                                />
-                            </ImageBackground>
-                        </View>
-                    </ImageBackground>
-                </View>
-                <View style={styles.buttonContainer}>
-                    <MyButton pressEvent={this.log} text={"登录"}/>
-                    <View style={{width: 30}}/>
-                    <MyButton pressEvent={this.register} text={"注册"}/>
-                </View>
-            </KeyboardAwareScrollView>
-
+                        </ImageBackground>
+                    </View>
+                    <View style={styles.buttonContainer}>
+                        <MyButton pressEvent={this.log} text={"登录"}/>
+                        <MyButton pressEvent={this.register} text={"注册"}/>
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
         )
     }
 }
@@ -227,18 +226,18 @@ const styles = StyleSheet.create({
     },
     titleContainer: {
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         height: windowHeight * 0.31,
     },
     buttonContainer: {
         flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        height: windowHeight * 0.18,
+        justifyContent: "space-around",
+        alignItems: "flex-end",
+        height: windowHeight * 0.16,
     },
     imgFillContainer: {
-        height: windowHeight * 0.4,
-        justifyContent: 'center'
+        height: windowHeight * 0.36,
+        justifyContent: 'center',
     },
     imageView: {
         width: windowWidth,
@@ -255,10 +254,10 @@ const styles = StyleSheet.create({
         marginTop: windowWidth * 0.3,
     },
     input: {
-        transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }],
-        marginLeft: 20,
-        marginRight: 20,
+        marginLeft: 10,
+        marginRight: 10,
         color: "white",
+        fontSize: 17,
     },
     labelContainer: {
         marginLeft: 20,

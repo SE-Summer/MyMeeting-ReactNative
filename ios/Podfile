@@ -12,6 +12,8 @@ target 'MyMeeting_React_Native' do
     :hermes_enabled => false
   )
 
+  pod 'RNFS', :path => '../node_modules/react-native-fs'
+
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
   pod 'BVLinearGradient', :path => '../node_modules/react-native-linear-gradient'

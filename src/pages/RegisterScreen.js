@@ -1,6 +1,6 @@
 import * as React from "react";
 import {Component} from "react";
-import {TextInput, View, StyleSheet, ToastAndroid} from "react-native";
+import {TextInput, View, StyleSheet} from "react-native";
 import {Tip} from "../components/Tip";
 import {TextButton} from "../components/MyButton";
 import {registerService} from "../service/UserService";
@@ -8,9 +8,8 @@ import * as Progress from "react-native-progress";
 
 const styles = StyleSheet.create({
     input: {
-        transform: [{scaleX: 1.1}, {scaleY: 1.1}],
-        marginLeft: 30,
-        marginRight: 30,
+        fontSize: 17,
+        color: 'black',
     },
     inputContainer: {
         backgroundColor: "white",
@@ -76,7 +75,7 @@ export default class RegisterScreen extends Component {
                         loading: false,
                     });
                     this.props.navigation.navigate('Login');
-                    ToastAndroid.show('注册成功', ToastAndroid.SHORT);
+                    toast.show('注册成功', {type: 'success', duration: 1300, placement: 'top'});
                 } else {
                     this.setState({
                         username: null,
@@ -84,7 +83,7 @@ export default class RegisterScreen extends Component {
                         confirmPassword: null,
                         loading: false,
                     });
-                    ToastAndroid.show('出错了', ToastAndroid.SHORT);
+                    toast.show('注册失败', {type: 'danger', duration: 1300, placement: 'top'})
                 }
             })
 
@@ -93,6 +92,7 @@ export default class RegisterScreen extends Component {
 
     checkResult = async () => {
         const token = this.props.route.params.token;
+        //后端的用户名称作nickname
         const userInf = {
             nickname: this.state.username,
             password: this.state.password,

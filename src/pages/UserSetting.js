@@ -1,8 +1,8 @@
 import * as React from 'react';
 import {Component} from "react";
-import {Image, View, StyleSheet, Text, ToastAndroid} from "react-native";
+import {Image, View, StyleSheet, Text} from "react-native";
 import {TouchableItem} from "../components/Item";
-import {config, config_key} from "../utils/Constants";
+import {config, config_key} from "../Constants";
 import {Divider} from "react-native-elements/dist/divider/Divider";
 import ImagePicker from 'react-native-image-crop-picker';
 import {getAvatar, uploadAvatar} from "../service/UserService";
@@ -16,8 +16,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     divider: {
-        marginLeft: 5,
-        marginRight: 5,
+        marginLeft: 20,
+        marginRight: 20,
     }
 })
 
@@ -27,7 +27,6 @@ export default class UserSettingScreen extends Component {
         this.state = {
             avatarUri: config_key.avatarUri,
             username: null,
-            nickname: null,
         }
     }
 
@@ -36,7 +35,6 @@ export default class UserSettingScreen extends Component {
         navigation.addListener('focus', () => {
             this.setState({
                 username: config_key.username,
-                nickname: config_key.nickname,
                 avatarUri: config_key.avatarUri,
             })
         })
@@ -52,7 +50,8 @@ export default class UserSettingScreen extends Component {
         }).then(async image => {
             const response = await uploadAvatar(image);
             if (response == null || response.status !== 200) {
-                ToastAndroid.show('上传失败', 1000);
+                // toast.show('上传失败', {type: 'danger', duration: 1300, placement: 'top'});
+                console.log('上传头像失败')
             } else {
                 await this.refreshAvatar();
             }
@@ -85,17 +84,16 @@ export default class UserSettingScreen extends Component {
                 </View>
                 <View style={{height: 30}}/>
                 <View style={styles.itemContainer}>
+                    <View style={{flexDirection: "row", padding: 15, alignItems: "center"}}>
+                        <Text style={{fontSize:16, textAlign: "left", marginLeft: 10}}>邮箱</Text>
+                        <View style={{alignItems: 'flex-end', flex: 1}}>
+                            <Text>{config_key.email}</Text>
+                        </View>
+                    </View>
+                    <Divider style={styles.divider}/>
                     <TouchableItem text={'用户名'} pressEvent={() => {this.usernameSettings('name')}} rightComponent={
                         <Text>{this.state.username}</Text>
                     }/>
-                    <Divider style={styles.divider}/>
-                    <TouchableItem text={'入会名称'} pressEvent={() => {this.usernameSettings('nickname')}} rightComponent={
-                        <Text>{this.state.nickname}</Text>
-                    }/>
-                </View>
-                <View style={{height: 30}}/>
-                <View style={styles.itemContainer}>
-                    <TouchableItem text={'修改密码'} pressEvent={() => {}} />
                 </View>
             </View>
         );

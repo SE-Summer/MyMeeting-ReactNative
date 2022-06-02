@@ -20,7 +20,9 @@ export const DateTimeModal = ({ visible, date, mode, dateChange, onOk, text }) =
                     mode={mode}
                     androidVariant="nativeAndroid"
                 />
-                <TextButton text={"确定"} pressEvent={onOk}/>
+                <View style={{alignItems: 'center'}}>
+                    <TextButton text={"确定"} pressEvent={onOk}/>
+                </View>
             </View>
             <View style={{flex: 1}}/>
         </Modal>

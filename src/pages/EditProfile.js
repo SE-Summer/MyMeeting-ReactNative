@@ -1,20 +1,16 @@
 import * as React from 'react';
 import {Component} from "react";
 import {TextInput, View} from "react-native";
-import {config_key} from "../utils/Constants";
+import {config_key} from "../Constants";
 import {TextButton} from "../components/MyButton";
 import {Tip} from "../components/Tip";
-import {changeNickname, changeUsername} from "../service/UserService";
+import {changeUsername} from "../service/UserService";
 
 const changeFunctions = [
     async (value) => {
-        //todo: fulfill this
-        await changeUsername(value);
-        return true;
+        return await changeUsername(value);
     },
     async (value) => {
-        //todo: fulfill this
-        await changeNickname(value);
         return true;
     },
 ]
@@ -32,7 +28,7 @@ export default class EditProfileScreen extends Component {
     componentDidMount() {
         const {navigation, route} = this.props;
         const type = route.params.type;
-        const title = type === 'name' ? '修改用户名' : '修改入会名称';
+        const title = type === 'name' ? '修改用户名' : '修改密码';
         navigation.setOptions({
             title: title,
             headerLeft: () => {
@@ -50,7 +46,7 @@ export default class EditProfileScreen extends Component {
             this.setState({
                 contentsCount: 0,
             })
-        } else if (type === 'nickname') {
+        } else if (type === 'password') {
             this.setState({
                 contentsCount: 1,
             })
@@ -68,7 +64,7 @@ export default class EditProfileScreen extends Component {
             if (await changeFunctions[contentsCount](text)) {
                 this.props.navigation.pop();
             } else {
-
+                toast.show('修改失败',  {type: 'danger', duration: 1000, placement: 'top'})
             }
         }
     }
@@ -94,12 +90,12 @@ export default class EditProfileScreen extends Component {
             <View style={{margin: 10}}>
                 <Tip text={this.state.tip} warning={true}/>
                 <TextInput
-                    placeholder={this.state.contentsCount === 1 ? config_key.nickname : config_key.username}
+                    placeholder={this.state.contentsCount === 1 ? null : config_key.username}
                     maxLength={15}
                     multiline={false}
                     onChangeText={this.textChange}
-                    keyboardType={"visible-password"}
-                    style={{backgroundColor: "white", borderRadius: 10}}
+                    keyboardType={"default"}
+                    style={{backgroundColor: "white", borderRadius: 10, fontSize: 16, color: 'black'}}
                 />
             </View>
         );
